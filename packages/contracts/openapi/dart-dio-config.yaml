@@ -1,0 +1,10 @@
+pubName: ecommerce_api_client
+pubVersion: 0.1.0
+pubDescription: Generated Dart Dio client for the Universal E-Commerce REST API.
+enumUnknownDefaultCase: true
+dateLibrary: core
+serializationLibrary: built_value
+useEnumExtension: true
+legacyDiscriminatorBehavior: false
+disallowAdditionalPropertiesIfNotPresent: false
+nullableFields: true

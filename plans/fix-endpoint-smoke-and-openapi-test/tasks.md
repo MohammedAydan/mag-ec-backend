@@ -1,0 +1,6 @@
+- [x] Identify failing endpoints from smoke checks
+- [x] Fix immediate runtime 500 in catalog public endpoints
+- [x] Add OpenAPI-driven endpoint probe script
+- [x] Run full endpoint probes 3 rounds
+- [x] Fix deterministic 5xx issues discovered
+- [x] Produce final endpoint health report

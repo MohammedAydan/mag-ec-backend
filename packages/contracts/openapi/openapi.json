@@ -1,0 +1,2472 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/api/v1/health/liveness": {
+      "get": {
+        "operationId": "HealthController_getLiveness",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": ["Health"]
+      }
+    },
+    "/api/v1/health/readiness": {
+      "get": {
+        "operationId": "HealthController_getReadiness",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "The Health Check is successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "ok"
+                    },
+                    "info": {
+                      "type": "object",
+                      "example": {
+                        "database": {
+                          "status": "up"
+                        }
+                      },
+                      "additionalProperties": {
+                        "type": "object",
+                        "required": ["status"],
+                        "properties": {
+                          "status": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": true
+                      },
+                      "nullable": true
+                    },
+                    "error": {
+                      "type": "object",
+                      "example": {},
+                      "additionalProperties": {
+                        "type": "object",
+                        "required": ["status"],
+                        "properties": {
+                          "status": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": true
+                      },
+                      "nullable": true
+                    },
+                    "details": {
+                      "type": "object",
+                      "example": {
+                        "database": {
+                          "status": "up"
+                        }
+                      },
+                      "additionalProperties": {
+                        "type": "object",
+                        "required": ["status"],
+                        "properties": {
+                          "status": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The Health Check is not successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "error"
+                    },
+                    "info": {
+                      "type": "object",
+                      "example": {
+                        "database": {
+                          "status": "up"
+                        }
+                      },
+                      "additionalProperties": {
+                        "type": "object",
+                        "required": ["status"],
+                        "properties": {
+                          "status": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": true
+                      },
+                      "nullable": true
+                    },
+                    "error": {
+                      "type": "object",
+                      "example": {
+                        "redis": {
+                          "status": "down",
+                          "message": "Could not connect"
+                        }
+                      },
+                      "additionalProperties": {
+                        "type": "object",
+                        "required": ["status"],
+                        "properties": {
+                          "status": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": true
+                      },
+                      "nullable": true
+                    },
+                    "details": {
+                      "type": "object",
+                      "example": {
+                        "database": {
+                          "status": "up"
+                        },
+                        "redis": {
+                          "status": "down",
+                          "message": "Could not connect"
+                        }
+                      },
+                      "additionalProperties": {
+                        "type": "object",
+                        "required": ["status"],
+                        "properties": {
+                          "status": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Health"]
+      }
+    },
+    "/api/v1/auth/register": {
+      "post": {
+        "operationId": "AuthController_register",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "User successfully registered"
+          },
+          "409": {
+            "description": "Email already exists"
+          }
+        },
+        "summary": "Register a new customer account",
+        "tags": ["Authentication"]
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "operationId": "AuthController_login",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Login successful"
+          },
+          "401": {
+            "description": "Invalid credentials"
+          }
+        },
+        "summary": "Authenticate user credentials and issue session tokens",
+        "tags": ["Authentication"]
+      }
+    },
+    "/api/v1/auth/refresh": {
+      "post": {
+        "operationId": "AuthController_refresh",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Tokens successfully rotated"
+          },
+          "401": {
+            "description": "Invalid or rotated refresh token"
+          }
+        },
+        "summary": "Exchange an active refresh token for a new token set (rotation)",
+        "tags": ["Authentication"]
+      }
+    },
+    "/api/v1/auth/logout": {
+      "post": {
+        "operationId": "AuthController_logout",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": "Logout successful"
+          }
+        },
+        "summary": "Revoke active refresh token session family",
+        "tags": ["Authentication"]
+      }
+    },
+    "/api/v1/auth/password-reset/request": {
+      "post": {
+        "operationId": "AuthController_requestPasswordReset",
+        "parameters": [],
+        "responses": {
+          "202": {
+            "description": "Password-reset request accepted"
+          }
+        },
+        "summary": "Create a password-reset request without disclosing account existence",
+        "tags": ["Authentication"]
+      }
+    },
+    "/api/v1/auth/password-reset/confirm": {
+      "post": {
+        "operationId": "AuthController_resetPassword",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Password reset completed"
+          },
+          "401": {
+            "description": "Invalid or expired password-reset token"
+          }
+        },
+        "summary": "Consume a password-reset token and change the user password",
+        "tags": ["Authentication"]
+      }
+    },
+    "/api/v1/auth/verification/confirm": {
+      "post": {
+        "operationId": "AuthController_verifyEmail",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Email verified"
+          },
+          "401": {
+            "description": "Invalid or expired verification token"
+          }
+        },
+        "summary": "Consume an email-verification token and mark the account verified",
+        "tags": ["Authentication"]
+      }
+    },
+    "/api/v1/auth/verification/request": {
+      "post": {
+        "operationId": "AuthController_requestEmailVerification",
+        "parameters": [],
+        "responses": {
+          "202": {
+            "description": "Email-verification request accepted"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Issue a new email-verification request for the authenticated user",
+        "tags": ["Authentication"]
+      }
+    },
+    "/api/v1/auth/me": {
+      "get": {
+        "operationId": "AuthController_getCurrentUser",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Authenticated user profile returned"
+          },
+          "401": {
+            "description": "Authentication is required"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Return the authenticated user profile and access summary",
+        "tags": ["Authentication"]
+      }
+    },
+    "/api/v1/identity/users/{userId}/profile": {
+      "get": {
+        "operationId": "IdentityController_getUserProfile",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "User profile returned"
+          },
+          "401": {
+            "description": "Authentication is required"
+          },
+          "403": {
+            "description": "Object-level access denied"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Read a user profile when the actor owns it or has identity.read access",
+        "tags": ["Identity"]
+      }
+    },
+    "/api/v1/identity/admin/access-check": {
+      "get": {
+        "operationId": "IdentityController_getAdminAccessCheck",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Administrative identity access is allowed"
+          },
+          "401": {
+            "description": "Authentication is required"
+          },
+          "403": {
+            "description": "Missing required role or permission"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Verify privileged identity access for administrative actors",
+        "tags": ["Identity"]
+      }
+    },
+    "/api/v1/identity/admin/permissions": {
+      "get": {
+        "operationId": "AdminAccessController_listPermissions",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Identity Admin"]
+      }
+    },
+    "/api/v1/identity/admin/roles": {
+      "get": {
+        "operationId": "AdminAccessController_listRoles",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Identity Admin"]
+      },
+      "post": {
+        "operationId": "AdminAccessController_createRole",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Identity Admin"]
+      }
+    },
+    "/api/v1/identity/admin/roles/{roleId}/permissions": {
+      "patch": {
+        "operationId": "AdminAccessController_updateRolePermissions",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Identity Admin"]
+      }
+    },
+    "/api/v1/identity/admin/staff": {
+      "get": {
+        "operationId": "AdminAccessController_listStaff",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Identity Admin"]
+      }
+    },
+    "/api/v1/identity/admin/customers": {
+      "get": {
+        "operationId": "AdminAccessController_listCustomers",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Identity Admin"]
+      }
+    },
+    "/api/v1/identity/admin/staff/invitations": {
+      "post": {
+        "operationId": "AdminAccessController_inviteStaff",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Identity Admin"]
+      }
+    },
+    "/api/v1/identity/admin/staff/{staffId}/resend-invitation": {
+      "post": {
+        "operationId": "AdminAccessController_resendStaffInvitation",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Identity Admin"]
+      }
+    },
+    "/api/v1/identity/admin/staff/{staffId}/roles": {
+      "patch": {
+        "operationId": "AdminAccessController_updateStaffRoles",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Identity Admin"]
+      }
+    },
+    "/api/v1/identity/admin/staff/{staffId}/status": {
+      "patch": {
+        "operationId": "AdminAccessController_updateStaffStatus",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Identity Admin"]
+      }
+    },
+    "/api/v1/promotions/admin": {
+      "get": {
+        "operationId": "PromotionsAdminController_listPromotions",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Promotions Admin"]
+      }
+    },
+    "/api/v1/promotions/admin/{promotionId}": {
+      "get": {
+        "operationId": "PromotionsAdminController_getPromotion",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Promotions Admin"]
+      }
+    },
+    "/api/v1/promotions/admin/{promotionKey}": {
+      "put": {
+        "operationId": "PromotionsAdminController_upsertPromotion",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Promotions Admin"]
+      }
+    },
+    "/api/v1/promotions/admin/{promotionId}/coupons/{code}": {
+      "put": {
+        "operationId": "PromotionsAdminController_upsertCoupon",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Promotions Admin"]
+      }
+    },
+    "/api/v1/catalog/admin/products": {
+      "get": {
+        "operationId": "CatalogAdminController_listProducts",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Catalog Admin"]
+      },
+      "post": {
+        "operationId": "CatalogAdminController_createProduct",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Catalog Admin"]
+      }
+    },
+    "/api/v1/catalog/admin/products/{productId}": {
+      "get": {
+        "operationId": "CatalogAdminController_getProduct",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Catalog Admin"]
+      },
+      "patch": {
+        "operationId": "CatalogAdminController_updateProduct",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Catalog Admin"]
+      }
+    },
+    "/api/v1/catalog/admin/product-types": {
+      "get": {
+        "operationId": "CatalogAdminController_listProductTypes",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Catalog Admin"]
+      },
+      "post": {
+        "operationId": "CatalogAdminController_createProductType",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Catalog Admin"]
+      }
+    },
+    "/api/v1/catalog/admin/brands": {
+      "get": {
+        "operationId": "CatalogAdminController_listBrands",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Catalog Admin"]
+      },
+      "post": {
+        "operationId": "CatalogAdminController_createBrand",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Catalog Admin"]
+      }
+    },
+    "/api/v1/catalog/admin/categories": {
+      "get": {
+        "operationId": "CatalogAdminController_listCategories",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Catalog Admin"]
+      },
+      "post": {
+        "operationId": "CatalogAdminController_createCategory",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Catalog Admin"]
+      }
+    },
+    "/api/v1/catalog/admin/collections": {
+      "get": {
+        "operationId": "CatalogAdminController_listCollections",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Catalog Admin"]
+      },
+      "post": {
+        "operationId": "CatalogAdminController_createCollection",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Catalog Admin"]
+      }
+    },
+    "/api/v1/catalog/admin/tags": {
+      "get": {
+        "operationId": "CatalogAdminController_listTags",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Catalog Admin"]
+      },
+      "post": {
+        "operationId": "CatalogAdminController_createTag",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Catalog Admin"]
+      }
+    },
+    "/api/v1/catalog/admin/attributes": {
+      "get": {
+        "operationId": "CatalogAdminController_listAttributes",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Catalog Admin"]
+      },
+      "post": {
+        "operationId": "CatalogAdminController_createAttribute",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Catalog Admin"]
+      }
+    },
+    "/api/v1/catalog/admin/product-types/{productTypeId}/publish": {
+      "post": {
+        "operationId": "CatalogAdminController_publishProductType",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Catalog Admin"]
+      }
+    },
+    "/api/v1/catalog/admin/product-types/{productTypeId}/archive": {
+      "post": {
+        "operationId": "CatalogAdminController_archiveProductType",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Catalog Admin"]
+      }
+    },
+    "/api/v1/catalog/admin/brands/{brandId}/publish": {
+      "post": {
+        "operationId": "CatalogAdminController_publishBrand",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Catalog Admin"]
+      }
+    },
+    "/api/v1/catalog/admin/brands/{brandId}/archive": {
+      "post": {
+        "operationId": "CatalogAdminController_archiveBrand",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Catalog Admin"]
+      }
+    },
+    "/api/v1/catalog/admin/categories/{categoryId}/publish": {
+      "post": {
+        "operationId": "CatalogAdminController_publishCategory",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Catalog Admin"]
+      }
+    },
+    "/api/v1/catalog/admin/categories/{categoryId}/archive": {
+      "post": {
+        "operationId": "CatalogAdminController_archiveCategory",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Catalog Admin"]
+      }
+    },
+    "/api/v1/catalog/admin/collections/{collectionId}/publish": {
+      "post": {
+        "operationId": "CatalogAdminController_publishCollection",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Catalog Admin"]
+      }
+    },
+    "/api/v1/catalog/admin/collections/{collectionId}/archive": {
+      "post": {
+        "operationId": "CatalogAdminController_archiveCollection",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Catalog Admin"]
+      }
+    },
+    "/api/v1/catalog/admin/tags/{tagId}/publish": {
+      "post": {
+        "operationId": "CatalogAdminController_publishTag",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Catalog Admin"]
+      }
+    },
+    "/api/v1/catalog/admin/tags/{tagId}/archive": {
+      "post": {
+        "operationId": "CatalogAdminController_archiveTag",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Catalog Admin"]
+      }
+    },
+    "/api/v1/catalog/admin/products/{productId}/variants": {
+      "post": {
+        "operationId": "CatalogAdminController_createProductVariant",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Catalog Admin"]
+      }
+    },
+    "/api/v1/catalog/admin/variants/{variantId}": {
+      "patch": {
+        "operationId": "CatalogAdminController_updateProductVariant",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Catalog Admin"]
+      }
+    },
+    "/api/v1/catalog/admin/variants/{variantId}/publish": {
+      "post": {
+        "operationId": "CatalogAdminController_publishProductVariant",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Catalog Admin"]
+      }
+    },
+    "/api/v1/catalog/admin/variants/{variantId}/archive": {
+      "post": {
+        "operationId": "CatalogAdminController_archiveProductVariant",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Catalog Admin"]
+      }
+    },
+    "/api/v1/catalog/admin/products/{productId}/publish": {
+      "post": {
+        "operationId": "CatalogAdminController_publishProduct",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Catalog Admin"]
+      }
+    },
+    "/api/v1/catalog/admin/products/{productId}/archive": {
+      "post": {
+        "operationId": "CatalogAdminController_archiveProduct",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Catalog Admin"]
+      }
+    },
+    "/api/v1/catalog/admin/products/{productId}/media/upload-intents": {
+      "post": {
+        "operationId": "CatalogAdminController_issueMediaUploadIntent",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Catalog Admin"]
+      }
+    },
+    "/api/v1/catalog/admin/products/{productId}/media/attach": {
+      "post": {
+        "operationId": "CatalogAdminController_attachMedia",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Catalog Admin"]
+      }
+    },
+    "/api/v1/catalog/products": {
+      "get": {
+        "operationId": "CatalogPublicController_browseProducts",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": ["Catalog Public"]
+      }
+    },
+    "/api/v1/catalog/products/{slug}": {
+      "get": {
+        "operationId": "CatalogPublicController_getProductBySlug",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": ["Catalog Public"]
+      }
+    },
+    "/api/v1/pricing/admin/settings/currency": {
+      "put": {
+        "operationId": "PricingAdminController_updateStoreCurrency",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Pricing Admin"]
+      }
+    },
+    "/api/v1/pricing/admin/settings/behavior": {
+      "put": {
+        "operationId": "PricingAdminController_updatePricingBehavior",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Pricing Admin"]
+      }
+    },
+    "/api/v1/pricing/admin/variants/{variantId}/price": {
+      "put": {
+        "operationId": "PricingAdminController_upsertVariantPrice",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Pricing Admin"]
+      }
+    },
+    "/api/v1/pricing/admin/tax-classes/{key}": {
+      "put": {
+        "operationId": "PricingAdminController_upsertTaxClass",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Pricing Admin"]
+      }
+    },
+    "/api/v1/pricing/admin/tax-classes/{taxClassId}/rates/{countryCode}": {
+      "put": {
+        "operationId": "PricingAdminController_upsertManualTaxRate",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Pricing Admin"]
+      }
+    },
+    "/api/v1/pricing/admin/shipping-zones/{key}": {
+      "put": {
+        "operationId": "PricingAdminController_upsertShippingZone",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Pricing Admin"]
+      }
+    },
+    "/api/v1/pricing/admin/shipping-zones/{zoneId}/methods/{key}": {
+      "put": {
+        "operationId": "PricingAdminController_upsertShippingMethod",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Pricing Admin"]
+      }
+    },
+    "/api/v1/pricing/checkout/preview": {
+      "post": {
+        "operationId": "PricingPublicController_previewCheckout",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": ["Pricing Public"]
+      }
+    },
+    "/api/v1/inventory/admin/adjustments": {
+      "post": {
+        "operationId": "InventoryAdminController_adjustStock",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Inventory Admin"]
+      }
+    },
+    "/api/v1/inventory/admin/levels": {
+      "get": {
+        "operationId": "InventoryAdminController_getStockLevels",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Inventory Admin"]
+      }
+    },
+    "/api/v1/inventory/admin/reservations": {
+      "get": {
+        "operationId": "InventoryAdminController_getReservations",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Inventory Admin"]
+      }
+    },
+    "/api/v1/inventory/admin/movements": {
+      "get": {
+        "operationId": "InventoryAdminController_getStockMovements",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Inventory Admin"]
+      }
+    },
+    "/api/v1/carts": {
+      "post": {
+        "operationId": "CartController_createOrGetCart",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": ["Carts"]
+      }
+    },
+    "/api/v1/carts/{id}": {
+      "get": {
+        "operationId": "CartController_getCart",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": ["Carts"]
+      }
+    },
+    "/api/v1/carts/{id}/items": {
+      "post": {
+        "operationId": "CartController_addItem",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": ["Carts"]
+      }
+    },
+    "/api/v1/carts/{id}/items/{variantId}": {
+      "patch": {
+        "operationId": "CartController_updateItemQuantity",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": ["Carts"]
+      },
+      "delete": {
+        "operationId": "CartController_removeItem",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": ["Carts"]
+      }
+    },
+    "/api/v1/carts/{id}/coupon": {
+      "post": {
+        "operationId": "CartController_applyCoupon",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": ["Carts"]
+      },
+      "delete": {
+        "operationId": "CartController_removeCoupon",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": ["Carts"]
+      }
+    },
+    "/api/v1/carts/merge": {
+      "post": {
+        "operationId": "CartController_mergeGuestCart",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Carts"]
+      }
+    },
+    "/api/v1/support/admin/carts": {
+      "get": {
+        "operationId": "CommerceSupportAdminController_listActiveCarts",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Commerce Support Admin"]
+      }
+    },
+    "/api/v1/support/admin/wishlists": {
+      "get": {
+        "operationId": "CommerceSupportAdminController_listWishlists",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Commerce Support Admin"]
+      }
+    },
+    "/api/v1/wishlist": {
+      "get": {
+        "operationId": "WishlistController_getWishlist",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Wishlist"]
+      }
+    },
+    "/api/v1/wishlist/items": {
+      "post": {
+        "operationId": "WishlistController_addItem",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Wishlist"]
+      }
+    },
+    "/api/v1/wishlist/items/{variantId}": {
+      "delete": {
+        "operationId": "WishlistController_removeItem",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Wishlist"]
+      }
+    },
+    "/api/v1/orders/me/{orderId}/cancel": {
+      "post": {
+        "operationId": "CustomerOrderCancellationController_cancelOrder",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Orders"]
+      }
+    },
+    "/api/v1/orders/admin/{orderId}/cancel": {
+      "post": {
+        "operationId": "AdminOrderCancellationController_cancelOrder",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Orders Admin"]
+      }
+    },
+    "/api/v1/payments/admin/attempts": {
+      "get": {
+        "operationId": "AdminPaymentsController_listAttempts",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Payments Admin"]
+      }
+    },
+    "/api/v1/payments/admin/webhook-events": {
+      "get": {
+        "operationId": "AdminPaymentsController_listWebhookEvents",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Payments Admin"]
+      }
+    },
+    "/api/v1/payments/admin/refunds": {
+      "get": {
+        "operationId": "AdminPaymentsController_listRefunds",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Payments Admin"]
+      }
+    },
+    "/api/v1/orders/me": {
+      "get": {
+        "operationId": "CustomerOrdersController_listMyOrders",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Orders"]
+      }
+    },
+    "/api/v1/orders/me/{orderId}": {
+      "get": {
+        "operationId": "CustomerOrdersController_getMyOrder",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Orders"]
+      }
+    },
+    "/api/v1/orders/admin": {
+      "get": {
+        "operationId": "AdminOrdersController_listOrders",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Orders Admin"]
+      }
+    },
+    "/api/v1/orders/admin/{orderId}": {
+      "get": {
+        "operationId": "AdminOrdersController_getOrder",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Orders Admin"]
+      }
+    },
+    "/api/v1/checkout/preview": {
+      "post": {
+        "operationId": "CheckoutController_previewCheckout",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": ["Checkout"]
+      }
+    },
+    "/api/v1/checkout/reserve": {
+      "post": {
+        "operationId": "CheckoutController_reserveCheckoutPreview",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Checkout"]
+      }
+    },
+    "/api/v1/checkout/place": {
+      "post": {
+        "operationId": "CheckoutController_placeOrder",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": ["Checkout"]
+      }
+    },
+    "/api/v1/orders/admin/{orderId}/shipments": {
+      "get": {
+        "operationId": "AdminFulfillmentController_listShipments",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Fulfillment Admin"]
+      },
+      "post": {
+        "operationId": "AdminFulfillmentController_createShipment",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Fulfillment Admin"]
+      }
+    },
+    "/api/v1/orders/admin/{orderId}/shipments/{shipmentId}/status": {
+      "patch": {
+        "operationId": "AdminFulfillmentController_updateShipmentStatus",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Fulfillment Admin"]
+      }
+    },
+    "/api/v1/orders/me/{orderId}/shipments": {
+      "get": {
+        "operationId": "CustomerFulfillmentController_listMyShipments",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Fulfillment"]
+      }
+    },
+    "/api/v1/returns/me": {
+      "get": {
+        "operationId": "CustomerReturnsController_listMyReturns",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Returns"]
+      }
+    },
+    "/api/v1/returns/me/{returnRequestId}": {
+      "get": {
+        "operationId": "CustomerReturnsController_getMyReturn",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Returns"]
+      }
+    },
+    "/api/v1/returns/me/orders/{orderId}": {
+      "post": {
+        "operationId": "CustomerReturnsController_createReturn",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Returns"]
+      }
+    },
+    "/api/v1/returns/admin": {
+      "get": {
+        "operationId": "AdminReturnsController_listReturns",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Returns Admin"]
+      }
+    },
+    "/api/v1/returns/admin/{returnRequestId}": {
+      "get": {
+        "operationId": "AdminReturnsController_getReturn",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Returns Admin"]
+      }
+    },
+    "/api/v1/returns/admin/{returnRequestId}/review": {
+      "post": {
+        "operationId": "AdminReturnsController_reviewReturn",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Returns Admin"]
+      }
+    },
+    "/api/v1/returns/admin/{returnRequestId}/receive": {
+      "post": {
+        "operationId": "AdminReturnsController_receiveReturn",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Returns Admin"]
+      }
+    },
+    "/api/v1/returns/admin/{returnRequestId}/refund": {
+      "post": {
+        "operationId": "AdminReturnsController_refundReturn",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Returns Admin"]
+      }
+    },
+    "/api/v1/reviews/order-lines/{orderLineId}": {
+      "post": {
+        "operationId": "CustomerReviewsController_createReview",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Reviews"]
+      }
+    },
+    "/api/v1/reviews/me": {
+      "get": {
+        "operationId": "CustomerReviewsController_listMyReviews",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Reviews"]
+      }
+    },
+    "/api/v1/reviews/me/{reviewId}": {
+      "get": {
+        "operationId": "CustomerReviewsController_getMyReview",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Reviews"]
+      }
+    },
+    "/api/v1/reviews/admin": {
+      "get": {
+        "operationId": "AdminReviewsController_listReviews",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Reviews Admin"]
+      }
+    },
+    "/api/v1/reviews/admin/{reviewId}": {
+      "get": {
+        "operationId": "AdminReviewsController_getReview",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Reviews Admin"]
+      }
+    },
+    "/api/v1/reviews/admin/{reviewId}/moderate": {
+      "patch": {
+        "operationId": "AdminReviewsController_moderateReview",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Reviews Admin"]
+      }
+    },
+    "/api/v1/notifications/me": {
+      "get": {
+        "operationId": "CustomerNotificationsController_listMyNotifications",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Notifications"]
+      }
+    },
+    "/api/v1/notifications/me/preferences": {
+      "get": {
+        "operationId": "CustomerNotificationsController_getPreference",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Notifications"]
+      },
+      "put": {
+        "operationId": "CustomerNotificationsController_upsertPreference",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Notifications"]
+      }
+    },
+    "/api/v1/notifications/me/push-devices": {
+      "post": {
+        "operationId": "CustomerNotificationsController_registerPushDevice",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Notifications"]
+      }
+    },
+    "/api/v1/notifications/me/push-devices/{deviceId}": {
+      "delete": {
+        "operationId": "CustomerNotificationsController_unregisterPushDevice",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Notifications"]
+      }
+    },
+    "/api/v1/notifications/admin": {
+      "get": {
+        "operationId": "AdminNotificationsController_listNotifications",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Notifications Admin"]
+      }
+    },
+    "/api/v1/notifications/admin/{notificationId}/retry": {
+      "post": {
+        "operationId": "AdminNotificationsController_retryNotification",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Notifications Admin"]
+      }
+    },
+    "/api/v1/reports/admin/sales-summary": {
+      "get": {
+        "operationId": "AdminReportingController_getSalesSummary",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Reporting Admin"]
+      }
+    },
+    "/api/v1/reports/admin/top-products": {
+      "get": {
+        "operationId": "AdminReportingController_getTopProducts",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Reporting Admin"]
+      }
+    },
+    "/api/v1/reports/admin/promotion-performance": {
+      "get": {
+        "operationId": "AdminReportingController_getPromotionPerformance",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Reporting Admin"]
+      }
+    },
+    "/api/v1/reports/admin/inventory-kpis": {
+      "get": {
+        "operationId": "AdminReportingController_getInventoryKpis",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Reporting Admin"]
+      }
+    },
+    "/api/v1/reports/admin/exports": {
+      "get": {
+        "operationId": "AdminReportingController_listExports",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Reporting Admin"]
+      },
+      "post": {
+        "operationId": "AdminReportingController_createExport",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Reporting Admin"]
+      }
+    },
+    "/api/v1/reports/admin/exports/{exportId}/download": {
+      "get": {
+        "operationId": "AdminReportingController_createExportDownloadUrl",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Reporting Admin"]
+      }
+    },
+    "/api/v1/audit/admin": {
+      "get": {
+        "operationId": "AdminAuditController_listAuditLogs",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Audit Admin"]
+      }
+    },
+    "/api/v1/content/admin/pages": {
+      "get": {
+        "operationId": "AdminContentController_listPages",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Content Admin"]
+      }
+    },
+    "/api/v1/content/admin/legal-references": {
+      "get": {
+        "operationId": "AdminContentController_getLegalReferences",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Content Admin"]
+      },
+      "put": {
+        "operationId": "AdminContentController_upsertLegalReferences",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Content Admin"]
+      }
+    },
+    "/api/v1/content/admin/pages/{key}": {
+      "put": {
+        "operationId": "AdminContentController_upsertPage",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Content Admin"]
+      }
+    },
+    "/api/v1/content/pages/{slug}": {
+      "get": {
+        "operationId": "PublicContentController_getPage",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": ["Content"]
+      }
+    },
+    "/api/v1/content/legal-references": {
+      "get": {
+        "operationId": "PublicContentController_getLegalReferences",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": ["Content"]
+      }
+    },
+    "/api/v1/system/maintenance/run": {
+      "get": {
+        "operationId": "MaintenanceController_runCron",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "Bearer CRON_SECRET or MAINTENANCE_SECRET",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Execute direct-mode maintenance from a protected cron invocation",
+        "tags": ["System Maintenance"]
+      },
+      "post": {
+        "operationId": "MaintenanceController_runManual",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "Bearer MAINTENANCE_SECRET or CRON_SECRET",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "summary": "Execute direct-mode maintenance manually from operations tooling",
+        "tags": ["System Maintenance"]
+      }
+    }
+  },
+  "info": {
+    "title": "Universal E-Commerce API",
+    "description": "Phase 00 foundation contract for the headless commerce backend.",
+    "version": "1.0.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [
+    {
+      "url": "/api/v1"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearer": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http"
+      }
+    },
+    "schemas": {}
+  }
+}

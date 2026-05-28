@@ -1,0 +1,38 @@
+.shell {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--color-bg);
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  margin-inline-start: var(--nav-width-collapsed);
+  transition: margin-inline-start var(--duration-normal) var(--ease-out);
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-6);
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 90;
+  display: none;
+}
+
+@media (max-width: 1279px) {
+  .main {
+    margin-inline-start: 0;
+  }
+  .overlay {
+    display: block;
+  }
+}

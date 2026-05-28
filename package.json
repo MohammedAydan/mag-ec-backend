@@ -1,0 +1,55 @@
+{
+  "name": "e-commerce-api-workspace",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.33.2",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "build": "pnpm run build:queue",
+    "dashboard:dev": "pnpm --filter @atelier/admin-dashboard dev",
+    "dashboard:build": "pnpm --filter @atelier/admin-dashboard build",
+    "dev": "pnpm --filter @ecommerce/api dev",
+    "worker:dev": "pnpm --filter @ecommerce/worker dev",
+    "lint": "pnpm --filter @ecommerce/domain-shared lint && pnpm --filter @ecommerce/api lint && pnpm --filter @ecommerce/worker lint && pnpm --filter @atelier/admin-dashboard lint",
+    "typecheck": "pnpm --filter @ecommerce/domain-shared typecheck && pnpm --filter @ecommerce/api typecheck && pnpm --filter @ecommerce/worker typecheck && pnpm --filter @atelier/admin-dashboard typecheck",
+    "test": "pnpm --filter @ecommerce/api test",
+    "test:integration": "pnpm --filter @ecommerce/api test:integration",
+    "test:integration:mysql": "tsx scripts/run-mysql-integration.ts",
+    "test:e2e": "pnpm --filter @ecommerce/api test:e2e",
+    "prisma:migrate:dev": "prisma migrate dev",
+    "prisma:migrate:deploy": "prisma migrate deploy",
+    "prisma:seed": "prisma db seed",
+    "prisma:validate": "prisma validate --schema prisma/schema.prisma",
+    "prisma:generate": "prisma generate --schema prisma/schema.prisma",
+    "openapi:generate": "pnpm --filter @ecommerce/api openapi:generate",
+    "openapi:check": "pnpm openapi:generate && git diff --exit-code -- packages/contracts/openapi/openapi.json",
+    "openapi:verify": "tsx scripts/verify-openapi-contract.ts",
+    "flutter:client:generate": "tsx scripts/generate-flutter-client.ts",
+    "flutter:client:verify": "tsx scripts/generate-flutter-client.ts --verify",
+    "security:audit": "pnpm audit --prod --audit-level high",
+    "format": "prettier --check .",
+    "format:write": "prettier --write .",
+    "build:direct": "pnpm --filter @ecommerce/domain-shared build && pnpm --filter @atelier/admin-dashboard build && pnpm --filter @ecommerce/api build",
+    "build:queue": "pnpm --filter @ecommerce/domain-shared build && pnpm --filter @atelier/admin-dashboard build && pnpm --filter @ecommerce/api build && pnpm --filter @ecommerce/worker build"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^25.9.1",
+    "dotenv": "^17.4.2",
+    "eslint": "^10.4.0",
+    "globals": "^17.6.0",
+    "prettier": "^3.8.3",
+    "prisma": "^7.8.0",
+    "tsx": "^4.22.3",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.59.4"
+  },
+  "dependencies": {
+    "@prisma/adapter-mariadb": "^7.8.0",
+    "@prisma/client": "7.8.0",
+    "argon2": "0.44.0",
+    "mariadb": "^3.5.2"
+  }
+}

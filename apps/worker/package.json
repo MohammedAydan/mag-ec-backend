@@ -1,0 +1,24 @@
+{
+  "name": "@ecommerce/worker",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "tsx watch src/main.ts",
+    "lint": "eslint \"src/**/*.ts\"",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@ecommerce/domain-shared": "workspace:*",
+    "@nestjs/bullmq": "^11.0.4",
+    "@nestjs/common": "11.1.23",
+    "@nestjs/config": "^4.0.4",
+    "@nestjs/core": "11.1.23",
+    "bullmq": "^5.77.2",
+    "ioredis": "^5.10.1",
+    "nestjs-pino": "^4.6.1",
+    "pino": "^10.3.1",
+    "reflect-metadata": "^0.2.2",
+    "stripe": "^22.1.1"
+  }
+}

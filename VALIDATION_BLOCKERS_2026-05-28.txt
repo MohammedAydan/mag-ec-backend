@@ -1,0 +1,7 @@
+Validation status in review environment:
+- PASS: TypeScript syntax parse scan (215 files; 0 syntax diagnostics).
+- PASS: git diff --check.
+- BLOCKED: Node is v22.16.0 while package.json requires >=24.0.0.
+- BLOCKED: Corepack cannot download pinned pnpm@10.33.2 (registry.npmjs.org EAI_AGAIN).
+- BLOCKED: MySQL, Redis, Docker and live provider credentials unavailable.
+- REQUIRED BEFORE PRODUCTION: install/typecheck/tests/migrations/OpenAPI/build/audit and staging-provider scenarios documented in BACKEND_RELEASE_CANDIDATE_REPORT_2026-05-28.md.

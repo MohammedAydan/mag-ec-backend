@@ -1,0 +1,16 @@
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+.pnpm-store/
+.env
+.env.local
+.env.*.local
+.turbo/
+packages/generated/prisma-client/
+packages/contracts/generated/
+prisma/.tmp/
+.antigravitycli/
+.qwen/
+GEMINI.md
+plans.zip

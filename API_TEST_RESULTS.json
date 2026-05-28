@@ -1,0 +1,1392 @@
+{
+  "timestamp": "2026-05-28T17:17:03.355Z",
+  "total": 121,
+  "passed": 113,
+  "failed": 8,
+  "passRate": "93.4%",
+  "results": [
+    {
+      "group": "Health",
+      "name": "GET /health/liveness",
+      "method": "GET",
+      "path": "/health/liveness",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 137
+    },
+    {
+      "group": "Health",
+      "name": "GET /health/readiness",
+      "method": "GET",
+      "path": "/health/readiness",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 12
+    },
+    {
+      "group": "Authentication",
+      "name": "POST /auth/register (new customer)",
+      "method": "POST",
+      "path": "/auth/register",
+      "status": 201,
+      "expected": 201,
+      "passed": true,
+      "duration": 166
+    },
+    {
+      "group": "Authentication",
+      "name": "POST /auth/register (duplicate → 409/400)",
+      "method": "POST",
+      "path": "/auth/register",
+      "status": 409,
+      "expected": [
+        400,
+        409
+      ],
+      "passed": true,
+      "duration": 23
+    },
+    {
+      "group": "Authentication",
+      "name": "POST /auth/login (admin)",
+      "method": "POST",
+      "path": "/auth/login",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 157
+    },
+    {
+      "group": "Authentication",
+      "name": "POST /auth/login (customer)",
+      "method": "POST",
+      "path": "/auth/login",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 164
+    },
+    {
+      "group": "Authentication",
+      "name": "POST /auth/login (invalid creds → 401)",
+      "method": "POST",
+      "path": "/auth/login",
+      "status": 401,
+      "expected": 401,
+      "passed": true,
+      "duration": 24
+    },
+    {
+      "group": "Authentication",
+      "name": "GET /auth/me",
+      "method": "GET",
+      "path": "/auth/me",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 27
+    },
+    {
+      "group": "Authentication",
+      "name": "POST /auth/refresh (admin)",
+      "method": "POST",
+      "path": "/auth/refresh",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 44
+    },
+    {
+      "group": "Authentication",
+      "name": "POST /auth/password-reset/request (blind)",
+      "method": "POST",
+      "path": "/auth/password-reset/request",
+      "status": 202,
+      "expected": [
+        200,
+        202
+      ],
+      "passed": true,
+      "duration": 18
+    },
+    {
+      "group": "Authentication",
+      "name": "POST /auth/verification/request",
+      "method": "POST",
+      "path": "/auth/verification/request",
+      "status": 503,
+      "expected": [
+        200,
+        202
+      ],
+      "passed": false,
+      "duration": 87
+    },
+    {
+      "group": "Authentication",
+      "name": "POST /auth/verification/confirm (bad token)",
+      "method": "POST",
+      "path": "/auth/verification/confirm",
+      "status": 401,
+      "expected": [
+        400,
+        401,
+        422
+      ],
+      "passed": true,
+      "duration": 12
+    },
+    {
+      "group": "Authentication",
+      "name": "POST /auth/password-reset/confirm (bad token)",
+      "method": "POST",
+      "path": "/auth/password-reset/confirm",
+      "status": 401,
+      "expected": [
+        400,
+        401,
+        422
+      ],
+      "passed": true,
+      "duration": 116
+    },
+    {
+      "group": "Identity",
+      "name": "GET own profile",
+      "method": "GET",
+      "path": "/identity/users/cmppr9lcv001db01ihyrstdo1/profile",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 17
+    },
+    {
+      "group": "Identity",
+      "name": "GET profile (admin)",
+      "method": "GET",
+      "path": "/identity/users/cmppr9lcv001db01ihyrstdo1/profile",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 17
+    },
+    {
+      "group": "Identity",
+      "name": "GET /identity/admin/access-check",
+      "method": "GET",
+      "path": "/identity/admin/access-check",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 3
+    },
+    {
+      "group": "Identity",
+      "name": "GET /identity/admin/access-check",
+      "method": "GET",
+      "path": "/identity/admin/access-check",
+      "status": 403,
+      "expected": 403,
+      "passed": true,
+      "duration": 3
+    },
+    {
+      "group": "Identity Admin",
+      "name": "GET /identity/admin/permissions",
+      "method": "GET",
+      "path": "/identity/admin/permissions",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 7
+    },
+    {
+      "group": "Identity Admin",
+      "name": "GET /identity/admin/roles",
+      "method": "GET",
+      "path": "/identity/admin/roles",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 16
+    },
+    {
+      "group": "Identity Admin",
+      "name": "POST /identity/admin/roles",
+      "method": "POST",
+      "path": "/identity/admin/roles",
+      "status": 201,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "duration": 39
+    },
+    {
+      "group": "Identity Admin",
+      "name": "PATCH role permissions",
+      "method": "PATCH",
+      "path": "/identity/admin/roles/cmppr9lyt001kb01ie9ya7m66/permissions",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 131
+    },
+    {
+      "group": "Identity Admin",
+      "name": "GET /identity/admin/staff",
+      "method": "GET",
+      "path": "/identity/admin/staff",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 13
+    },
+    {
+      "group": "Identity Admin",
+      "name": "GET /identity/admin/customers",
+      "method": "GET",
+      "path": "/identity/admin/customers",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 7
+    },
+    {
+      "group": "Identity Admin",
+      "name": "POST staff invitation",
+      "method": "POST",
+      "path": "/identity/admin/staff/invitations",
+      "status": 503,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": false,
+      "duration": 160
+    },
+    {
+      "group": "Identity Admin",
+      "name": "GET /identity/admin/staff",
+      "method": "GET",
+      "path": "/identity/admin/staff",
+      "status": 403,
+      "expected": [
+        403,
+        401
+      ],
+      "passed": true,
+      "duration": 3
+    },
+    {
+      "group": "Promotions Admin",
+      "name": "GET /promotions/admin",
+      "method": "GET",
+      "path": "/promotions/admin",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 15
+    },
+    {
+      "group": "Promotions Admin",
+      "name": "PUT /promotions/admin/:key (upsert)",
+      "method": "PUT",
+      "path": "/promotions/admin/promo_test_1779988621260",
+      "status": 200,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "duration": 43
+    },
+    {
+      "group": "Promotions Admin",
+      "name": "GET /promotions/admin/cmppr9m99001qb01i8y0oge9v",
+      "method": "GET",
+      "path": "/promotions/admin/cmppr9m99001qb01i8y0oge9v",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 7
+    },
+    {
+      "group": "Promotions Admin",
+      "name": "PUT coupon",
+      "method": "PUT",
+      "path": "/promotions/admin/cmppr9m99001qb01i8y0oge9v/coupons/TESTCOUPON1779988621326",
+      "status": 200,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "duration": 35
+    },
+    {
+      "group": "Catalog Admin",
+      "name": "POST product-type",
+      "method": "POST",
+      "path": "/catalog/admin/product-types",
+      "status": 201,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "duration": 32
+    },
+    {
+      "group": "Catalog Admin",
+      "name": "GET /catalog/admin/product-types",
+      "method": "GET",
+      "path": "/catalog/admin/product-types",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 9
+    },
+    {
+      "group": "Catalog Admin",
+      "name": "POST brand",
+      "method": "POST",
+      "path": "/catalog/admin/brands",
+      "status": 201,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "duration": 72
+    },
+    {
+      "group": "Catalog Admin",
+      "name": "GET /catalog/admin/brands",
+      "method": "GET",
+      "path": "/catalog/admin/brands",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 8
+    },
+    {
+      "group": "Catalog Admin",
+      "name": "POST category",
+      "method": "POST",
+      "path": "/catalog/admin/categories",
+      "status": 201,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "duration": 36
+    },
+    {
+      "group": "Catalog Admin",
+      "name": "GET /catalog/admin/categories",
+      "method": "GET",
+      "path": "/catalog/admin/categories",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 7
+    },
+    {
+      "group": "Catalog Admin",
+      "name": "POST collection",
+      "method": "POST",
+      "path": "/catalog/admin/collections",
+      "status": 201,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "duration": 37
+    },
+    {
+      "group": "Catalog Admin",
+      "name": "GET /catalog/admin/collections",
+      "method": "GET",
+      "path": "/catalog/admin/collections",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 7
+    },
+    {
+      "group": "Catalog Admin",
+      "name": "POST tag",
+      "method": "POST",
+      "path": "/catalog/admin/tags",
+      "status": 201,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "duration": 34
+    },
+    {
+      "group": "Catalog Admin",
+      "name": "GET /catalog/admin/tags",
+      "method": "GET",
+      "path": "/catalog/admin/tags",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 7
+    },
+    {
+      "group": "Catalog Admin",
+      "name": "POST attribute",
+      "method": "POST",
+      "path": "/catalog/admin/attributes",
+      "status": 201,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "duration": 30
+    },
+    {
+      "group": "Catalog Admin",
+      "name": "GET /catalog/admin/attributes",
+      "method": "GET",
+      "path": "/catalog/admin/attributes",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 13
+    },
+    {
+      "group": "Catalog Admin",
+      "name": "POST /catalog/admin/brands/cmppr9mcj001vb01ijjaassoo/publish",
+      "method": "POST",
+      "path": "/catalog/admin/brands/cmppr9mcj001vb01ijjaassoo/publish",
+      "status": 200,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "duration": 25
+    },
+    {
+      "group": "Catalog Admin",
+      "name": "POST /catalog/admin/brands/cmppr9mcj001vb01ijjaassoo/archive",
+      "method": "POST",
+      "path": "/catalog/admin/brands/cmppr9mcj001vb01ijjaassoo/archive",
+      "status": 200,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "duration": 25
+    },
+    {
+      "group": "Catalog Admin",
+      "name": "POST /catalog/admin/brands/cmppr9mcj001vb01ijjaassoo/publish",
+      "method": "POST",
+      "path": "/catalog/admin/brands/cmppr9mcj001vb01ijjaassoo/publish",
+      "status": 200,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "duration": 22
+    },
+    {
+      "group": "Catalog Admin",
+      "name": "POST /catalog/admin/categories/cmppr9mes001wb01i9dn51wqy/publish",
+      "method": "POST",
+      "path": "/catalog/admin/categories/cmppr9mes001wb01i9dn51wqy/publish",
+      "status": 200,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "duration": 23
+    },
+    {
+      "group": "Catalog Admin",
+      "name": "POST /catalog/admin/collections/cmppr9mfz001xb01izq2f4yj0/publish",
+      "method": "POST",
+      "path": "/catalog/admin/collections/cmppr9mfz001xb01izq2f4yj0/publish",
+      "status": 200,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "duration": 39
+    },
+    {
+      "group": "Catalog Admin",
+      "name": "POST /catalog/admin/tags/cmppr9mh8001yb01i2pbpvegl/publish",
+      "method": "POST",
+      "path": "/catalog/admin/tags/cmppr9mh8001yb01i2pbpvegl/publish",
+      "status": 200,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "duration": 25
+    },
+    {
+      "group": "Catalog Admin",
+      "name": "POST /catalog/admin/product-types/cmppr9mbf001ub01ic7ukvbkl/publish",
+      "method": "POST",
+      "path": "/catalog/admin/product-types/cmppr9mbf001ub01ic7ukvbkl/publish",
+      "status": 200,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "duration": 37
+    },
+    {
+      "group": "Catalog Admin",
+      "name": "GET /catalog/admin/products",
+      "method": "GET",
+      "path": "/catalog/admin/products",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 36
+    },
+    {
+      "group": "Catalog Admin",
+      "name": "POST product",
+      "method": "POST",
+      "path": "/catalog/admin/products",
+      "status": 201,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "duration": 50
+    },
+    {
+      "group": "Catalog Admin",
+      "name": "GET /catalog/admin/products/cmppr9mq60020b01i2u755u6g",
+      "method": "GET",
+      "path": "/catalog/admin/products/cmppr9mq60020b01i2u755u6g",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 22
+    },
+    {
+      "group": "Catalog Admin",
+      "name": "PATCH product",
+      "method": "PATCH",
+      "path": "/catalog/admin/products/cmppr9mq60020b01i2u755u6g",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 85
+    },
+    {
+      "group": "Catalog Admin",
+      "name": "PATCH variant",
+      "method": "PATCH",
+      "path": "/catalog/admin/variants/cmppr9mqh0021b01i8fpz562r",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 88
+    },
+    {
+      "group": "Catalog Admin",
+      "name": "POST media upload-intent",
+      "method": "POST",
+      "path": "/catalog/admin/products/cmppr9mq60020b01i2u755u6g/media/upload-intents",
+      "status": 201,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "duration": 26
+    },
+    {
+      "group": "Catalog Admin",
+      "name": "POST media attach (fake token)",
+      "method": "POST",
+      "path": "/catalog/admin/products/cmppr9mq60020b01i2u755u6g/media/attach",
+      "status": 401,
+      "expected": [
+        200,
+        201,
+        400,
+        404,
+        422
+      ],
+      "passed": false,
+      "duration": 11
+    },
+    {
+      "group": "Catalog Admin",
+      "name": "POST /catalog/admin/products/cmppr9mq60020b01i2u755u6g/publish",
+      "method": "POST",
+      "path": "/catalog/admin/products/cmppr9mq60020b01i2u755u6g/publish",
+      "status": 400,
+      "expected": [
+        200,
+        201,
+        400
+      ],
+      "passed": true,
+      "duration": 18
+    },
+    {
+      "group": "Catalog Admin",
+      "name": "POST /catalog/admin/products/cmppr9mq60020b01i2u755u6g/archive",
+      "method": "POST",
+      "path": "/catalog/admin/products/cmppr9mq60020b01i2u755u6g/archive",
+      "status": 200,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "duration": 24
+    },
+    {
+      "group": "Catalog Public",
+      "name": "GET /catalog/products",
+      "method": "GET",
+      "path": "/catalog/products",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 26
+    },
+    {
+      "group": "Catalog Public",
+      "name": "GET /catalog/products/nonexistent-product",
+      "method": "GET",
+      "path": "/catalog/products/nonexistent-product",
+      "status": 404,
+      "expected": [
+        200,
+        404
+      ],
+      "passed": true,
+      "duration": 22
+    },
+    {
+      "group": "Pricing Admin",
+      "name": "PUT /pricing/admin/settings/currency",
+      "method": "PUT",
+      "path": "/pricing/admin/settings/currency",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 77
+    },
+    {
+      "group": "Pricing Admin",
+      "name": "PUT /pricing/admin/settings/behavior",
+      "method": "PUT",
+      "path": "/pricing/admin/settings/behavior",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 25
+    },
+    {
+      "group": "Pricing Admin",
+      "name": "PUT /pricing/admin/variants/cmppr9mqh0021b01i8fpz562r/price",
+      "method": "PUT",
+      "path": "/pricing/admin/variants/cmppr9mqh0021b01i8fpz562r/price",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 40
+    },
+    {
+      "group": "Pricing Admin",
+      "name": "PUT tax-class",
+      "method": "PUT",
+      "path": "/pricing/admin/tax-classes/standard_1779988622410",
+      "status": 200,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "duration": 30
+    },
+    {
+      "group": "Pricing Admin",
+      "name": "PUT tax rate",
+      "method": "PUT",
+      "path": "/pricing/admin/tax-classes/cmppr9n4n0024b01i1ilw5bqv/rates/US",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 36
+    },
+    {
+      "group": "Pricing Admin",
+      "name": "PUT shipping-zone",
+      "method": "PUT",
+      "path": "/pricing/admin/shipping-zones/zone_1779988622476",
+      "status": 200,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "duration": 38
+    },
+    {
+      "group": "Pricing Admin",
+      "name": "PUT shipping method",
+      "method": "PUT",
+      "path": "/pricing/admin/shipping-zones/cmppr9n6g0026b01iqjngc1u4/methods/standard_1779988622514",
+      "status": 200,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "duration": 29
+    },
+    {
+      "group": "Pricing Public",
+      "name": "POST /pricing/checkout/preview",
+      "method": "POST",
+      "path": "/pricing/checkout/preview",
+      "status": 404,
+      "expected": [
+        200,
+        400
+      ],
+      "passed": false,
+      "duration": 11
+    },
+    {
+      "group": "Inventory Admin",
+      "name": "GET /inventory/admin/levels",
+      "method": "GET",
+      "path": "/inventory/admin/levels",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 11
+    },
+    {
+      "group": "Inventory Admin",
+      "name": "GET /inventory/admin/reservations",
+      "method": "GET",
+      "path": "/inventory/admin/reservations",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 8
+    },
+    {
+      "group": "Inventory Admin",
+      "name": "GET /inventory/admin/movements",
+      "method": "GET",
+      "path": "/inventory/admin/movements",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 10
+    },
+    {
+      "group": "Inventory Admin",
+      "name": "POST stock adjustment",
+      "method": "POST",
+      "path": "/inventory/admin/adjustments",
+      "status": 500,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": false,
+      "duration": 17
+    },
+    {
+      "group": "Carts",
+      "name": "POST /carts (guest)",
+      "method": "POST",
+      "path": "/carts",
+      "status": 201,
+      "expected": 201,
+      "passed": true,
+      "duration": 39
+    },
+    {
+      "group": "Carts",
+      "name": "GET /carts/cmppr9na60028b01i14aikehg",
+      "method": "GET",
+      "path": "/carts/cmppr9na60028b01i14aikehg",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 10
+    },
+    {
+      "group": "Carts",
+      "name": "POST cart item",
+      "method": "POST",
+      "path": "/carts/cmppr9na60028b01i14aikehg/items",
+      "status": 404,
+      "expected": [
+        200,
+        201,
+        400,
+        422
+      ],
+      "passed": false,
+      "duration": 16
+    },
+    {
+      "group": "Carts",
+      "name": "POST /carts (auth)",
+      "method": "POST",
+      "path": "/carts",
+      "status": 201,
+      "expected": 201,
+      "passed": true,
+      "duration": 34
+    },
+    {
+      "group": "Carts",
+      "name": "POST /carts/merge",
+      "method": "POST",
+      "path": "/carts/merge",
+      "status": 201,
+      "expected": [
+        200,
+        201,
+        400
+      ],
+      "passed": true,
+      "duration": 55
+    },
+    {
+      "group": "Commerce Support Admin",
+      "name": "GET /support/admin/carts",
+      "method": "GET",
+      "path": "/support/admin/carts",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 12
+    },
+    {
+      "group": "Commerce Support Admin",
+      "name": "GET /support/admin/wishlists",
+      "method": "GET",
+      "path": "/support/admin/wishlists",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 11
+    },
+    {
+      "group": "Wishlist",
+      "name": "GET /wishlist",
+      "method": "GET",
+      "path": "/wishlist",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 16
+    },
+    {
+      "group": "Wishlist",
+      "name": "POST wishlist item",
+      "method": "POST",
+      "path": "/wishlist/items",
+      "status": 404,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": false,
+      "duration": 10
+    },
+    {
+      "group": "Wishlist",
+      "name": "DELETE wishlist item",
+      "method": "DELETE",
+      "path": "/wishlist/items/cmppr9mqh0021b01i8fpz562r",
+      "status": 400,
+      "expected": [
+        200,
+        204
+      ],
+      "passed": false,
+      "duration": 8
+    },
+    {
+      "group": "Checkout",
+      "name": "POST /checkout/preview",
+      "method": "POST",
+      "path": "/checkout/preview",
+      "status": 400,
+      "expected": [
+        200,
+        400,
+        422
+      ],
+      "passed": true,
+      "duration": 17
+    },
+    {
+      "group": "Checkout",
+      "name": "POST /checkout/place",
+      "method": "POST",
+      "path": "/checkout/place",
+      "status": 400,
+      "expected": [
+        200,
+        201,
+        400,
+        422
+      ],
+      "passed": true,
+      "duration": 19
+    },
+    {
+      "group": "Orders",
+      "name": "GET /orders/me",
+      "method": "GET",
+      "path": "/orders/me",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 15
+    },
+    {
+      "group": "Orders",
+      "name": "GET /orders/admin",
+      "method": "GET",
+      "path": "/orders/admin",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 15
+    },
+    {
+      "group": "Payments Admin",
+      "name": "GET /payments/admin/attempts",
+      "method": "GET",
+      "path": "/payments/admin/attempts",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 9
+    },
+    {
+      "group": "Payments Admin",
+      "name": "GET /payments/admin/webhook-events",
+      "method": "GET",
+      "path": "/payments/admin/webhook-events",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 6
+    },
+    {
+      "group": "Payments Admin",
+      "name": "GET /payments/admin/refunds",
+      "method": "GET",
+      "path": "/payments/admin/refunds",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 7
+    },
+    {
+      "group": "Returns",
+      "name": "GET /returns/me",
+      "method": "GET",
+      "path": "/returns/me",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 16
+    },
+    {
+      "group": "Returns",
+      "name": "GET /returns/admin",
+      "method": "GET",
+      "path": "/returns/admin",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 13
+    },
+    {
+      "group": "Reviews",
+      "name": "GET /reviews/me",
+      "method": "GET",
+      "path": "/reviews/me",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 15
+    },
+    {
+      "group": "Reviews",
+      "name": "GET /reviews/admin",
+      "method": "GET",
+      "path": "/reviews/admin",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 8
+    },
+    {
+      "group": "Notifications",
+      "name": "GET /notifications/me",
+      "method": "GET",
+      "path": "/notifications/me",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 7
+    },
+    {
+      "group": "Notifications",
+      "name": "GET /notifications/me/preferences",
+      "method": "GET",
+      "path": "/notifications/me/preferences",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 6
+    },
+    {
+      "group": "Notifications",
+      "name": "PUT notification preferences",
+      "method": "PUT",
+      "path": "/notifications/me/preferences",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 25
+    },
+    {
+      "group": "Notifications",
+      "name": "POST push device",
+      "method": "POST",
+      "path": "/notifications/me/push-devices",
+      "status": 201,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "duration": 39
+    },
+    {
+      "group": "Notifications",
+      "name": "GET /notifications/admin",
+      "method": "GET",
+      "path": "/notifications/admin",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 7
+    },
+    {
+      "group": "Reporting Admin",
+      "name": "GET /reports/admin/sales-summary",
+      "method": "GET",
+      "path": "/reports/admin/sales-summary",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 9
+    },
+    {
+      "group": "Reporting Admin",
+      "name": "GET /reports/admin/top-products",
+      "method": "GET",
+      "path": "/reports/admin/top-products",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 6
+    },
+    {
+      "group": "Reporting Admin",
+      "name": "GET /reports/admin/promotion-performance",
+      "method": "GET",
+      "path": "/reports/admin/promotion-performance",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 7
+    },
+    {
+      "group": "Reporting Admin",
+      "name": "GET /reports/admin/inventory-kpis",
+      "method": "GET",
+      "path": "/reports/admin/inventory-kpis",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 5
+    },
+    {
+      "group": "Reporting Admin",
+      "name": "GET /reports/admin/exports",
+      "method": "GET",
+      "path": "/reports/admin/exports",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 9
+    },
+    {
+      "group": "Reporting Admin",
+      "name": "POST export",
+      "method": "POST",
+      "path": "/reports/admin/exports",
+      "status": 400,
+      "expected": [
+        200,
+        201,
+        400
+      ],
+      "passed": true,
+      "duration": 10
+    },
+    {
+      "group": "Audit Admin",
+      "name": "GET /audit/admin",
+      "method": "GET",
+      "path": "/audit/admin",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 25
+    },
+    {
+      "group": "Audit Admin",
+      "name": "GET /audit/admin",
+      "method": "GET",
+      "path": "/audit/admin",
+      "status": 403,
+      "expected": [
+        403,
+        401
+      ],
+      "passed": true,
+      "duration": 2
+    },
+    {
+      "group": "Content Admin",
+      "name": "GET /content/admin/pages",
+      "method": "GET",
+      "path": "/content/admin/pages",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 55
+    },
+    {
+      "group": "Content Admin",
+      "name": "GET /content/admin/legal-references",
+      "method": "GET",
+      "path": "/content/admin/legal-references",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 5
+    },
+    {
+      "group": "Content Admin",
+      "name": "PUT legal-references",
+      "method": "PUT",
+      "path": "/content/admin/legal-references",
+      "status": 200,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "duration": 25
+    },
+    {
+      "group": "Content Admin",
+      "name": "PUT page",
+      "method": "PUT",
+      "path": "/content/admin/pages/about",
+      "status": 200,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "duration": 29
+    },
+    {
+      "group": "Content Public",
+      "name": "GET /content/pages/about",
+      "method": "GET",
+      "path": "/content/pages/about",
+      "status": 200,
+      "expected": [
+        200,
+        404
+      ],
+      "passed": true,
+      "duration": 6
+    },
+    {
+      "group": "Content Public",
+      "name": "GET /content/legal-references",
+      "method": "GET",
+      "path": "/content/legal-references",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 6
+    },
+    {
+      "group": "System Maintenance",
+      "name": "GET /system/maintenance/run (cron)",
+      "method": "GET",
+      "path": "/system/maintenance/run",
+      "status": 200,
+      "expected": [
+        200,
+        401,
+        403
+      ],
+      "passed": true,
+      "duration": 6
+    },
+    {
+      "group": "System Maintenance",
+      "name": "POST /system/maintenance/run (admin)",
+      "method": "POST",
+      "path": "/system/maintenance/run",
+      "status": 401,
+      "expected": [
+        200,
+        201,
+        400,
+        401,
+        403
+      ],
+      "passed": true,
+      "duration": 3
+    },
+    {
+      "group": "Security Guardrails",
+      "name": "GET /auth/me no token → 401",
+      "method": "GET",
+      "path": "/auth/me",
+      "status": 401,
+      "expected": 401,
+      "passed": true,
+      "duration": 2
+    },
+    {
+      "group": "Security Guardrails",
+      "name": "GET /orders/me no token → 401",
+      "method": "GET",
+      "path": "/orders/me",
+      "status": 401,
+      "expected": 401,
+      "passed": true,
+      "duration": 2
+    },
+    {
+      "group": "Security Guardrails",
+      "name": "GET /wishlist no token → 401",
+      "method": "GET",
+      "path": "/wishlist",
+      "status": 401,
+      "expected": 401,
+      "passed": true,
+      "duration": 2
+    },
+    {
+      "group": "Security Guardrails",
+      "name": "Admin route with customer token → 403",
+      "method": "GET",
+      "path": "/orders/admin",
+      "status": 403,
+      "expected": [
+        403,
+        401
+      ],
+      "passed": true,
+      "duration": 3
+    },
+    {
+      "group": "Security Guardrails",
+      "name": "GET /reports/admin/sales-summary",
+      "method": "GET",
+      "path": "/reports/admin/sales-summary",
+      "status": 403,
+      "expected": [
+        403,
+        401
+      ],
+      "passed": true,
+      "duration": 3
+    },
+    {
+      "group": "Security Guardrails",
+      "name": "Bad token → 401",
+      "method": "GET",
+      "path": "/auth/me",
+      "status": 401,
+      "expected": 401,
+      "passed": true,
+      "duration": 3
+    },
+    {
+      "group": "Security Guardrails",
+      "name": "POST /auth/logout (customer)",
+      "method": "POST",
+      "path": "/auth/logout",
+      "status": 204,
+      "expected": [
+        200,
+        204
+      ],
+      "passed": true,
+      "duration": 36
+    },
+    {
+      "group": "Security Guardrails",
+      "name": "POST /auth/refresh after logout → 401",
+      "method": "POST",
+      "path": "/auth/refresh",
+      "status": 401,
+      "expected": [
+        400,
+        401
+      ],
+      "passed": true,
+      "duration": 33
+    }
+  ]
+}
