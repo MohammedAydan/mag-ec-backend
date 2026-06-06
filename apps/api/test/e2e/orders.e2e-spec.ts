@@ -11,9 +11,11 @@ import { CustomerOrdersController } from '../../src/modules/orders/controllers/c
 import { AdminOrdersController } from '../../src/modules/orders/controllers/admin-orders.controller';
 import { OrderService } from '../../src/modules/orders/services/order.service';
 import { AuthGuard } from '../../src/modules/identity/guards/auth.guard';
+import { CustomerGuard } from '../../src/modules/identity/guards/customer.guard';
 import { PermissionsGuard } from '../../src/modules/identity/guards/permissions.guard';
 import { AdminGuard } from '../../src/modules/identity/guards/admin.guard';
 import { TokenService } from '../../src/modules/identity/services/token.service';
+import { PrismaService } from '../../src/modules/persistence/services/prisma.service';
 
 describe('Orders and checkout placement (e2e)', () => {
   let app: NestFastifyApplication;
@@ -44,6 +46,12 @@ describe('Orders and checkout placement (e2e)', () => {
     getCustomerOrder: jest.fn().mockResolvedValue({ id: 'order_1' }),
     listAdminOrders: jest.fn().mockResolvedValue([{ id: 'order_1' }]),
     getAdminOrder: jest.fn().mockResolvedValue({ id: 'order_1' }),
+  };
+
+  const mockPrismaService = {
+    user: {
+      findUnique: jest.fn().mockResolvedValue({ id: 'user_1', tokenVersion: undefined, status: 'ACTIVE', deletedAt: null }),
+    },
   };
 
   const mockTokenService = {
@@ -78,11 +86,13 @@ describe('Orders and checkout placement (e2e)', () => {
       providers: [
         AuthGuard,
         AdminGuard,
+        CustomerGuard,
         PermissionsGuard,
         { provide: CartService, useValue: mockCartService },
         { provide: CheckoutPreviewService, useValue: mockCheckoutPreviewService },
         { provide: CheckoutPlacementService, useValue: mockCheckoutPlacementService },
         { provide: OrderService, useValue: mockOrderService },
+        { provide: PrismaService, useValue: mockPrismaService },
         { provide: TokenService, useValue: mockTokenService },
       ],
     }).compile();
@@ -165,6 +175,18 @@ describe('Orders and checkout placement (e2e)', () => {
     await request(app.getHttpServer())
       .get('/api/v1/orders/admin')
       .set('Authorization', 'Bearer customer-token')
+      .expect(403);
+  });
+
+  it('forbids admin tokens on customer order routes', async () => {
+    await request(app.getHttpServer())
+      .get('/api/v1/orders/me')
+      .set('Authorization', 'Bearer admin-token')
+      .expect(403);
+
+    await request(app.getHttpServer())
+      .get('/api/v1/orders/me/order_1')
+      .set('Authorization', 'Bearer admin-token')
       .expect(403);
   });
 });

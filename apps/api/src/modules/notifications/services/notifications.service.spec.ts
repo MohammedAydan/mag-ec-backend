@@ -4,7 +4,12 @@ import type { NotificationDeliveryService } from './notification-delivery.servic
 import { NotificationsService } from './notifications.service';
 
 const makePrismaMock = () => ({
-  notification: { upsert: jest.fn(), updateMany: jest.fn(), findUnique: jest.fn() },
+  notification: {
+    upsert: jest.fn(),
+    updateMany: jest.fn(),
+    findUnique: jest.fn(),
+    findMany: jest.fn(),
+  },
   notificationPreference: { findUnique: jest.fn(), upsert: jest.fn() },
   pushDevice: { count: jest.fn(), upsert: jest.fn(), updateMany: jest.fn() },
 });
@@ -103,5 +108,87 @@ describe('NotificationsService', () => {
     await expect(svc.upsertMyPreference('user-1', { channel: 'PUSH' })).rejects.toThrow(
       'Register a push device before enabling PUSH notifications',
     );
+  });
+
+  describe('response serialization security', () => {
+    const notificationWithSensitiveUser = {
+      id: 'n-1',
+      userId: 'user-1',
+      recipientEmail: 'u@example.com',
+      channel: 'EMAIL',
+      eventType: 'order.created',
+      title: 'Order Created',
+      body: 'Your order was placed.',
+      status: 'SENT',
+      relatedEntityType: 'Order',
+      relatedEntityId: 'ord-1',
+      deduplicationKey: 'dk-1',
+      lastError: null,
+      attempts: 1,
+      processedAt: new Date('2026-06-01T00:00:00.000Z'),
+      createdAt: new Date('2026-06-01T00:00:00.000Z'),
+      updatedAt: new Date('2026-06-01T00:00:00.000Z'),
+      user: {
+        id: 'user-1',
+        email: 'u@example.com',
+        displayName: 'Test User',
+        userType: 'CUSTOMER',
+        // Sensitive fields that MUST NOT appear in the response
+        passwordHash: 'secret-hash-123',
+        normalizedEmail: 'U@EXAMPLE.COM',
+      },
+    } as Record<string, unknown>;
+
+    it('listMyNotifications excludes passwordHash and normalizedEmail from the user object', async () => {
+      const prisma = makePrismaMock() as unknown as PrismaService;
+      (prisma.notification.findMany as jest.Mock).mockResolvedValue([
+        notificationWithSensitiveUser,
+      ]);
+      const svc = service(prisma);
+
+      const result = await svc.listMyNotifications('user-1', {});
+
+      expect(result.items).toHaveLength(1);
+      const user = (result.items[0] as Record<string, unknown>).user as Record<string, unknown>;
+      expect(user).toBeDefined();
+      expect(user).toHaveProperty('id');
+      expect(user).toHaveProperty('email');
+      expect(user).toHaveProperty('displayName');
+      expect(user).toHaveProperty('userType');
+      expect(user).not.toHaveProperty('passwordHash');
+      expect(user).not.toHaveProperty('normalizedEmail');
+    });
+
+    it('listAdminNotifications excludes passwordHash and normalizedEmail from the user object', async () => {
+      const prisma = makePrismaMock() as unknown as PrismaService;
+      (prisma.notification.findMany as jest.Mock).mockResolvedValue([
+        notificationWithSensitiveUser,
+      ]);
+      const svc = service(prisma);
+
+      const result = await svc.listAdminNotifications({});
+
+      expect(result.items).toHaveLength(1);
+      const user = (result.items[0] as Record<string, unknown>).user as Record<string, unknown>;
+      expect(user).toBeDefined();
+      expect(user).toHaveProperty('id');
+      expect(user).toHaveProperty('email');
+      expect(user).toHaveProperty('displayName');
+      expect(user).toHaveProperty('userType');
+      expect(user).not.toHaveProperty('passwordHash');
+      expect(user).not.toHaveProperty('normalizedEmail');
+    });
+
+    it('listMyNotifications returns user null when notification has no user', async () => {
+      const prisma = makePrismaMock() as unknown as PrismaService;
+      const noUserNotification = { ...notificationWithSensitiveUser, userId: null, user: null };
+      (prisma.notification.findMany as jest.Mock).mockResolvedValue([noUserNotification]);
+      const svc = service(prisma);
+
+      const result = await svc.listMyNotifications('user-1', {});
+
+      expect(result.items).toHaveLength(1);
+      expect((result.items[0] as Record<string, unknown>).user).toBeNull();
+    });
   });
 });

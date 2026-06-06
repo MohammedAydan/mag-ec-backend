@@ -18,6 +18,7 @@ import { AdminReportingController } from '../../src/modules/reporting/controller
 import { ReportingService } from '../../src/modules/reporting/services/reporting.service';
 import { AdminReviewsController } from '../../src/modules/reviews/controllers/admin-reviews.controller';
 import { ReviewsService } from '../../src/modules/reviews/services/reviews.service';
+import { PrismaService } from '../../src/modules/persistence/services/prisma.service';
 
 const adminPermissions = [
   'audit.read',
@@ -100,6 +101,12 @@ describe('Phase 11 admin security (e2e)', () => {
     }),
   };
 
+  const mockPrismaService = {
+    user: {
+      findUnique: jest.fn().mockResolvedValue({ id: 'admin_1', tokenVersion: undefined, status: 'ACTIVE', deletedAt: null }),
+    },
+  };
+
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
       controllers: [
@@ -119,6 +126,7 @@ describe('Phase 11 admin security (e2e)', () => {
         { provide: NotificationsService, useValue: mockNotificationsService },
         { provide: ReportingService, useValue: mockReportingService },
         { provide: ReviewsService, useValue: mockReviewsService },
+        { provide: PrismaService, useValue: mockPrismaService },
         { provide: TokenService, useValue: mockTokenService },
       ],
     }).compile();

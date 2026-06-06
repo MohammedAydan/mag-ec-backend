@@ -1,4 +1,4 @@
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, ConflictException } from '@nestjs/common';
 
 import { CheckoutPaymentMethod } from '../dto/checkout.dto';
 import { CheckoutPlacementService } from './checkout-placement.service';
@@ -59,7 +59,7 @@ describe('CheckoutPlacementService', () => {
       createMany: jest.fn(),
     },
     cart: {
-      update: jest.fn(),
+      updateMany: jest.fn(),
     },
   };
 
@@ -72,9 +72,9 @@ describe('CheckoutPlacementService', () => {
   const checkoutIdempotencyService = {
     execute: jest.fn(
       async (params: {
-        execute: () => Promise<{ responseCode: number; responseBody: Record<string, unknown> }>;
+        execute: (idempotencyKeyId: string) => Promise<{ responseCode: number; responseBody: Record<string, unknown> }>;
       }) => {
-        const result = await params.execute();
+        const result = await params.execute('idem-key-id');
         return { replayed: false, ...result };
       },
     ),
@@ -182,6 +182,7 @@ describe('CheckoutPlacementService', () => {
       grandTotalAmount: 2300,
       currencyCode: 'USD',
     });
+    tx.cart.updateMany.mockResolvedValue({ count: 1 });
     orderService.getSerializedOrderById.mockResolvedValue({
       id: 'order_1',
       orderNumber: 'ORD-20260525-ABCD1234',
@@ -249,6 +250,17 @@ describe('CheckoutPlacementService', () => {
       tx,
     );
     expect(orderOutboxService.emitPlaced).toHaveBeenCalled();
+    expect(tx.cart.updateMany).toHaveBeenCalledWith({
+      where: { id: 'cart_1', status: 'ACTIVE' },
+      data: { status: 'ABANDONED' },
+    });
+    expect(tx.order.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          idempotencyKeyId: 'idem-key-id',
+        }),
+      }),
+    );
     expect(result).toEqual({
       id: 'order_1',
       orderNumber: 'ORD-20260525-ABCD1234',
@@ -356,5 +368,43 @@ describe('CheckoutPlacementService', () => {
         providerPaymentId: 'pi_123',
       },
     });
+  });
+
+  it('rejects concurrent checkout on the same cart when the cart is already claimed', async () => {
+    // Simulate a concurrent claim: the cart is no longer ACTIVE
+    tx.cart.updateMany.mockResolvedValue({ count: 0 });
+
+    await expect(
+      service.placeOrder(
+        {
+          cartId: 'cart_1',
+          currencyCode: 'USD',
+          countryCode: 'US',
+          customerEmail: 'guest@example.com',
+          shippingMethodKey: 'standard',
+          paymentMethod: CheckoutPaymentMethod.CASH_ON_DELIVERY,
+          shippingAddress: {
+            recipientName: 'Guest User',
+            phoneNumber: '+15551230000',
+            countryCode: 'US',
+            city: 'New York',
+            addressLine1: '1 Example St',
+          },
+        },
+        {
+          guestToken: 'guest-token',
+          idempotencyKey: 'idem-key-concurrent',
+        },
+      ),
+    ).rejects.toThrow(ConflictException);
+
+    expect(tx.cart.updateMany).toHaveBeenCalledWith({
+      where: { id: 'cart_1', status: 'ACTIVE' },
+      data: { status: 'ABANDONED' },
+    });
+    // The order should never be created because the cart claim failed
+    expect(tx.order.create).not.toHaveBeenCalled();
+    expect(inventoryCoreService.reserveStock).not.toHaveBeenCalled();
+    expect(inventoryCoreService.redeemStockReservation).not.toHaveBeenCalled();
   });
 });

@@ -9,6 +9,7 @@ import { AuthGuard } from '../../src/modules/identity/guards/auth.guard';
 import { PermissionsGuard } from '../../src/modules/identity/guards/permissions.guard';
 import { AdminGuard } from '../../src/modules/identity/guards/admin.guard';
 import { TokenService } from '../../src/modules/identity/services/token.service';
+import { PrismaService } from '../../src/modules/persistence/services/prisma.service';
 import { PricingAdminService } from '../../src/modules/pricing/services/pricing-admin.service';
 
 describe('Pricing admin (e2e)', () => {
@@ -16,6 +17,12 @@ describe('Pricing admin (e2e)', () => {
 
   const mockPricingAdminService = {
     updateStoreCurrency: jest.fn().mockResolvedValue({ key: 'store.currency' }),
+  };
+
+  const mockPrismaService = {
+    user: {
+      findUnique: jest.fn().mockResolvedValue({ id: 'admin_1', tokenVersion: undefined, status: 'ACTIVE', deletedAt: null }),
+    },
   };
 
   const mockTokenService = {
@@ -53,6 +60,7 @@ describe('Pricing admin (e2e)', () => {
         PermissionsGuard,
         Reflector,
         { provide: PricingAdminService, useValue: mockPricingAdminService },
+        { provide: PrismaService, useValue: mockPrismaService },
         { provide: TokenService, useValue: mockTokenService },
       ],
     }).compile();

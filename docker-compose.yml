@@ -1,13 +1,17 @@
+# DEVELOPMENT ONLY — do not use in production.
+# Credentials are sourced from .env with safe defaults.
+# All service ports are bound to 127.0.0.1 to prevent unintended network exposure.
+
 services:
   mysql:
     image: mysql:8.4
     container_name: ecommerce-mysql
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
       MYSQL_DATABASE: ecommerce
     ports:
-      - '3306:3306'
+      - '127.0.0.1:3306:3306'
     command: >
       --default-authentication-plugin=mysql_native_password
       --character-set-server=utf8mb4
@@ -15,7 +19,7 @@ services:
     volumes:
       - mysql-data:/var/lib/mysql
     healthcheck:
-      test: ['CMD-SHELL', 'mysqladmin ping -h localhost -proot']
+      test: ['CMD-SHELL', 'mysqladmin ping -h localhost -p"$${MYSQL_ROOT_PASSWORD}"']
       interval: 10s
       timeout: 5s
       retries: 10
@@ -24,12 +28,15 @@ services:
     image: redis:7.4-alpine
     container_name: ecommerce-redis
     restart: unless-stopped
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
     ports:
-      - '6379:6379'
+      - '127.0.0.1:6379:6379'
     volumes:
       - redis-data:/data
+    command: sh -c 'if [ -n "$$REDIS_PASSWORD" ]; then redis-server --requirepass "$$REDIS_PASSWORD"; else redis-server; fi'
     healthcheck:
-      test: ['CMD', 'redis-cli', 'ping']
+      test: ['CMD-SHELL', 'if [ -n "$$REDIS_PASSWORD" ]; then redis-cli -a "$$REDIS_PASSWORD" ping; else redis-cli ping; fi']
       interval: 10s
       timeout: 5s
       retries: 10
@@ -39,12 +46,12 @@ services:
     container_name: ecommerce-storage
     restart: unless-stopped
     environment:
-      MINIO_ROOT_USER: minio
-      MINIO_ROOT_PASSWORD: minio123
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minio}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minio123}
     command: server /data --console-address ":9001"
     ports:
-      - '9000:9000'
-      - '9001:9001'
+      - '127.0.0.1:9000:9000'
+      - '127.0.0.1:9001:9001'
     volumes:
       - storage-data:/data
     healthcheck:

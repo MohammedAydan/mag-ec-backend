@@ -3,13 +3,14 @@
 ## Staging Validation Sequence
 
 1. Provision staging environment variables from `docs/operations/environment-variables.md`.
-2. Deploy the API and worker from the candidate commit.
-3. Run `pnpm prisma:migrate:deploy`.
-4. Run `pnpm prisma:seed` only if the staging environment is meant to contain seed fixtures.
-5. Verify `/api/v1/health/liveness` and `/api/v1/health/readiness`.
-6. Run `pnpm openapi:verify`.
-7. Run `pnpm flutter:client:verify`.
-8. Execute the production smoke-test plan before approving release.
+2. **Verify DATABASE_URL and REDIS_URL are set explicitly** — the app fail-closed behavior requires these in staging; localhost defaults are only available in dev/test.
+3. Deploy the API and worker from the candidate commit.
+4. Run `pnpm prisma:migrate:deploy`.
+5. **Seed only if staging fixtures are needed** (e.g., for integration or partner testing). Set `SEED_ALLOW_PRODUCTION=true` to bypass the seed environment guard, and provide explicit `DEV_SEED_ADMIN_EMAIL` / `DEV_SEED_ADMIN_PASSWORD`. The seed will NOT overwrite an existing admin password.
+6. Verify `/api/v1/health/liveness` and `/api/v1/health/readiness`.
+7. Run `pnpm openapi:verify`.
+8. Run `pnpm flutter:client:verify`.
+9. Execute the production smoke-test plan before approving release.
 
 ## Backup and Restore Expectations
 

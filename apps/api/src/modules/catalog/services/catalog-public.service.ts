@@ -1,5 +1,6 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 
+import { coercePositiveInt } from '../../../common/http/query-int';
 import { PrismaService } from '../../persistence/services/prisma.service';
 import type { CatalogBrowseQueryDto } from '../dto/catalog-public.dto';
 import { ObjectStorageService } from '../../storage/object-storage.service';
@@ -87,8 +88,8 @@ export class CatalogPublicService {
   }
 
   async browseProducts(query: CatalogBrowseQueryDto) {
-    const page = query.page ?? 1;
-    const pageSize = query.pageSize ?? 12;
+    const page = coercePositiveInt(query.page, 1);
+    const pageSize = coercePositiveInt(query.pageSize, 12);
     const locale = query.locale ?? 'en';
     const optionKeys = query.optionKeys
       ? query.optionKeys

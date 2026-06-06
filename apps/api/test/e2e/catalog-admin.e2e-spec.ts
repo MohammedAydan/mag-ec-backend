@@ -10,12 +10,19 @@ import { AuthGuard } from '../../src/modules/identity/guards/auth.guard';
 import { PermissionsGuard } from '../../src/modules/identity/guards/permissions.guard';
 import { AdminGuard } from '../../src/modules/identity/guards/admin.guard';
 import { TokenService } from '../../src/modules/identity/services/token.service';
+import { PrismaService } from '../../src/modules/persistence/services/prisma.service';
 
 describe('Catalog admin (e2e)', () => {
   let app: NestFastifyApplication;
 
   const mockCatalogAdminService = {
     createProductType: jest.fn().mockResolvedValue({ id: 'type_1', key: 'perfume' }),
+  };
+
+  const mockPrismaService = {
+    user: {
+      findUnique: jest.fn().mockResolvedValue({ id: 'admin_1', tokenVersion: undefined, status: 'ACTIVE', deletedAt: null }),
+    },
   };
 
   const mockTokenService = {
@@ -53,6 +60,7 @@ describe('Catalog admin (e2e)', () => {
         PermissionsGuard,
         Reflector,
         { provide: CatalogAdminService, useValue: mockCatalogAdminService },
+        { provide: PrismaService, useValue: mockPrismaService },
         { provide: TokenService, useValue: mockTokenService },
       ],
     }).compile();

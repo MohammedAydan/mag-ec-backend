@@ -1,10 +1,15 @@
-pubName: ecommerce_api_client
+# Strict OpenAPI Generator config for the real Flutter/Dart Dio SDK.
+# Place at: packages/contracts/openapi/dart-dio-config.yaml
+# Generator: dart-dio
+
+pubName: mag_api_client
 pubVersion: 0.1.0
-pubDescription: Generated Dart Dio client for the Universal E-Commerce REST API.
-enumUnknownDefaultCase: true
-dateLibrary: core
+pubDescription: Typed Flutter/Dart Dio client generated from the OpenAPI contract.
 serializationLibrary: built_value
 useEnumExtension: true
+prependFormOrBodyParameters: true
+ensureUniqueParams: true
+sortModelPropertiesByRequiredFlag: true
+sortParamsByRequiredFlag: true
 legacyDiscriminatorBehavior: false
 disallowAdditionalPropertiesIfNotPresent: false
-nullableFields: true

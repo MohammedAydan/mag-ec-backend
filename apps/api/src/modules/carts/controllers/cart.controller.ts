@@ -1,16 +1,43 @@
 import { randomUUID } from 'node:crypto';
 
-import { Body, Controller, Delete, Get, Inject, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Inject,
+  Param,
+  Patch,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiForbiddenResponse,
+  ApiHeader,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
 import type { FastifyRequest } from 'fastify';
 
 import { CurrentUser } from '../../identity/decorators/current-user.decorator';
 import { AuthGuard } from '../../identity/guards/auth.guard';
+import { CustomerGuard } from '../../identity/guards/customer.guard';
 import type { AccessTokenPayload } from '../../identity/services/token.service';
 import { TokenService } from '../../identity/services/token.service';
 import {
   AddCartItemDto,
   ApplyCouponDto,
+  CartResponseDto,
   CreateCartDto,
   MergeCartDto,
   UpdateCartItemDto,
@@ -26,6 +53,19 @@ export class CartController {
   ) {}
 
   @Post()
+  @ApiOperation({ summary: 'Create or retrieve a shopping cart' })
+  @ApiHeader({
+    name: 'Authorization',
+    required: false,
+    description: 'Optional Bearer JWT for authenticated cart access.',
+  })
+  @ApiHeader({
+    name: 'x-guest-cart-token',
+    required: false,
+    description: 'Guest cart bearer token for guest-owned cart access.',
+  })
+  @ApiCreatedResponse({ type: CartResponseDto, description: 'Cart created or retrieved' })
+  @ApiBadRequestResponse({ description: 'Invalid request body or parameters' })
   async createOrGetCart(@Body() body: CreateCartDto, @Req() request: FastifyRequest) {
     const currentUser = await this.resolveOptionalUser(request);
 
@@ -39,6 +79,20 @@ export class CartController {
   }
 
   @Get(':id')
+  @ApiOperation({ summary: 'Get cart by ID' })
+  @ApiHeader({
+    name: 'Authorization',
+    required: false,
+    description: 'Optional Bearer JWT for authenticated cart access.',
+  })
+  @ApiHeader({
+    name: 'x-guest-cart-token',
+    required: false,
+    description: 'Guest cart bearer token for guest-owned cart access.',
+  })
+  @ApiParam({ name: 'id', description: 'Cart ID', required: true })
+  @ApiOkResponse({ type: CartResponseDto, description: 'Cart details' })
+  @ApiNotFoundResponse({ description: 'Cart not found' })
   async getCart(@Param('id') id: string, @Req() request: FastifyRequest) {
     const cart = await this.cartService.getCartOrThrow(id);
     const currentUser = await this.resolveOptionalUser(request);
@@ -52,6 +106,21 @@ export class CartController {
   }
 
   @Post(':id/items')
+  @ApiOperation({ summary: 'Add an item to the cart' })
+  @ApiHeader({
+    name: 'Authorization',
+    required: false,
+    description: 'Optional Bearer JWT for authenticated cart access.',
+  })
+  @ApiHeader({
+    name: 'x-guest-cart-token',
+    required: false,
+    description: 'Guest cart bearer token for guest-owned cart access.',
+  })
+  @ApiParam({ name: 'id', description: 'Cart ID', required: true })
+  @ApiCreatedResponse({ type: CartResponseDto, description: 'Item added to cart' })
+  @ApiBadRequestResponse({ description: 'Invalid request body or parameters' })
+  @ApiNotFoundResponse({ description: 'Cart not found' })
   async addItem(
     @Param('id') id: string,
     @Body() body: AddCartItemDto,
@@ -69,6 +138,22 @@ export class CartController {
   }
 
   @Patch(':id/items/:variantId')
+  @ApiOperation({ summary: 'Update cart item quantity' })
+  @ApiHeader({
+    name: 'Authorization',
+    required: false,
+    description: 'Optional Bearer JWT for authenticated cart access.',
+  })
+  @ApiHeader({
+    name: 'x-guest-cart-token',
+    required: false,
+    description: 'Guest cart bearer token for guest-owned cart access.',
+  })
+  @ApiParam({ name: 'id', description: 'Cart ID', required: true })
+  @ApiParam({ name: 'variantId', description: 'Product variant ID', required: true })
+  @ApiOkResponse({ type: CartResponseDto, description: 'Item quantity updated' })
+  @ApiBadRequestResponse({ description: 'Invalid request body or parameters' })
+  @ApiNotFoundResponse({ description: 'Cart or variant not found' })
   async updateItemQuantity(
     @Param('id') id: string,
     @Param('variantId') variantId: string,
@@ -89,6 +174,21 @@ export class CartController {
   }
 
   @Delete(':id/items/:variantId')
+  @ApiOperation({ summary: 'Remove an item from the cart' })
+  @ApiHeader({
+    name: 'Authorization',
+    required: false,
+    description: 'Optional Bearer JWT for authenticated cart access.',
+  })
+  @ApiHeader({
+    name: 'x-guest-cart-token',
+    required: false,
+    description: 'Guest cart bearer token for guest-owned cart access.',
+  })
+  @ApiParam({ name: 'id', description: 'Cart ID', required: true })
+  @ApiParam({ name: 'variantId', description: 'Product variant ID', required: true })
+  @ApiOkResponse({ type: CartResponseDto, description: 'Item removed from cart' })
+  @ApiNotFoundResponse({ description: 'Cart or variant not found' })
   async removeItem(
     @Param('id') id: string,
     @Param('variantId') variantId: string,
@@ -106,6 +206,22 @@ export class CartController {
   }
 
   @Post(':id/coupon')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Apply a coupon to the cart' })
+  @ApiHeader({
+    name: 'Authorization',
+    required: false,
+    description: 'Optional Bearer JWT for authenticated cart access.',
+  })
+  @ApiHeader({
+    name: 'x-guest-cart-token',
+    required: false,
+    description: 'Guest cart bearer token for guest-owned cart access.',
+  })
+  @ApiParam({ name: 'id', description: 'Cart ID', required: true })
+  @ApiOkResponse({ type: CartResponseDto, description: 'Coupon applied' })
+  @ApiBadRequestResponse({ description: 'Invalid request body or parameters' })
+  @ApiNotFoundResponse({ description: 'Cart not found' })
   async applyCoupon(
     @Param('id') id: string,
     @Body() body: ApplyCouponDto,
@@ -123,6 +239,20 @@ export class CartController {
   }
 
   @Delete(':id/coupon')
+  @ApiOperation({ summary: 'Remove coupon from the cart' })
+  @ApiHeader({
+    name: 'Authorization',
+    required: false,
+    description: 'Optional Bearer JWT for authenticated cart access.',
+  })
+  @ApiHeader({
+    name: 'x-guest-cart-token',
+    required: false,
+    description: 'Guest cart bearer token for guest-owned cart access.',
+  })
+  @ApiParam({ name: 'id', description: 'Cart ID', required: true })
+  @ApiOkResponse({ type: CartResponseDto, description: 'Coupon removed' })
+  @ApiNotFoundResponse({ description: 'Cart not found' })
   async removeCoupon(@Param('id') id: string, @Req() request: FastifyRequest) {
     const cart = await this.cartService.getCartOrThrow(id);
     const currentUser = await this.resolveOptionalUser(request);
@@ -136,8 +266,14 @@ export class CartController {
   }
 
   @Post('merge')
-  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard, CustomerGuard)
   @ApiBearerAuth()
+  @ApiOperation({ summary: 'Merge guest cart into authenticated user cart' })
+  @ApiOkResponse({ type: CartResponseDto, description: 'Guest cart merged into user cart' })
+  @ApiBadRequestResponse({ description: 'Invalid request body or parameters' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
+  @ApiForbiddenResponse({ description: 'Customer-only resource; admin/staff tokens are rejected' })
   async mergeGuestCart(@Body() body: MergeCartDto, @CurrentUser() currentUser: AccessTokenPayload) {
     return this.toPublicCart(
       await this.cartService.mergeGuestCartIntoUserCart(body.sourceGuestToken, currentUser.sub),

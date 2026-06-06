@@ -8,7 +8,9 @@ import { CheckoutController } from '../../src/modules/checkout/controllers/check
 import { CheckoutPlacementService } from '../../src/modules/checkout/services/checkout-placement.service';
 import { CheckoutPreviewService } from '../../src/modules/checkout/services/checkout-preview.service';
 import { AuthGuard } from '../../src/modules/identity/guards/auth.guard';
+import { CustomerGuard } from '../../src/modules/identity/guards/customer.guard';
 import { TokenService } from '../../src/modules/identity/services/token.service';
+import { PrismaService } from '../../src/modules/persistence/services/prisma.service';
 
 describe('Checkout preview (e2e)', () => {
   let app: NestFastifyApplication;
@@ -41,6 +43,12 @@ describe('Checkout preview (e2e)', () => {
     placeOrder: jest.fn(),
   };
 
+  const mockPrismaService = {
+    user: {
+      findUnique: jest.fn().mockResolvedValue({ id: 'user_1', tokenVersion: undefined, status: 'ACTIVE', deletedAt: null }),
+    },
+  };
+
   const mockTokenService = {
     verifyAccessToken: jest.fn((token: string) => {
       if (token === 'customer-token') {
@@ -52,6 +60,17 @@ describe('Checkout preview (e2e)', () => {
           permissions: [],
         };
       }
+
+      if (token === 'admin-token') {
+        return {
+          sub: 'admin_1',
+          email: 'admin@example.com',
+          userType: 'ADMIN' as const,
+          roles: ['super_admin'],
+          permissions: [],
+        };
+      }
+
       throw new Error('invalid token');
     }),
   };
@@ -61,9 +80,11 @@ describe('Checkout preview (e2e)', () => {
       controllers: [CheckoutController],
       providers: [
         AuthGuard,
+        CustomerGuard,
         { provide: CheckoutPreviewService, useValue: mockCheckoutPreviewService },
         { provide: CheckoutPlacementService, useValue: mockCheckoutPlacementService },
         { provide: CartService, useValue: mockCartService },
+        { provide: PrismaService, useValue: mockPrismaService },
         { provide: TokenService, useValue: mockTokenService },
       ],
     }).compile();
@@ -93,7 +114,7 @@ describe('Checkout preview (e2e)', () => {
       .post('/api/v1/checkout/preview')
       .set('x-guest-cart-token', 'guest-token')
       .send({ cartId: 'cart_1', currencyCode: 'USD', countryCode: 'US' })
-      .expect(201)
+      .expect(200)
       .expect(({ body }: { body: { cartId: string } }) => {
         expect(body.cartId).toBe('cart_1');
       });
@@ -129,9 +150,17 @@ describe('Checkout preview (e2e)', () => {
       .post('/api/v1/checkout/reserve')
       .set('Authorization', 'Bearer customer-token')
       .send({ cartId: 'cart_1', currencyCode: 'USD', countryCode: 'US' })
-      .expect(201)
+      .expect(200)
       .expect(({ body }: { body: { reservationKey: string } }) => {
         expect(body.reservationKey).toBe('checkout-preview-cart_1-123');
       });
+  });
+
+  it('forbids admin tokens on checkout reserve route', async () => {
+    await request(app.getHttpServer())
+      .post('/api/v1/checkout/reserve')
+      .set('Authorization', 'Bearer admin-token')
+      .send({ cartId: 'cart_1', currencyCode: 'USD', countryCode: 'US' })
+      .expect(403);
   });
 });

@@ -11,8 +11,19 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-
+import {
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiExtension,
+  ApiForbiddenResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
 
 import {
   AttachMediaDto,
@@ -36,9 +47,25 @@ import { AuthGuard } from '../../identity/guards/auth.guard';
 import { PermissionsGuard } from '../../identity/guards/permissions.guard';
 import { AdminGuard } from '../../identity/guards/admin.guard';
 import type { AccessTokenPayload } from '../../identity/services/token.service';
+import {
+  AttachedMediaResponseDto,
+  AdminCatalogAttributeDto,
+  AdminCatalogBrandDto,
+  AdminCatalogCategoryDto,
+  AdminCatalogCollectionDto,
+  AdminCatalogProductDto,
+  AdminCatalogProductTypeDto,
+  AdminCatalogTagDto,
+  AdminCatalogVariantDto,
+  AdminPaginatedCatalogProductsDto,
+  CatalogStatusResponseDto,
+  MediaUploadIntentResponseDto,
+} from '../dto/catalog-response.dto';
 
 @ApiTags('Catalog Admin')
 @ApiBearerAuth()
+@ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
+@ApiForbiddenResponse({ description: 'Insufficient permissions' })
 @UseGuards(AuthGuard, AdminGuard, PermissionsGuard)
 @RequirePermissions(['catalog.write'])
 @Controller('catalog/admin')
@@ -47,154 +74,254 @@ export class CatalogAdminController {
 
   @Get('products')
   @RequirePermissions(['catalog.read'])
-  listProducts(@Query() query: ListCatalogProductsAdminQueryDto) {
+  @ApiOperation({ summary: 'List all products with pagination and filters' })
+  @ApiOkResponse({ type: AdminPaginatedCatalogProductsDto, description: 'Paginated product list' })
+  @ApiBadRequestResponse({ description: 'Invalid query parameters' })
+  async listProducts(@Query() query: ListCatalogProductsAdminQueryDto) {
     return this.catalogAdminService.listProducts(query);
   }
 
   @Get('products/:productId')
   @RequirePermissions(['catalog.read'])
-  getProduct(@Param('productId') productId: string) {
+  @ApiOperation({ summary: 'Get a single product by ID' })
+  @ApiParam({ name: 'productId', description: 'Product ID', type: String })
+  @ApiOkResponse({ type: AdminCatalogProductDto, description: 'Product details' })
+  @ApiNotFoundResponse({ description: 'Product not found' })
+  async getProduct(@Param('productId') productId: string) {
     return this.catalogAdminService.getProduct(productId);
   }
 
   @Get('product-types')
   @RequirePermissions(['catalog.read'])
-  listProductTypes() {
+  @ApiOperation({ summary: 'List all product types' })
+  @ApiOkResponse({ type: [AdminCatalogProductTypeDto], description: 'All product types' })
+  async listProductTypes() {
     return this.catalogAdminService.listProductTypes();
   }
 
   @Get('brands')
   @RequirePermissions(['catalog.read'])
-  listBrands() {
+  @ApiOperation({ summary: 'List all brands' })
+  @ApiOkResponse({ type: [AdminCatalogBrandDto], description: 'All brands' })
+  async listBrands() {
     return this.catalogAdminService.listBrands();
   }
 
   @Get('categories')
   @RequirePermissions(['catalog.read'])
-  listCategories() {
+  @ApiOperation({ summary: 'List all categories' })
+  @ApiOkResponse({ type: [AdminCatalogCategoryDto], description: 'All categories' })
+  async listCategories() {
     return this.catalogAdminService.listCategories();
   }
 
   @Get('collections')
   @RequirePermissions(['catalog.read'])
-  listCollections() {
+  @ApiOperation({ summary: 'List all collections' })
+  @ApiOkResponse({ type: [AdminCatalogCollectionDto], description: 'All collections' })
+  async listCollections() {
     return this.catalogAdminService.listCollections();
   }
 
   @Get('tags')
   @RequirePermissions(['catalog.read'])
-  listTags() {
+  @ApiOperation({ summary: 'List all tags' })
+  @ApiOkResponse({ type: [AdminCatalogTagDto], description: 'All tags' })
+  async listTags() {
     return this.catalogAdminService.listTags();
   }
 
   @Get('attributes')
   @RequirePermissions(['catalog.read'])
-  listAttributes() {
+  @ApiOperation({ summary: 'List all attributes' })
+  @ApiOkResponse({ type: [AdminCatalogAttributeDto], description: 'All attributes' })
+  async listAttributes() {
     return this.catalogAdminService.listAttributes();
   }
 
   @Post('product-types')
-  createProductType(@Body() dto: CreateProductTypeDto) {
+  @ApiOperation({ summary: 'Create a new product type' })
+  @ApiCreatedResponse({ type: AdminCatalogProductTypeDto, description: 'Product type created' })
+  @ApiBadRequestResponse({ description: 'Invalid request body or parameters' })
+  async createProductType(@Body() dto: CreateProductTypeDto) {
     return this.catalogAdminService.createProductType(dto);
   }
 
   @Post('brands')
-  createBrand(@Body() dto: CreateBrandDto) {
+  @ApiOperation({ summary: 'Create a new brand' })
+  @ApiCreatedResponse({ type: AdminCatalogBrandDto, description: 'Brand created' })
+  @ApiBadRequestResponse({ description: 'Invalid request body or parameters' })
+  async createBrand(@Body() dto: CreateBrandDto) {
     return this.catalogAdminService.createBrand(dto);
   }
 
   @Post('categories')
-  createCategory(@Body() dto: CreateCategoryDto) {
+  @ApiOperation({ summary: 'Create a new category' })
+  @ApiCreatedResponse({ type: AdminCatalogCategoryDto, description: 'Category created' })
+  @ApiBadRequestResponse({ description: 'Invalid request body or parameters' })
+  async createCategory(@Body() dto: CreateCategoryDto) {
     return this.catalogAdminService.createCategory(dto);
   }
 
   @Post('collections')
-  createCollection(@Body() dto: CreateCollectionDto) {
+  @ApiOperation({ summary: 'Create a new collection' })
+  @ApiCreatedResponse({ type: AdminCatalogCollectionDto, description: 'Collection created' })
+  @ApiBadRequestResponse({ description: 'Invalid request body or parameters' })
+  async createCollection(@Body() dto: CreateCollectionDto) {
     return this.catalogAdminService.createCollection(dto);
   }
 
   @Post('tags')
-  createTag(@Body() dto: CreateTagDto) {
+  @ApiOperation({ summary: 'Create a new tag' })
+  @ApiCreatedResponse({ type: AdminCatalogTagDto, description: 'Tag created' })
+  @ApiBadRequestResponse({ description: 'Invalid request body or parameters' })
+  async createTag(@Body() dto: CreateTagDto) {
     return this.catalogAdminService.createTag(dto);
   }
 
   @Post('attributes')
-  createAttribute(@Body() dto: CreateAttributeDto) {
+  @ApiOperation({ summary: 'Create a new attribute' })
+  @ApiCreatedResponse({ type: AdminCatalogAttributeDto, description: 'Attribute created' })
+  @ApiBadRequestResponse({ description: 'Invalid request body or parameters' })
+  async createAttribute(@Body() dto: CreateAttributeDto) {
     return this.catalogAdminService.createAttribute(dto);
   }
 
   @Post('product-types/:productTypeId/publish')
   @HttpCode(HttpStatus.OK)
-  publishProductType(@Param('productTypeId') productTypeId: string) {
+  @ApiOperation({ summary: 'Publish a product type' })
+  @ApiParam({ name: 'productTypeId', description: 'Product type ID', type: String })
+  @ApiOkResponse({ type: CatalogStatusResponseDto, description: 'Product type published' })
+  @ApiNotFoundResponse({ description: 'Product type not found' })
+  @ApiExtension('x-sdk-allow-empty-request-body', true)
+  async publishProductType(@Param('productTypeId') productTypeId: string) {
     return this.catalogAdminService.publishProductType(productTypeId);
   }
 
   @Post('product-types/:productTypeId/archive')
   @HttpCode(HttpStatus.OK)
-  archiveProductType(@Param('productTypeId') productTypeId: string) {
+  @ApiOperation({ summary: 'Archive a product type' })
+  @ApiParam({ name: 'productTypeId', description: 'Product type ID', type: String })
+  @ApiOkResponse({ type: CatalogStatusResponseDto, description: 'Product type archived' })
+  @ApiNotFoundResponse({ description: 'Product type not found' })
+  @ApiExtension('x-sdk-allow-empty-request-body', true)
+  async archiveProductType(@Param('productTypeId') productTypeId: string) {
     return this.catalogAdminService.archiveProductType(productTypeId);
   }
 
   @Post('brands/:brandId/publish')
   @HttpCode(HttpStatus.OK)
-  publishBrand(@Param('brandId') brandId: string) {
+  @ApiOperation({ summary: 'Publish a brand' })
+  @ApiParam({ name: 'brandId', description: 'Brand ID', type: String })
+  @ApiOkResponse({ type: CatalogStatusResponseDto, description: 'Brand published' })
+  @ApiNotFoundResponse({ description: 'Brand not found' })
+  @ApiExtension('x-sdk-allow-empty-request-body', true)
+  async publishBrand(@Param('brandId') brandId: string) {
     return this.catalogAdminService.publishBrand(brandId);
   }
 
   @Post('brands/:brandId/archive')
   @HttpCode(HttpStatus.OK)
-  archiveBrand(@Param('brandId') brandId: string) {
+  @ApiOperation({ summary: 'Archive a brand' })
+  @ApiParam({ name: 'brandId', description: 'Brand ID', type: String })
+  @ApiOkResponse({ type: CatalogStatusResponseDto, description: 'Brand archived' })
+  @ApiNotFoundResponse({ description: 'Brand not found' })
+  @ApiExtension('x-sdk-allow-empty-request-body', true)
+  async archiveBrand(@Param('brandId') brandId: string) {
     return this.catalogAdminService.archiveBrand(brandId);
   }
 
   @Post('categories/:categoryId/publish')
   @HttpCode(HttpStatus.OK)
-  publishCategory(@Param('categoryId') categoryId: string) {
+  @ApiOperation({ summary: 'Publish a category' })
+  @ApiParam({ name: 'categoryId', description: 'Category ID', type: String })
+  @ApiOkResponse({ type: CatalogStatusResponseDto, description: 'Category published' })
+  @ApiNotFoundResponse({ description: 'Category not found' })
+  @ApiExtension('x-sdk-allow-empty-request-body', true)
+  async publishCategory(@Param('categoryId') categoryId: string) {
     return this.catalogAdminService.publishCategory(categoryId);
   }
 
   @Post('categories/:categoryId/archive')
   @HttpCode(HttpStatus.OK)
-  archiveCategory(@Param('categoryId') categoryId: string) {
+  @ApiOperation({ summary: 'Archive a category' })
+  @ApiParam({ name: 'categoryId', description: 'Category ID', type: String })
+  @ApiOkResponse({ type: CatalogStatusResponseDto, description: 'Category archived' })
+  @ApiNotFoundResponse({ description: 'Category not found' })
+  @ApiExtension('x-sdk-allow-empty-request-body', true)
+  async archiveCategory(@Param('categoryId') categoryId: string) {
     return this.catalogAdminService.archiveCategory(categoryId);
   }
 
   @Post('collections/:collectionId/publish')
   @HttpCode(HttpStatus.OK)
-  publishCollection(@Param('collectionId') collectionId: string) {
+  @ApiOperation({ summary: 'Publish a collection' })
+  @ApiParam({ name: 'collectionId', description: 'Collection ID', type: String })
+  @ApiOkResponse({ type: CatalogStatusResponseDto, description: 'Collection published' })
+  @ApiNotFoundResponse({ description: 'Collection not found' })
+  @ApiExtension('x-sdk-allow-empty-request-body', true)
+  async publishCollection(@Param('collectionId') collectionId: string) {
     return this.catalogAdminService.publishCollection(collectionId);
   }
 
   @Post('collections/:collectionId/archive')
   @HttpCode(HttpStatus.OK)
-  archiveCollection(@Param('collectionId') collectionId: string) {
+  @ApiOperation({ summary: 'Archive a collection' })
+  @ApiParam({ name: 'collectionId', description: 'Collection ID', type: String })
+  @ApiOkResponse({ type: CatalogStatusResponseDto, description: 'Collection archived' })
+  @ApiNotFoundResponse({ description: 'Collection not found' })
+  @ApiExtension('x-sdk-allow-empty-request-body', true)
+  async archiveCollection(@Param('collectionId') collectionId: string) {
     return this.catalogAdminService.archiveCollection(collectionId);
   }
 
   @Post('tags/:tagId/publish')
   @HttpCode(HttpStatus.OK)
-  publishTag(@Param('tagId') tagId: string) {
+  @ApiOperation({ summary: 'Publish a tag' })
+  @ApiParam({ name: 'tagId', description: 'Tag ID', type: String })
+  @ApiOkResponse({ type: CatalogStatusResponseDto, description: 'Tag published' })
+  @ApiNotFoundResponse({ description: 'Tag not found' })
+  @ApiExtension('x-sdk-allow-empty-request-body', true)
+  async publishTag(@Param('tagId') tagId: string) {
     return this.catalogAdminService.publishTag(tagId);
   }
 
   @Post('tags/:tagId/archive')
   @HttpCode(HttpStatus.OK)
-  archiveTag(@Param('tagId') tagId: string) {
+  @ApiOperation({ summary: 'Archive a tag' })
+  @ApiParam({ name: 'tagId', description: 'Tag ID', type: String })
+  @ApiOkResponse({ type: CatalogStatusResponseDto, description: 'Tag archived' })
+  @ApiNotFoundResponse({ description: 'Tag not found' })
+  @ApiExtension('x-sdk-allow-empty-request-body', true)
+  async archiveTag(@Param('tagId') tagId: string) {
     return this.catalogAdminService.archiveTag(tagId);
   }
 
   @Post('products')
-  createProduct(@Body() dto: CreateProductDto) {
+  @ApiOperation({ summary: 'Create a new product' })
+  @ApiCreatedResponse({ type: AdminCatalogProductDto, description: 'Product created' })
+  @ApiBadRequestResponse({ description: 'Invalid request body or parameters' })
+  async createProduct(@Body() dto: CreateProductDto) {
     return this.catalogAdminService.createProduct(dto);
   }
 
   @Patch('products/:productId')
-  updateProduct(@Param('productId') productId: string, @Body() dto: UpdateProductDto) {
+  @ApiOperation({ summary: 'Update a product' })
+  @ApiParam({ name: 'productId', description: 'Product ID', type: String })
+  @ApiOkResponse({ type: AdminCatalogProductDto, description: 'Product updated' })
+  @ApiBadRequestResponse({ description: 'Invalid request body or parameters' })
+  @ApiNotFoundResponse({ description: 'Product not found' })
+  async updateProduct(@Param('productId') productId: string, @Body() dto: UpdateProductDto) {
     return this.catalogAdminService.updateProduct(productId, dto);
   }
 
   @Post('products/:productId/variants')
-  createProductVariant(
+  @ApiOperation({ summary: 'Create a new product variant' })
+  @ApiParam({ name: 'productId', description: 'Product ID', type: String })
+  @ApiCreatedResponse({ type: AdminCatalogVariantDto, description: 'Product variant created' })
+  @ApiBadRequestResponse({ description: 'Invalid request body or parameters' })
+  @ApiNotFoundResponse({ description: 'Product not found' })
+  async createProductVariant(
     @Param('productId') productId: string,
     @Body() dto: CreateProductVariantDto,
   ) {
@@ -202,7 +329,12 @@ export class CatalogAdminController {
   }
 
   @Patch('variants/:variantId')
-  updateProductVariant(
+  @ApiOperation({ summary: 'Update a product variant' })
+  @ApiParam({ name: 'variantId', description: 'Variant ID', type: String })
+  @ApiOkResponse({ type: AdminCatalogVariantDto, description: 'Product variant updated' })
+  @ApiBadRequestResponse({ description: 'Invalid request body or parameters' })
+  @ApiNotFoundResponse({ description: 'Variant not found' })
+  async updateProductVariant(
     @Param('variantId') variantId: string,
     @Body() dto: UpdateProductVariantDto,
   ) {
@@ -211,30 +343,58 @@ export class CatalogAdminController {
 
   @Post('variants/:variantId/publish')
   @HttpCode(HttpStatus.OK)
-  publishProductVariant(@Param('variantId') variantId: string) {
+  @ApiOperation({ summary: 'Publish a product variant' })
+  @ApiParam({ name: 'variantId', description: 'Variant ID', type: String })
+  @ApiOkResponse({ type: CatalogStatusResponseDto, description: 'Variant published' })
+  @ApiNotFoundResponse({ description: 'Variant not found' })
+  @ApiExtension('x-sdk-allow-empty-request-body', true)
+  async publishProductVariant(@Param('variantId') variantId: string) {
     return this.catalogAdminService.publishProductVariant(variantId);
   }
 
   @Post('variants/:variantId/archive')
   @HttpCode(HttpStatus.OK)
-  archiveProductVariant(@Param('variantId') variantId: string) {
+  @ApiOperation({ summary: 'Archive a product variant' })
+  @ApiParam({ name: 'variantId', description: 'Variant ID', type: String })
+  @ApiOkResponse({ type: CatalogStatusResponseDto, description: 'Variant archived' })
+  @ApiNotFoundResponse({ description: 'Variant not found' })
+  @ApiExtension('x-sdk-allow-empty-request-body', true)
+  async archiveProductVariant(@Param('variantId') variantId: string) {
     return this.catalogAdminService.archiveProductVariant(variantId);
   }
 
   @Post('products/:productId/publish')
   @HttpCode(HttpStatus.OK)
-  publishProduct(@Param('productId') productId: string) {
+  @ApiOperation({ summary: 'Publish a product' })
+  @ApiParam({ name: 'productId', description: 'Product ID', type: String })
+  @ApiOkResponse({ type: CatalogStatusResponseDto, description: 'Product published' })
+  @ApiNotFoundResponse({ description: 'Product not found' })
+  @ApiExtension('x-sdk-allow-empty-request-body', true)
+  async publishProduct(@Param('productId') productId: string) {
     return this.catalogAdminService.publishProduct(productId);
   }
 
   @Post('products/:productId/archive')
   @HttpCode(HttpStatus.OK)
-  archiveProduct(@Param('productId') productId: string) {
+  @ApiOperation({ summary: 'Archive a product' })
+  @ApiParam({ name: 'productId', description: 'Product ID', type: String })
+  @ApiOkResponse({ type: CatalogStatusResponseDto, description: 'Product archived' })
+  @ApiNotFoundResponse({ description: 'Product not found' })
+  @ApiExtension('x-sdk-allow-empty-request-body', true)
+  async archiveProduct(@Param('productId') productId: string) {
     return this.catalogAdminService.archiveProduct(productId);
   }
 
   @Post('products/:productId/media/upload-intents')
-  issueMediaUploadIntent(
+  @ApiOperation({ summary: 'Issue a media upload intent for a product' })
+  @ApiParam({ name: 'productId', description: 'Product ID', type: String })
+  @ApiCreatedResponse({
+    type: MediaUploadIntentResponseDto,
+    description: 'Media upload intent created',
+  })
+  @ApiBadRequestResponse({ description: 'Invalid request body or parameters' })
+  @ApiNotFoundResponse({ description: 'Product not found' })
+  async issueMediaUploadIntent(
     @Param('productId') productId: string,
     @Body() dto: CreateMediaUploadIntentDto,
     @CurrentUser() currentUser: AccessTokenPayload,
@@ -243,7 +403,12 @@ export class CatalogAdminController {
   }
 
   @Post('products/:productId/media/attach')
-  attachMedia(
+  @ApiOperation({ summary: 'Attach uploaded media to a product' })
+  @ApiParam({ name: 'productId', description: 'Product ID', type: String })
+  @ApiCreatedResponse({ type: AttachedMediaResponseDto, description: 'Media attached successfully' })
+  @ApiBadRequestResponse({ description: 'Invalid request body or parameters' })
+  @ApiNotFoundResponse({ description: 'Product not found' })
+  async attachMedia(
     @Param('productId') productId: string,
     @Body() dto: AttachMediaDto,
     @CurrentUser() currentUser: AccessTokenPayload,

@@ -65,6 +65,7 @@ export class RefundService {
     requestedByUserId?: string;
     amount: number;
     reason?: string;
+    metadata?: Prisma.InputJsonValue;
   }) {
     if (params.amount <= 0) {
       throw new BadRequestException('Refund amount must be greater than zero');
@@ -130,6 +131,7 @@ export class RefundService {
               orderId: orderContext.id,
               paymentAttemptId: paymentAttempt.id,
               returnRequestId: params.returnRequestId ?? null,
+              ...(params.metadata as Record<string, unknown> | undefined),
             },
           },
           tx,
@@ -224,13 +226,48 @@ export class RefundService {
     const refundId = event.metadata.refundId;
     const providerRefundId = event.providerRefundId;
     const refund = refundId
-      ? await tx.refund.findUnique({ where: { id: refundId } })
+      ? await tx.refund.findUnique({
+          where: { id: refundId },
+          include: { paymentAttempt: true },
+        })
       : providerRefundId
-        ? await tx.refund.findUnique({ where: { providerRefundId } })
+        ? await tx.refund.findUnique({
+            where: { providerRefundId },
+            include: { paymentAttempt: true },
+          })
         : null;
 
     if (!refund || !providerRefundId) {
       throw new NotFoundException('Refund referenced by the provider event was not found');
+    }
+
+    // SEC-013: Enforce that the webhook's payment intent matches the refund's associated payment attempt.
+    if (
+      event.providerPaymentId &&
+      refund.paymentAttempt?.providerPaymentId &&
+      event.providerPaymentId !== refund.paymentAttempt.providerPaymentId
+    ) {
+      // Persist audit log outside the caller's transaction so the security
+      // warning survives even when the refund reconciliation is rolled back.
+      await this.prisma.auditLog.create({
+        data: {
+          category: 'SECURITY',
+          action: 'refund.pi_ownership_mismatch',
+          entityType: 'Refund',
+          entityId: refund.id,
+          metadata: {
+            webhookEventId: event.externalEventId,
+            webhookPaymentIntent: event.providerPaymentId,
+            localPaymentIntent: refund.paymentAttempt.providerPaymentId,
+            orderId: refund.orderId,
+            refundId: refund.id,
+            paymentAttemptId: refund.paymentAttempt.id,
+          },
+        },
+      });
+      throw new BadRequestException(
+        `Webhook payment intent "${event.providerPaymentId}" does not match refund's payment attempt "${refund.paymentAttempt.providerPaymentId}"`,
+      );
     }
 
     if (event.providerObjectStatus === 'succeeded') {

@@ -182,6 +182,56 @@ describe('UserService', () => {
     });
   });
 
+  describe('getUserProfileById', () => {
+    it('serializes profile dates and roles for the documented API DTO', async () => {
+      const createdAt = new Date('2026-05-31T00:00:00.000Z');
+      const mockUser = {
+        id: 'user_1',
+        email: 'test@example.com',
+        displayName: 'Test User',
+        userType: UserType.CUSTOMER,
+        status: UserStatus.ACTIVE,
+        deletedAt: null,
+        emailVerifiedAt: null,
+        lastLoginAt: null,
+        createdAt,
+        userRoles: [
+          {
+            role: {
+              id: 'role_1',
+              key: 'customer',
+              name: 'Customer',
+              archivedAt: null,
+              rolePermissions: [
+                {
+                  permission: {
+                    key: 'read:profile',
+                    archivedAt: null,
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      };
+
+      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
+
+      await expect(service.getUserProfileById('user_1')).resolves.toMatchObject({
+        id: 'user_1',
+        email: 'test@example.com',
+        displayName: 'Test User',
+        userType: UserType.CUSTOMER,
+        status: UserStatus.ACTIVE,
+        emailVerifiedAt: null,
+        lastLoginAt: null,
+        createdAt: createdAt.toISOString(),
+        roles: [{ id: 'role_1', key: 'customer', name: 'Customer' }],
+        permissions: ['read:profile'],
+      });
+    });
+  });
+
   describe('validateUserStatusOrThrow', () => {
     it('should not throw if status is ACTIVE and user not deleted', () => {
       expect(() => service.validateUserStatusOrThrow(UserStatus.ACTIVE, null)).not.toThrow();

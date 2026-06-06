@@ -22,9 +22,9 @@ export interface WorkerConfig {
   fcmPrivateKey: string;
 }
 
-function requiredInProduction(name: string, value: string, isProduction: boolean): string {
-  if (isProduction && value.trim().length === 0) {
-    throw new Error(`${name} is required in production`);
+function requiredInProduction(name: string, value: string, isProductionOrStaging: boolean): string {
+  if (isProductionOrStaging && value.trim().length === 0) {
+    throw new Error(`${name} is required in production and staging environments`);
   }
   return value;
 }
@@ -32,6 +32,7 @@ function requiredInProduction(name: string, value: string, isProduction: boolean
 export function buildWorkerConfig(): { worker: WorkerConfig } {
   const nodeEnv = (process.env.NODE_ENV ?? 'development') as WorkerConfig['nodeEnv'];
   const isProduction = nodeEnv === 'production';
+  const isProductionOrStaging = isProduction || nodeEnv === 'staging';
   const reportStorageMode = (process.env.REPORT_STORAGE_MODE ??
     'local') as WorkerConfig['reportStorageMode'];
   const paymentProvider = (process.env.PAYMENT_PROVIDER ?? 'cod')
@@ -59,12 +60,12 @@ export function buildWorkerConfig(): { worker: WorkerConfig } {
       databaseUrl: requiredInProduction(
         'DATABASE_URL',
         process.env.DATABASE_URL ?? 'mysql://root:root@localhost:3306/ecommerce',
-        isProduction,
+        isProductionOrStaging,
       ),
       redisUrl: requiredInProduction(
         'REDIS_URL',
         process.env.REDIS_URL ?? 'redis://localhost:6379',
-        isProduction,
+        isProductionOrStaging,
       ),
       queuePrefix: process.env.QUEUE_PREFIX ?? 'ecommerce',
       logLevel: process.env.LOG_LEVEL ?? 'info',

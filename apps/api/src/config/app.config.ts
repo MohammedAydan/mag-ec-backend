@@ -18,6 +18,7 @@ export interface AppConfig {
   cronSecret: string;
   maintenanceBatchSize: number;
   dashboardEnabled: boolean;
+  schemaGuardEnabled: boolean;
   throttleTtlMs: number;
   throttleLimit: number;
   logLevel: 'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'trace' | 'silent';
@@ -65,6 +66,18 @@ function resolveExecutionMode(): ExecutionMode {
   return process.env.EXECUTION_MODE?.trim().toLowerCase() === 'queue' ? 'queue' : 'direct';
 }
 
+function resolveBoolean(key: string, devDefault: boolean): boolean {
+  const raw = process.env[key]?.trim();
+  if (raw !== undefined && raw.length > 0) {
+    return raw !== 'false';
+  }
+  const nodeEnv = process.env.NODE_ENV ?? 'development';
+  if (nodeEnv === 'production' || nodeEnv === 'staging') {
+    return false;
+  }
+  return devDefault;
+}
+
 const productionRequiredString = Joi.string().when('NODE_ENV', {
   is: 'production',
   then: Joi.string().min(1).required(),
@@ -82,18 +95,34 @@ export const envValidationSchema = Joi.object({
   STORE_ALLOWED_ORIGINS: Joi.string().allow('').default('http://localhost:3001'),
   DATABASE_URL: Joi.string()
     .uri({ scheme: [/mysql/] })
-    .default('mysql://root:root@localhost:3306/ecommerce'),
+    .when('NODE_ENV', {
+      is: Joi.string().valid('production', 'staging'),
+      then: Joi.string()
+        .uri({ scheme: [/mysql/] })
+        .required(),
+      otherwise: Joi.string()
+        .uri({ scheme: [/mysql/] })
+        .default('mysql://root:root@localhost:3306/ecommerce'),
+    }),
   EXECUTION_MODE: Joi.string().valid('direct', 'queue').default('direct'),
   // Deprecated compatibility input; it no longer changes API runtime behavior. Use EXECUTION_MODE.
   QUEUE_ENABLED: Joi.boolean().truthy('true').falsy('false').default(false),
   REDIS_URL: Joi.string()
     .uri({ scheme: [/redis/, /rediss/] })
-    .when('EXECUTION_MODE', {
-      is: 'queue',
+    .when('NODE_ENV', {
+      is: Joi.string().valid('production', 'staging'),
       then: Joi.string()
         .uri({ scheme: [/redis/, /rediss/] })
         .required(),
-      otherwise: Joi.string().allow('').default(''),
+      otherwise: Joi.string()
+        .uri({ scheme: [/redis/, /rediss/] })
+        .when('EXECUTION_MODE', {
+          is: 'queue',
+          then: Joi.string()
+            .uri({ scheme: [/redis/, /rediss/] })
+            .required(),
+          otherwise: Joi.string().allow('').default(''),
+        }),
     }),
   QUEUE_PREFIX: Joi.string().default('ecommerce'),
   CRON_SECRET: Joi.string().allow('').default(''),
@@ -103,7 +132,12 @@ export const envValidationSchema = Joi.object({
     otherwise: Joi.string().allow('').default('development_maintenance_secret_key'),
   }),
   MAINTENANCE_BATCH_SIZE: Joi.number().integer().min(1).max(100).default(25),
-  DASHBOARD_ENABLED: Joi.boolean().truthy('true').falsy('false').default(true),
+  DASHBOARD_ENABLED: Joi.boolean().truthy('true').falsy('false').when('NODE_ENV', {
+    is: Joi.string().valid('production', 'staging'),
+    then: Joi.boolean().default(false),
+    otherwise: Joi.boolean().default(true),
+  }),
+  SCHEMA_GUARD_ENABLED: Joi.boolean().truthy('true').falsy('false').default(true),
   THROTTLE_TTL_MS: Joi.number().integer().min(1000).default(60000),
   THROTTLE_LIMIT: Joi.number().integer().min(1).default(120),
   DEV_SEED_ADMIN_EMAIL: Joi.string().email().default('admin@example.com'),
@@ -111,7 +145,11 @@ export const envValidationSchema = Joi.object({
   LOG_LEVEL: Joi.string()
     .valid('fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent')
     .default('info'),
-  OPENAPI_ENABLED: Joi.boolean().truthy('true').falsy('false').default(true),
+  OPENAPI_ENABLED: Joi.boolean().truthy('true').falsy('false').when('NODE_ENV', {
+    is: Joi.string().valid('production', 'staging'),
+    then: Joi.boolean().default(false),
+    otherwise: Joi.boolean().default(true),
+  }),
   JWT_ACCESS_SECRET: Joi.string().when('NODE_ENV', {
     is: Joi.string().valid('production', 'staging'),
     then: Joi.string().min(32).required(),
@@ -186,17 +224,30 @@ export const envValidationSchema = Joi.object({
 
 export function buildAppConfig(): { app: AppConfig } {
   const executionMode = resolveExecutionMode();
+  const nodeEnv = (process.env.NODE_ENV ?? 'development') as AppConfig['nodeEnv'];
+  const isProdOrStaging = nodeEnv === 'production' || nodeEnv === 'staging';
+
+  const databaseUrl = process.env.DATABASE_URL?.trim();
+  if (isProdOrStaging && (!databaseUrl || databaseUrl.length === 0)) {
+    throw new Error('DATABASE_URL is required in production and staging environments');
+  }
+
+  const redisUrl = process.env.REDIS_URL?.trim();
+  if (isProdOrStaging && (!redisUrl || redisUrl.length === 0)) {
+    throw new Error('REDIS_URL is required in production and staging environments');
+  }
+
   return {
     app: {
-      nodeEnv: (process.env.NODE_ENV ?? 'development') as AppConfig['nodeEnv'],
+      nodeEnv,
       port: Number.parseInt(process.env.PORT ?? '3000', 10),
       apiPrefix: process.env.API_PREFIX ?? 'api/v1',
       appPublicUrl: process.env.APP_PUBLIC_URL ?? 'http://localhost:3000',
       adminAllowedOrigins: splitOrigins(process.env.ADMIN_ALLOWED_ORIGINS),
       storeAllowedOrigins: splitOrigins(process.env.STORE_ALLOWED_ORIGINS),
-      databaseUrl: process.env.DATABASE_URL ?? 'mysql://root:root@localhost:3306/ecommerce',
+      databaseUrl: databaseUrl ?? 'mysql://root:root@localhost:3306/ecommerce',
       executionMode,
-      redisUrl: valueOrDefault(process.env.REDIS_URL, 'redis://localhost:6379'),
+      redisUrl: valueOrDefault(redisUrl, 'redis://localhost:6379'),
       queuePrefix: process.env.QUEUE_PREFIX ?? 'ecommerce',
       queueEnabled: executionMode === 'queue',
       maintenanceSecret: valueOrDefault(
@@ -208,11 +259,12 @@ export function buildAppConfig(): { app: AppConfig } {
         'development_maintenance_secret_key',
       ),
       maintenanceBatchSize: Number.parseInt(process.env.MAINTENANCE_BATCH_SIZE ?? '25', 10),
-      dashboardEnabled: process.env.DASHBOARD_ENABLED !== 'false',
+      dashboardEnabled: resolveBoolean('DASHBOARD_ENABLED', true),
+      schemaGuardEnabled: resolveBoolean('SCHEMA_GUARD_ENABLED', nodeEnv !== 'test'),
       throttleTtlMs: Number.parseInt(process.env.THROTTLE_TTL_MS ?? '60000', 10),
       throttleLimit: Number.parseInt(process.env.THROTTLE_LIMIT ?? '120', 10),
       logLevel: (process.env.LOG_LEVEL ?? 'info') as AppConfig['logLevel'],
-      openapiEnabled: process.env.OPENAPI_ENABLED !== 'false',
+      openapiEnabled: resolveBoolean('OPENAPI_ENABLED', true),
       jwtAccessSecret: valueOrDefault(
         process.env.JWT_ACCESS_SECRET,
         'development_access_secret_key_32_bytes_long',

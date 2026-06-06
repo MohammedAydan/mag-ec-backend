@@ -13,6 +13,7 @@ import { AuthService } from '../../src/modules/identity/services/auth.service';
 import { IdentityPolicyService } from '../../src/modules/identity/services/identity-policy.service';
 import { TokenService } from '../../src/modules/identity/services/token.service';
 import { UserService } from '../../src/modules/identity/services/user.service';
+import { PrismaService } from '../../src/modules/persistence/services/prisma.service';
 
 interface LoginResponseBody {
   accessToken: string;
@@ -70,6 +71,12 @@ describe('Identity and auth (e2e)', () => {
     })),
   };
 
+  const mockPrismaService = {
+    user: {
+      findUnique: jest.fn().mockResolvedValue({ id: 'customer_1', tokenVersion: undefined, status: 'ACTIVE', deletedAt: null }),
+    },
+  };
+
   beforeAll(async () => {
     mockAuthService.login.mockResolvedValue({
       accessToken: 'access-token',
@@ -103,6 +110,7 @@ describe('Identity and auth (e2e)', () => {
         IdentityPolicyService,
         Reflector,
         { provide: AuthService, useValue: mockAuthService },
+        { provide: PrismaService, useValue: mockPrismaService },
         { provide: TokenService, useValue: mockTokenService },
         { provide: UserService, useValue: mockUserService },
       ],

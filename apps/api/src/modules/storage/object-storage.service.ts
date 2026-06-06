@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import {
   S3StorageClient,
   type StoredObjectMetadata,
-} from '../../../../../packages/domain-shared/dist/index.js';
+} from '@ecommerce/domain-shared';
 
 import type { AppConfig } from '../../config/app.config';
 

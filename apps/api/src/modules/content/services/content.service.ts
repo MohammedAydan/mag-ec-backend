@@ -4,11 +4,14 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../persistence/services/prisma.service';
 import type {
   LegalReferencesDto,
-  PublicLegalReferenceDto,
-  PublicLegalReferencesDto,
   UpdateLegalReferencesDto,
   UpsertContentPageDto,
 } from '../dto/content.dto';
+import type {
+  ContentPageResponseDto,
+  LegalReferencesResponseDto,
+  PublicLegalReferenceDto,
+} from '../dto/content-response.dto';
 
 const legalReferencesSettingKey = 'content.legal-references';
 
@@ -36,14 +39,16 @@ export class ContentService {
     private readonly prisma: PrismaService,
   ) {}
 
-  async listContentPages() {
-    return this.prisma.contentPage.findMany({
+  async listContentPages(): Promise<ContentPageResponseDto[]> {
+    const pages = await this.prisma.contentPage.findMany({
       include: contentPageInclude,
       orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
     });
+
+    return pages.map((page) => this.serializeContentPage(page));
   }
 
-  async getPublicContentPage(slug: string) {
+  async getPublicContentPage(slug: string): Promise<ContentPageResponseDto> {
     const normalizedSlug = slug.trim().toLowerCase();
     const page = await this.prisma.contentPage.findFirst({
       where: {
@@ -66,11 +71,11 @@ export class ContentService {
       throw new NotFoundException(`Content page "${slug}" was not found`);
     }
 
-    return page;
+    return this.serializeContentPage(page);
   }
 
-  async upsertContentPage(key: string, dto: UpsertContentPageDto) {
-    return this.prisma.$transaction(async (tx) => {
+  async upsertContentPage(key: string, dto: UpsertContentPageDto): Promise<ContentPageResponseDto> {
+    const page = await this.prisma.$transaction(async (tx) => {
       const page = await tx.contentPage.upsert({
         where: { key: key.trim().toLowerCase() },
         update: {
@@ -114,6 +119,8 @@ export class ContentService {
         include: contentPageInclude,
       });
     });
+
+    return this.serializeContentPage(page);
   }
 
   async getAdminLegalReferences(): Promise<LegalReferencesDto> {
@@ -124,7 +131,7 @@ export class ContentService {
     return this.serializeLegalReferences(setting?.value);
   }
 
-  async getPublicLegalReferences(): Promise<PublicLegalReferencesDto> {
+  async getPublicLegalReferences(): Promise<LegalReferencesResponseDto> {
     const legalReferences = await this.getAdminLegalReferences();
     const referencedKeys = Object.values(legalReferences).filter(
       (value): value is string => typeof value === 'string' && value.length > 0,
@@ -132,12 +139,10 @@ export class ContentService {
 
     if (referencedKeys.length === 0) {
       return {
-        references: {
-          terms: null,
-          privacy: null,
-          returns: null,
-          shipping: null,
-        },
+        terms: null,
+        privacy: null,
+        returns: null,
+        shipping: null,
       };
     }
 
@@ -155,14 +160,10 @@ export class ContentService {
     const pageByKey = new Map(pages.map((page) => [page.key, page]));
 
     return {
-      references: {
-        terms: this.serializeLegalReference(pageByKey.get(legalReferences.termsPageKey ?? '')),
-        privacy: this.serializeLegalReference(pageByKey.get(legalReferences.privacyPageKey ?? '')),
-        returns: this.serializeLegalReference(pageByKey.get(legalReferences.returnsPageKey ?? '')),
-        shipping: this.serializeLegalReference(
-          pageByKey.get(legalReferences.shippingPageKey ?? ''),
-        ),
-      },
+      terms: this.serializeLegalReference(pageByKey.get(legalReferences.termsPageKey ?? '')),
+      privacy: this.serializeLegalReference(pageByKey.get(legalReferences.privacyPageKey ?? '')),
+      returns: this.serializeLegalReference(pageByKey.get(legalReferences.returnsPageKey ?? '')),
+      shipping: this.serializeLegalReference(pageByKey.get(legalReferences.shippingPageKey ?? '')),
     };
   }
 
@@ -255,6 +256,23 @@ export class ContentService {
     return typeof value === 'string' && value.trim().length > 0 ? value.trim().toLowerCase() : null;
   }
 
+  private serializeContentPage(page: ContentPageRecord): ContentPageResponseDto {
+    const translation = page.translations[0];
+
+    return {
+      key: page.key,
+      slug: translation?.slug ?? page.slug,
+      title: translation?.title ?? page.key,
+      body: translation?.body ?? '',
+      status: page.status,
+      locale: translation?.locale ?? 'en',
+      sortOrder: page.sortOrder,
+      isLegal: page.isLegal,
+      createdAt: page.createdAt.toISOString(),
+      updatedAt: page.updatedAt.toISOString(),
+    };
+  }
+
   private serializeLegalReference(
     page: ContentPageRecord | undefined,
   ): PublicLegalReferenceDto | null {
@@ -264,9 +282,9 @@ export class ContentService {
 
     return {
       key: page.key,
-      slug: page.slug,
+      slug: page.translations[0]?.slug ?? page.slug,
       title: page.translations[0]?.title ?? page.key,
-      updatedAt: page.updatedAt,
+      updatedAt: page.updatedAt.toISOString(),
     };
   }
 }

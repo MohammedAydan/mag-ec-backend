@@ -5,6 +5,7 @@ import {
   ForbiddenException,
   Inject,
   Injectable,
+  Logger,
   NotFoundException,
   ServiceUnavailableException,
 } from '@nestjs/common';
@@ -64,6 +65,8 @@ const returnStatusesCountingAgainstAllowance: ReturnRequestStatus[] = [
 
 @Injectable()
 export class ReturnsService {
+  private readonly logger = new Logger(ReturnsService.name);
+
   constructor(
     @Inject(PrismaService)
     private readonly prisma: PrismaService,
@@ -95,16 +98,13 @@ export class ReturnsService {
 
   async getCustomerReturn(returnRequestId: string, userId: string) {
     const request = await this.prisma.returnRequest.findUnique({
-      where: { id: returnRequestId },
+      where: { id: returnRequestId, order: { userId } },
       include: returnRequestInclude,
     });
 
     if (!request) {
+      this.logger.warn({ userId, returnRequestId, resourceType: 'ReturnRequest' }, 'Unauthorized or nonexistent return request access probe');
       throw new NotFoundException(`Return request "${returnRequestId}" was not found`);
-    }
-
-    if (request.order.userId !== userId) {
-      throw new ForbiddenException('You do not have access to this return request');
     }
 
     return this.serializeReturnRequest(request);
@@ -135,7 +135,7 @@ export class ReturnsService {
   async createCustomerReturn(orderId: string, userId: string, dto: CreateReturnRequestDto) {
     return this.prismaTransactionService.runInTransaction(async (tx) => {
       const order = await tx.order.findUnique({
-        where: { id: orderId },
+        where: { id: orderId, userId },
         include: {
           lines: true,
           shipments: {
@@ -157,11 +157,8 @@ export class ReturnsService {
       });
 
       if (!order) {
+        this.logger.warn({ userId, orderId, resourceType: 'Order' }, 'Unauthorized or nonexistent order access probe during return creation');
         throw new NotFoundException(`Order "${orderId}" was not found`);
-      }
-
-      if (order.userId !== userId) {
-        throw new ForbiddenException('You do not have access to this order');
       }
 
       const shippedByLineId = this.buildShippedQuantityMap(order.shipments);
@@ -462,6 +459,7 @@ export class ReturnsService {
     returnRequestId: string,
     dto: ExecuteReturnRefundDto,
     actorUserId: string,
+    actorPermissions?: string[],
   ) {
     const request = await this.prisma.returnRequest.findUnique({
       where: { id: returnRequestId },
@@ -474,6 +472,28 @@ export class ReturnsService {
 
     if (request.status !== 'RECEIVED') {
       throw new BadRequestException('Refund execution requires a received return request');
+    }
+
+    // ── Received-items refund cap ──
+    const receivedItemsCap = request.items.reduce((sum, item) => {
+      const qty = item.receivedQuantity ?? 0;
+      if (qty <= 0) return sum;
+      return sum + qty * item.orderLine.effectiveUnitAmount;
+    }, 0);
+
+    if (dto.amount > receivedItemsCap) {
+      if (!dto.isOverride || !dto.overrideReason?.trim()) {
+        throw new BadRequestException(
+          `Refund amount ${dto.amount} exceeds the received-items refund cap of ${receivedItemsCap}. ` +
+            `Set isOverride=true with an overrideReason to proceed (requires refunds.override_cap permission).`,
+        );
+      }
+
+      if (!actorPermissions?.includes('refunds.override_cap')) {
+        throw new ForbiddenException(
+          'Refund cap override requires the refunds.override_cap permission.',
+        );
+      }
     }
 
     const claim = await this.prisma.returnRequest.updateMany({
@@ -491,6 +511,13 @@ export class ReturnsService {
         requestedByUserId: actorUserId,
         amount: dto.amount,
         reason: dto.reason ?? request.reason,
+        metadata: dto.amount > receivedItemsCap
+          ? {
+              overrideCap: true,
+              receivedItemsCap,
+              overrideReason: dto.overrideReason?.trim(),
+            }
+          : undefined,
       });
     } catch (error) {
       if (error instanceof ServiceUnavailableException) {

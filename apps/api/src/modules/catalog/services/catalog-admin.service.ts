@@ -1,6 +1,7 @@
 import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
 
+import { coercePositiveInt } from '../../../common/http/query-int';
 import type {
   AttachMediaDto,
   CreateAttributeDto,
@@ -68,7 +69,7 @@ export class CatalogAdminService {
   ) {}
 
   async listProducts(query: ListCatalogProductsAdminQueryDto) {
-    const limit = query.limit ?? 20;
+    const limit = coercePositiveInt(query.limit, 20);
     const search = query.search?.trim();
     const products = await this.prisma.catalogProduct.findMany({
       where: {
@@ -366,7 +367,10 @@ export class CatalogAdminService {
   }
 
   async createProduct(dto: CreateProductDto) {
-    await this.assertVariantDefinitions(dto.productTypeId, dto.variants);
+    const variants = dto.variants ?? [];
+    if (variants.length > 0) {
+      await this.assertVariantDefinitions(dto.productTypeId, variants);
+    }
 
     return this.prisma.catalogProduct.create({
       data: {
@@ -385,8 +389,8 @@ export class CatalogAdminService {
             metaDescription: translation.metaDescription?.trim(),
           })),
         },
-        variants: {
-          create: dto.variants.map((variant, index) => ({
+        variants: variants.length > 0 ? {
+          create: variants.map((variant, index) => ({
             sku: variant.sku.trim(),
             position: variant.position ?? index,
             isDefault: variant.isDefault ?? index === 0,
@@ -403,7 +407,7 @@ export class CatalogAdminService {
               })),
             },
           })),
-        },
+        } : undefined,
         categoryLinks: dto.categoryIds
           ? {
               create: dto.categoryIds.map((categoryId, index) => ({

@@ -15,7 +15,7 @@ type IdempotentExecutionParams<T> = {
   key: string;
   actorUserId?: string;
   requestBody: unknown;
-  execute: () => Promise<{ responseCode: number; responseBody: T }>;
+  execute: (idempotencyKeyId: string) => Promise<{ responseCode: number; responseBody: T }>;
 };
 
 type IdempotentExecutionResult<T> = {
@@ -55,7 +55,7 @@ export class CheckoutIdempotencyService {
     }
 
     try {
-      const result = await params.execute();
+      const result = await params.execute(idempotencyKey.id);
 
       await this.prisma.idempotencyKey.update({
         where: { id: idempotencyKey.id },

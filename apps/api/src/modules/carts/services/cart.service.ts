@@ -356,11 +356,20 @@ export class CartService {
     return leftBuffer.length === rightBuffer.length && timingSafeEqual(leftBuffer, rightBuffer);
   }
 
+  private readonly UUIDV4_PATTERN =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
   private normalizeGuestToken(guestToken?: string) {
     const normalizedGuestToken = guestToken?.trim();
 
     if (!normalizedGuestToken) {
       throw new BadRequestException('Guest cart token is required');
+    }
+
+    if (!this.UUIDV4_PATTERN.test(normalizedGuestToken)) {
+      throw new BadRequestException(
+        'Guest cart token must be a valid UUIDv4 for adequate entropy',
+      );
     }
 
     return normalizedGuestToken;

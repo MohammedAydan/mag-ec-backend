@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 
+import { coercePositiveInt } from '../../../common/http/query-int';
 import { PrismaService } from '../../persistence/services/prisma.service';
 import type { ListAuditLogsQueryDto } from '../dto/audit.dto';
 
@@ -60,6 +61,7 @@ export class AuditService {
   ) {}
 
   async listAuditLogs(query: ListAuditLogsQueryDto) {
+    const limit = coercePositiveInt(query.limit, 20);
     const logs = await this.prisma.auditLog.findMany({
       where: {
         ...(query.category ? { category: query.category as never } : {}),
@@ -69,10 +71,10 @@ export class AuditService {
       include: auditInclude,
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       ...(query.cursor ? { cursor: { id: query.cursor }, skip: 1 } : {}),
-      take: (query.limit ?? 20) + 1,
+      take: limit + 1,
     });
 
-    return this.serializePage(logs, query.limit ?? 20);
+    return this.serializePage(logs, limit);
   }
 
   private serializePage(logs: AuditLogRecord[], limit: number) {

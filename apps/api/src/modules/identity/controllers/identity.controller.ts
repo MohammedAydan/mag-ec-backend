@@ -1,9 +1,12 @@
 import { Controller, Get, Inject, NotFoundException, Param, UseGuards } from '@nestjs/common';
 import {
+  ApiBadRequestResponse,
   ApiBearerAuth,
   ApiForbiddenResponse,
+  ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiParam,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
@@ -16,6 +19,7 @@ import { AdminGuard } from '../guards/admin.guard';
 import { IdentityPolicyService } from '../services/identity-policy.service';
 import type { AccessTokenPayload } from '../services/token.service';
 import { UserService } from '../services/user.service';
+import { AdminAccessCheckResponseDto, UserProfileDto } from '../dto/identity-response.dto';
 
 @ApiTags('Identity')
 @ApiBearerAuth()
@@ -31,13 +35,16 @@ export class IdentityController {
   @ApiOperation({
     summary: 'Read a user profile when the actor owns it or has identity.read access',
   })
-  @ApiOkResponse({ description: 'User profile returned' })
-  @ApiUnauthorizedResponse({ description: 'Authentication is required' })
+  @ApiParam({ name: 'userId', description: 'UUID of the user whose profile is requested' })
+  @ApiOkResponse({ type: UserProfileDto, description: 'User profile returned' })
+  @ApiBadRequestResponse({ description: 'Invalid request parameters' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
   @ApiForbiddenResponse({ description: 'Object-level access denied' })
+  @ApiNotFoundResponse({ description: 'Requested user not found' })
   async getUserProfile(
     @Param('userId') userId: string,
     @CurrentUser() currentUser: AccessTokenPayload,
-  ) {
+  ): Promise<UserProfileDto> {
     this.identityPolicyService.assertCanReadUser(currentUser, userId);
     const profile = await this.userService.getUserProfileById(userId);
     if (!profile) {
@@ -51,10 +58,11 @@ export class IdentityController {
   @UseGuards(AuthGuard, AdminGuard, PermissionsGuard)
   @RequirePermissions(['identity.read'])
   @ApiOperation({ summary: 'Verify privileged identity access for administrative actors' })
-  @ApiOkResponse({ description: 'Administrative identity access is allowed' })
-  @ApiUnauthorizedResponse({ description: 'Authentication is required' })
+  @ApiOkResponse({ type: AdminAccessCheckResponseDto, description: 'Administrative identity access is allowed' })
+  @ApiBadRequestResponse({ description: 'Invalid request parameters' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
   @ApiForbiddenResponse({ description: 'Missing required role or permission' })
-  getAdminAccessCheck() {
+  getAdminAccessCheck(): AdminAccessCheckResponseDto {
     return {
       allowed: true,
     };

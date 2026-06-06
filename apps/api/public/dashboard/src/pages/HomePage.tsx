@@ -1,13 +1,16 @@
-import { Activity, AlertTriangle, CreditCard, Package, ShoppingCart } from 'lucide-react';
+import { Activity, AlertTriangle, CreditCard, ShoppingCart } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { PageShell } from '@/components/ui/PageShell';
 import { StatCard } from '@/components/ui/StatCard';
-import { Badge, DataTable, LoadError, PageLoading, Panel, StatList, StatRow, layout } from '@/components/ui/AdminUi';
+import { DataTable } from '@/components/ui/DataTable';
+import { PageLoading, LoadError } from '@/components/ui/PageLoading';
 import { useAuth } from '@/lib/auth';
-import { asArray, dateOf, money, numberOf, type DataRecord } from '@/lib/format';
+import { useT } from '@/lib/i18n';
+import { asArray, chipClass, dateOf, money, numberOf, type DataRecord } from '@/lib/format';
 
 export function HomePage() {
   const { user, request } = useAuth();
+  const { t } = useT();
   const dashboard = useQuery({
     queryKey: ['overview'],
     queryFn: async () => {
@@ -23,8 +26,22 @@ export function HomePage() {
   });
 
   const name = user?.displayName ?? user?.email ?? 'Administrator';
-  if (dashboard.isPending) return <PageShell title={`Welcome, ${name}`}><PageLoading /></PageShell>;
-  if (dashboard.isError) return <PageShell title="Store performance"><LoadError error={dashboard.error} /></PageShell>;
+
+  if (dashboard.isPending) {
+    return (
+      <PageShell title={`${t('home.welcome')}, ${name}`}>
+        <PageLoading />
+      </PageShell>
+    );
+  }
+
+  if (dashboard.isError) {
+    return (
+      <PageShell title={t('home.title')}>
+        <LoadError error={dashboard.error} />
+      </PageShell>
+    );
+  }
 
   const { sales, inventory, orders, attempts, health } = dashboard.data;
   const revenue = sales.orders?._sum?.grandTotalAmount ?? sales.grossRevenue ?? sales.revenue ?? sales.totalRevenue ?? 0;
@@ -36,38 +53,82 @@ export function HomePage() {
 
   return (
     <PageShell
-      title={`Welcome, ${name}`}
-      subtitle="Operational clarity across commerce, stock, payment activity, and service readiness."
+      title={`${t('home.welcome')}, ${name}`}
+      subtitle={t('home.subtitle')}
     >
-      <section className={layout.grid4}>
-        <StatCard label="Gross revenue" value={money(revenue, sales.currencyCode || 'EGP')} icon={<CreditCard size={20} />} />
-        <StatCard label="Orders" value={numberOf(orderCount)} icon={<ShoppingCart size={20} />} />
-        <StatCard label="Low stock" value={numberOf(lowStock)} icon={<AlertTriangle size={20} />} accent={lowStock ? 'warning' : 'success'} />
-        <StatCard label="Payments pending" value={numberOf(pendingPayments)} icon={<Activity size={20} />} accent={pendingPayments ? 'warning' : 'success'} />
-      </section>
-      <section className={layout.grid2}>
-        <Panel title="Recent orders" subtitle="Newest customer purchase activity">
-          <DataTable headers={['Order', 'Customer', 'Total', 'Status']} empty={!orders.length}>
-            {orders.slice(0, 6).map((order) => (
-              <tr key={order.id ?? order.orderNumber}>
-                <td><strong>{order.orderNumber ?? order.id}</strong><small>{dateOf(order.createdAt)}</small></td>
-                <td>{order.customerEmail ?? order.user?.email ?? 'Guest'}</td>
-                <td>{money(order.grandTotal ?? order.totalAmount ?? order.total, order.currencyCode || 'EGP')}</td>
-                <td><Badge value={order.status ?? order.paymentStatus} /></td>
-              </tr>
-            ))}
-          </DataTable>
-        </Panel>
-        <Panel title="Operations pulse" subtitle="Critical runtime and financial signals">
-          <StatList>
-            <StatRow label="Execution mode"><strong>{health.taskExecution?.mode ?? 'Unknown'}</strong></StatRow>
-            <StatRow label="Queue required"><strong>{health.taskExecution?.redisRequired ? 'Yes' : 'No'}</strong></StatRow>
-            <StatRow label="API status"><Badge value={health.status ?? 'up'} /></StatRow>
-            <StatRow label="Payment events visible"><strong>{numberOf(attempts.length)}</strong></StatRow>
-            <StatRow label="Catalog readiness"><Package size={16} /></StatRow>
-          </StatList>
-        </Panel>
-      </section>
+      <div className="space-y-8 p-6">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <StatCard
+            label={t('home.grossRevenue')}
+            value={money(revenue, sales.currencyCode || 'EGP')}
+            icon={<CreditCard className="h-5 w-5" />}
+          />
+          <StatCard
+            label={t('home.orders')}
+            value={numberOf(orderCount)}
+            icon={<ShoppingCart className="h-5 w-5" />}
+          />
+          <StatCard
+            label={t('home.lowStock')}
+            value={numberOf(lowStock)}
+            icon={<AlertTriangle className="h-5 w-5" />}
+            accent={lowStock ? 'warning' : 'success'}
+          />
+          <StatCard
+            label={t('home.paymentsPending')}
+            value={numberOf(pendingPayments)}
+            icon={<Activity className="h-5 w-5" />}
+            accent={pendingPayments ? 'warning' : 'success'}
+          />
+        </div>
+
+        <div className="grid gap-8 lg:grid-cols-2">
+          <div className="space-y-3">
+            <h2 className="font-mono text-[10px] uppercase tracking-[0.15em] text-neutral-400">{t('home.recentOrders')}</h2>
+            <DataTable headers={[t('orders.orderNumber'), t('orders.customer'), t('orders.total'), t('common.status')]} empty={!orders.length}>
+              {orders.slice(0, 6).map((order: DataRecord) => (
+                <tr key={order.id ?? order.orderNumber}>
+                  <td className="px-6 py-3">
+                    <strong className="block text-sm text-white">{order.orderNumber ?? order.id}</strong>
+                    <small className="block font-mono text-[10px] text-neutral-500">
+                      {dateOf(order.createdAt)}
+                    </small>
+                  </td>
+                  <td className="px-6 py-3 text-sm">{order.customerEmail ?? order.user?.email ?? t('common.guest')}</td>
+                  <td className="px-6 py-3 text-sm">
+                    {money(order.grandTotal ?? order.totalAmount ?? order.total, order.currencyCode || 'EGP')}
+                  </td>
+                  <td className="px-6 py-3">
+                    <span className={chipClass(String(order.status ?? order.paymentStatus ?? ''))}>
+                      {String(order.status ?? order.paymentStatus ?? '—')}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </DataTable>
+          </div>
+
+          <div className="space-y-3">
+            <h2 className="font-mono text-[10px] uppercase tracking-[0.15em] text-neutral-400">{t('home.operationsPulse')}</h2>
+            <div className="divide-y divide-neutral-800 border border-neutral-800">
+              {[
+                { label: t('home.executionMode'), value: health.taskExecution?.mode ?? t('common.unknown') },
+                { label: t('home.queueRequired'), value: health.taskExecution?.redisRequired ? t('common.yes') : t('common.no') },
+                { label: t('home.paymentEventsVisible'), value: numberOf(attempts.length) },
+                { label: t('home.apiStatus'), value: health.status ?? 'up' },
+              ].map((row) => (
+                <div
+                  key={row.label}
+                  className="flex items-center justify-between gap-4 px-5 py-3.5"
+                >
+                  <span className="font-mono text-xs text-neutral-400">{row.label}</span>
+                  <span className="font-mono text-xs text-white">{String(row.value)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
     </PageShell>
   );
 }

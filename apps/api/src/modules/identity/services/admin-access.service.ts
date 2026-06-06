@@ -21,6 +21,45 @@ import { PrismaService } from '../../persistence/services/prisma.service';
 import { AccountActionTokenService } from './account-action-token.service';
 import { TransactionalEmailService } from './transactional-email.service';
 import { UserService } from './user.service';
+import type {
+  AdminPermissionDto,
+  AdminRoleDto,
+  StaffDetailDto,
+} from '../dto/identity-response.dto';
+
+type RoleWithPermissions = {
+  id: string;
+  key: string;
+  name: string;
+  description: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  rolePermissions: Array<{
+    permission: {
+      key: string;
+      module: string;
+      description: string | null;
+      name?: string;
+    };
+  }>;
+  _count?: {
+    userRoles: number;
+  };
+};
+
+type StaffWithRoles = {
+  id: string;
+  email: string;
+  displayName: string;
+  status: string;
+  userRoles: Array<{
+    role: {
+      id: string;
+      key: string;
+      name: string;
+    };
+  }>;
+};
 
 @Injectable()
 export class AdminAccessService {
@@ -32,19 +71,26 @@ export class AdminAccessService {
   ) {}
 
   listPermissions() {
-    return this.prisma.permission.findMany({
-      where: { archivedAt: null },
-      orderBy: [{ module: 'asc' }, { key: 'asc' }],
-      select: { id: true, key: true, name: true, module: true, description: true },
-    });
+    return this.prisma.permission
+      .findMany({
+        where: { archivedAt: null },
+        orderBy: [{ module: 'asc' }, { key: 'asc' }],
+        select: { id: true, key: true, name: true, module: true, description: true },
+      })
+      .then((permissions) => permissions.map((permission) => this.serializePermission(permission)));
   }
 
   listRoles() {
-    return this.prisma.role.findMany({
-      where: { archivedAt: null },
-      orderBy: [{ isSystem: 'desc' }, { key: 'asc' }],
-      include: { rolePermissions: { include: { permission: true } } },
-    });
+    return this.prisma.role
+      .findMany({
+        where: { archivedAt: null },
+        orderBy: [{ isSystem: 'desc' }, { key: 'asc' }],
+        include: {
+          rolePermissions: { include: { permission: true } },
+          _count: { select: { userRoles: true } },
+        },
+      })
+      .then((roles) => roles.map((role) => this.serializeRole(role)));
   }
 
   listStaff() {
@@ -105,7 +151,7 @@ export class AdminAccessService {
           metadata: { key: role.key, permissionKeys: dto.permissionKeys },
         },
       });
-      return role;
+      return this.serializeRole(role);
     });
   }
 
@@ -134,10 +180,14 @@ export class AdminAccessService {
           metadata: { permissionKeys: dto.permissionKeys },
         },
       });
-      return tx.role.findUniqueOrThrow({
+      const updatedRole = await tx.role.findUniqueOrThrow({
         where: { id: roleId },
-        include: { rolePermissions: { include: { permission: true } } },
+        include: {
+          rolePermissions: { include: { permission: true } },
+          _count: { select: { userRoles: true } },
+        },
       });
+      return this.serializeRole(updatedRole);
     });
   }
 
@@ -175,20 +225,15 @@ export class AdminAccessService {
     });
 
     const token = await this.accountTokens.issuePasswordResetToken(staff.id);
+    let emailDelivered = false;
     try {
       await this.email.sendPasswordResetEmail(staff.email, token);
-    } catch (error) {
+      emailDelivered = true;
+    } catch (_error) {
       await this.accountTokens.revokePasswordResetToken(token);
-      await this.prisma.user.update({
-        where: { id: staff.id },
-        data: { status: UserStatus.DISABLED },
-      });
-      throw new ServiceUnavailableException(
-        'Staff account was created but the invitation email could not be delivered',
-        { cause: error },
-      );
+      // Don't rollback — keep the account; the dashboard can show a warning.
     }
-    return staff;
+    return { ...staff, emailDelivered };
   }
 
   async resendStaffInvitation(actor: AccessTokenPayload, staffId: string) {
@@ -203,8 +248,10 @@ export class AdminAccessService {
     }
 
     const token = await this.accountTokens.issuePasswordResetToken(staff.id);
+    let emailDelivered = false;
     try {
       await this.email.sendPasswordResetEmail(staff.email, token);
+      emailDelivered = true;
       await this.prisma.$transaction(async (tx) => {
         await tx.user.update({ where: { id: staff.id }, data: { status: UserStatus.INVITED } });
         await tx.auditLog.create({
@@ -217,13 +264,11 @@ export class AdminAccessService {
           },
         });
       });
-    } catch (error) {
+    } catch (_error) {
       await this.accountTokens.revokePasswordResetToken(token);
-      throw new ServiceUnavailableException('Unable to deliver the staff invitation email', {
-        cause: error,
-      });
+      // Don't throw — return warning instead
     }
-    return { invitationSent: true };
+    return { invitationSent: true, emailDelivered };
   }
 
   async updateStaffRoles(actor: AccessTokenPayload, staffId: string, dto: UpdateStaffRolesDto) {
@@ -238,6 +283,10 @@ export class AdminAccessService {
       await tx.userRole.createMany({
         data: roles.map((role) => ({ userId: staffId, roleId: role.id })),
       });
+      await tx.user.update({
+        where: { id: staffId },
+        data: { tokenVersion: { increment: 1 } },
+      });
       await tx.auditLog.create({
         data: {
           actorUserId: actor.sub,
@@ -248,7 +297,7 @@ export class AdminAccessService {
           metadata: { roleIds: roles.map((role) => role.id) },
         },
       });
-      return this.findStaffOrThrow(staffId, tx);
+      return this.serializeStaffDetail(await this.findStaffOrThrow(staffId, tx));
     });
   }
 
@@ -261,7 +310,7 @@ export class AdminAccessService {
     return this.prisma.$transaction(async (tx) => {
       const updated = await tx.user.update({
         where: { id: staffId },
-        data: { status: dto.status },
+        data: { status: dto.status, tokenVersion: { increment: 1 } },
         select: { id: true, email: true, displayName: true, status: true },
       });
       if (dto.status !== 'ACTIVE') {
@@ -342,5 +391,47 @@ export class AdminAccessService {
       throw new BadRequestException(
         'The last active super administrator cannot be removed or disabled',
       );
+  }
+
+  private serializePermission(permission: {
+    key: string;
+    module: string;
+    description: string | null;
+    name?: string;
+  }): AdminPermissionDto {
+    return {
+      key: permission.key,
+      group: permission.module,
+      description: permission.description ?? permission.name ?? permission.key,
+    };
+  }
+
+  private serializeRole(role: RoleWithPermissions): AdminRoleDto {
+    return {
+      id: role.id,
+      key: role.key,
+      name: role.name,
+      description: role.description,
+      permissions: role.rolePermissions.map(({ permission }) =>
+        this.serializePermission(permission),
+      ),
+      staffCount: role._count?.userRoles ?? null,
+      createdAt: role.createdAt.toISOString(),
+      updatedAt: role.updatedAt.toISOString(),
+    };
+  }
+
+  private serializeStaffDetail(staff: StaffWithRoles): StaffDetailDto {
+    return {
+      id: staff.id,
+      email: staff.email,
+      displayName: staff.displayName,
+      status: staff.status,
+      roles: staff.userRoles.map(({ role }) => ({
+        id: role.id,
+        key: role.key,
+        name: role.name,
+      })),
+    };
   }
 }

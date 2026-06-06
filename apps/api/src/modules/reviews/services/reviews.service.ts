@@ -1,13 +1,14 @@
 import {
   BadRequestException,
   ConflictException,
-  ForbiddenException,
   Inject,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { Prisma, type ReviewModerationActionType, type ReviewStatus } from '@prisma/client';
 
+import { coercePositiveInt } from '../../../common/http/query-int';
 import { PrismaService } from '../../persistence/services/prisma.service';
 import type { CreateReviewDto, ListReviewsQueryDto, ReviewModerationDto } from '../dto/reviews.dto';
 
@@ -39,6 +40,8 @@ const reviewModerationMap: Record<
 
 @Injectable()
 export class ReviewsService {
+  private readonly logger = new Logger(ReviewsService.name);
+
   constructor(
     @Inject(PrismaService)
     private readonly prisma: PrismaService,
@@ -51,7 +54,7 @@ export class ReviewsService {
 
     return this.prisma.$transaction(async (tx) => {
       const orderLine = await tx.orderLine.findUnique({
-        where: { id: orderLineId },
+        where: { id: orderLineId, order: { userId } },
         include: {
           order: true,
           product: true,
@@ -59,11 +62,8 @@ export class ReviewsService {
       });
 
       if (!orderLine) {
+        this.logger.warn({ userId, orderLineId, resourceType: 'OrderLine' }, 'Unauthorized or nonexistent order line access probe during review creation');
         throw new NotFoundException(`Order line "${orderLineId}" was not found`);
-      }
-
-      if (orderLine.order.userId !== userId) {
-        throw new ForbiddenException('You do not have access to this order line');
       }
 
       const existingReview = await tx.review.findUnique({
@@ -113,6 +113,7 @@ export class ReviewsService {
   }
 
   async listMyReviews(userId: string, query: ListReviewsQueryDto) {
+    const limit = coercePositiveInt(query.limit, 20);
     const reviews = await this.prisma.review.findMany({
       where: {
         userId,
@@ -122,30 +123,28 @@ export class ReviewsService {
       include: reviewInclude,
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       ...(query.cursor ? { cursor: { id: query.cursor }, skip: 1 } : {}),
-      take: (query.limit ?? 20) + 1,
+      take: limit + 1,
     });
 
-    return this.serializePage(reviews, query.limit ?? 20);
+    return this.serializePage(reviews, limit);
   }
 
   async getMyReview(reviewId: string, userId: string) {
     const review = await this.prisma.review.findUnique({
-      where: { id: reviewId },
+      where: { id: reviewId, userId },
       include: reviewInclude,
     });
 
     if (!review) {
+      this.logger.warn({ userId, reviewId, resourceType: 'Review' }, 'Unauthorized or nonexistent review access probe');
       throw new NotFoundException(`Review "${reviewId}" was not found`);
-    }
-
-    if (review.userId !== userId) {
-      throw new ForbiddenException('You do not have access to this review');
     }
 
     return review;
   }
 
   async listAdminReviews(query: ListReviewsQueryDto) {
+    const limit = coercePositiveInt(query.limit, 20);
     const reviews = await this.prisma.review.findMany({
       where: {
         ...(query.status ? { status: query.status } : {}),
@@ -155,10 +154,10 @@ export class ReviewsService {
       include: reviewInclude,
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       ...(query.cursor ? { cursor: { id: query.cursor }, skip: 1 } : {}),
-      take: (query.limit ?? 20) + 1,
+      take: limit + 1,
     });
 
-    return this.serializePage(reviews, query.limit ?? 20);
+    return this.serializePage(reviews, limit);
   }
 
   async getAdminReview(reviewId: string) {

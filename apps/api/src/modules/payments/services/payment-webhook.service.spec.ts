@@ -20,6 +20,9 @@ describe('PaymentWebhookService', () => {
       updateMany: jest.fn(),
       update: jest.fn(),
     },
+    auditLog: {
+      create: jest.fn(),
+    },
   };
   const tx = { paymentWebhookEvent: { update: jest.fn() } };
   const prismaTransactionService = {
@@ -151,5 +154,79 @@ describe('PaymentWebhookService', () => {
       BadRequestException,
     );
     expect(prisma.paymentWebhookEvent.create).not.toHaveBeenCalled();
+  });
+
+  it('rejects a successful payment webhook when the Stripe amount differs from the local payment attempt (SEC-012)', async () => {
+    paymentGatewayService.verifyStripeWebhook.mockResolvedValue({
+      provider: 'STRIPE',
+      externalEventId: 'evt_amount_mismatch',
+      eventType: 'payment_intent.succeeded',
+      providerPaymentId: 'pi_mismatch',
+      amount: 5000,
+      currency: 'usd',
+      metadata: { orderId: 'order_1' },
+      payload: {},
+    });
+    prisma.paymentWebhookEvent.create.mockResolvedValue({ id: 'webhook_sec012_amt' });
+    paymentAttemptService.resolveWebhookAttempt.mockResolvedValue({
+      id: 'attempt_1',
+      orderId: 'order_1',
+      amount: 1000,
+      currencyCode: 'USD',
+    });
+
+    await expect(service.handleStripeWebhook(Buffer.from('{}'), 'signature')).rejects.toThrow(
+      BadRequestException,
+    );
+    expect(orderPaymentTransitionService.markPaid).not.toHaveBeenCalled();
+    expect(prisma.paymentWebhookEvent.update).toHaveBeenCalledWith({
+      where: { id: 'webhook_sec012_amt' },
+      data: expect.objectContaining({ status: 'FAILED' }),
+    });
+    expect(prisma.auditLog.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        category: 'SECURITY',
+        action: 'payment.amount_mismatch',
+        entityType: 'PaymentAttempt',
+        entityId: 'attempt_1',
+      }),
+    });
+  });
+
+  it('rejects a successful payment webhook when the Stripe currency differs from the local payment attempt (SEC-012)', async () => {
+    paymentGatewayService.verifyStripeWebhook.mockResolvedValue({
+      provider: 'STRIPE',
+      externalEventId: 'evt_currency_mismatch',
+      eventType: 'payment_intent.succeeded',
+      providerPaymentId: 'pi_currency_mismatch',
+      amount: 1000,
+      currency: 'eur',
+      metadata: { orderId: 'order_1' },
+      payload: {},
+    });
+    prisma.paymentWebhookEvent.create.mockResolvedValue({ id: 'webhook_sec012_cur' });
+    paymentAttemptService.resolveWebhookAttempt.mockResolvedValue({
+      id: 'attempt_1',
+      orderId: 'order_1',
+      amount: 1000,
+      currencyCode: 'USD',
+    });
+
+    await expect(service.handleStripeWebhook(Buffer.from('{}'), 'signature')).rejects.toThrow(
+      BadRequestException,
+    );
+    expect(orderPaymentTransitionService.markPaid).not.toHaveBeenCalled();
+    expect(prisma.paymentWebhookEvent.update).toHaveBeenCalledWith({
+      where: { id: 'webhook_sec012_cur' },
+      data: expect.objectContaining({ status: 'FAILED' }),
+    });
+    expect(prisma.auditLog.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        category: 'SECURITY',
+        action: 'payment.currency_mismatch',
+        entityType: 'PaymentAttempt',
+        entityId: 'attempt_1',
+      }),
+    });
   });
 });

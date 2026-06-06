@@ -25,6 +25,9 @@ type StripePaymentIntentObject = {
   id: string;
   metadata?: Record<string, string | number | boolean | null>;
   status: string;
+  amount: number;
+  amount_received: number;
+  currency: string;
   latest_charge?: string | { id?: string } | null;
 };
 
@@ -121,6 +124,9 @@ export class StripePaymentGatewayService implements PaymentGateway {
         typeof paymentIntent.latest_charge === 'string'
           ? paymentIntent.latest_charge
           : paymentIntent.latest_charge?.id,
+      amount: paymentIntent.amount,
+      amountReceived: paymentIntent.amount_received,
+      currency: paymentIntent.currency,
       metadata,
       payload: event as unknown as Record<string, unknown>,
     });

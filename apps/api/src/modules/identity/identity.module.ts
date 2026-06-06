@@ -6,6 +6,7 @@ import { AuthController } from './controllers/auth.controller';
 import { IdentityController } from './controllers/identity.controller';
 import { AdminGuard } from './guards/admin.guard';
 import { AuthGuard } from './guards/auth.guard';
+import { CustomerGuard } from './guards/customer.guard';
 import { PermissionsGuard } from './guards/permissions.guard';
 import { RolesGuard } from './guards/roles.guard';
 import { AccountActionTokenService } from './services/account-action-token.service';
@@ -31,6 +32,7 @@ import { UserService } from './services/user.service';
     IdentityPolicyService,
     AuthGuard,
     AdminGuard,
+    CustomerGuard,
     RolesGuard,
     PermissionsGuard,
   ],
@@ -43,6 +45,7 @@ import { UserService } from './services/user.service';
     IdentityPolicyService,
     AuthGuard,
     AdminGuard,
+    CustomerGuard,
     RolesGuard,
     PermissionsGuard,
   ],

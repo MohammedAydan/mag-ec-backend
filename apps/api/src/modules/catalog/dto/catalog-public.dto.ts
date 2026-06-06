@@ -3,14 +3,14 @@ import { Type } from 'class-transformer';
 import { IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
 
 export class CatalogBrowseQueryDto {
-  @ApiPropertyOptional({ default: 1 })
+  @ApiPropertyOptional({ type: 'integer', minimum: 1, default: 1 })
   @Type(() => Number)
   @IsOptional()
   @IsInt()
   @Min(1)
   page?: number = 1;
 
-  @ApiPropertyOptional({ default: 12 })
+  @ApiPropertyOptional({ type: 'integer', minimum: 1, maximum: 50, default: 12 })
   @Type(() => Number)
   @IsOptional()
   @IsInt()
@@ -18,37 +18,37 @@ export class CatalogBrowseQueryDto {
   @Max(50)
   pageSize?: number = 12;
 
-  @ApiPropertyOptional({ default: 'en' })
+  @ApiPropertyOptional({ type: String, default: 'en' })
   @IsOptional()
   @IsString()
   locale?: string = 'en';
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ type: String })
   @IsOptional()
   @IsString()
   brandSlug?: string;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ type: String })
   @IsOptional()
   @IsString()
   categorySlug?: string;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ type: String })
   @IsOptional()
   @IsString()
   collectionSlug?: string;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ type: String })
   @IsOptional()
   @IsString()
   tagSlug?: string;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ type: String })
   @IsOptional()
   @IsString()
   productTypeKey?: string;
 
-  @ApiPropertyOptional({ description: 'Comma-separated attribute option keys' })
+  @ApiPropertyOptional({ type: String, description: 'Comma-separated attribute option keys' })
   @IsOptional()
   @IsString()
   optionKeys?: string;

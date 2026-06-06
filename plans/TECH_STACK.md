@@ -13,8 +13,8 @@
 | Layer                 | Technology                       | Version         | Notes                                     |
 | --------------------- | -------------------------------- | --------------- | ----------------------------------------- |
 | Storefront client     | Flutter                          | External client | Consumes generated Dart/Dio client        |
-| Admin client          | Flutter web or separate frontend | External client | Consumes admin API contract               |
-| API client generation | OpenAPI Generator `dart-dio`     | Planned         | Backend now emits repo-level OpenAPI JSON |
+| Admin client          | React 19 + Vite + HeroUI + Tailwind CSS v4 | `@heroui/react` 3.1.0 / Vite 8.0.14 / Tailwind 4.x | Embedded SPA in `apps/api/public/dashboard`, built to `/admin`, with `@tailwindcss/vite`, HeroUI `useTheme`, and schema-driven action drawers |
+| API client generation | OpenAPI Generator `dart-dio` and `typescript-fetch` | 7.22.0 | Backend emits repo-level OpenAPI JSON; dashboard integration now uses the generated TypeScript contract surface for typed alignment and env-configurable `/api/v1` access |
 
 ## Backend
 
@@ -22,6 +22,7 @@
 | ----------------- | --------------------------------------- | -------------------------------------- | ------------------------------------------------------------------------------- |
 | Framework         | NestJS                                  | 11.1.23 core / 11.1.23 Fastify adapter | API scaffolded in phase 00                                                      |
 | HTTP adapter      | Fastify                                 | 5.8.5                                  | Via `@nestjs/platform-fastify`                                                  |
+| API documentation | `@nestjs/swagger`                      | 11.4.4                                 | Runtime docs and generated contract share one OpenAPI config                    |
 | ORM               | Prisma ORM                              | 7.8.0                                  | Prisma 7 config file pattern plus MariaDB driver adapter                        |
 | Validation        | `class-validator` + `class-transformer` | 0.15.1 / 0.5.1                         | Global validation pipeline                                                      |
 | Config validation | `@nestjs/config` + `joi`                | 4.0.4 / 18.2.1                         | Typed config loading plus Joi validation                                        |

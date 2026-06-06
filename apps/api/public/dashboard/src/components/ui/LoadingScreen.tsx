@@ -1,13 +1,15 @@
-import { Store } from 'lucide-react';
-import styles from './LoadingScreen.module.css';
-
 export function LoadingScreen() {
   return (
-    <div className={styles.screen} role="status" aria-label="Loading">
-      <div className={styles.pulse}>
-        <Store size={32} />
+    <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-[#050505]">
+      <div className="h-8 w-8 animate-spin rounded-full border-2 border-neutral-700 border-t-amber-500" />
+      <div className="text-center">
+        <p className="font-mono text-xs uppercase tracking-[0.18em] text-neutral-500">
+          Syncing Workspace
+        </p>
+        <p className="mt-2 font-mono text-[11px] leading-relaxed text-neutral-600">
+          Loading operational data and active workflows.
+        </p>
       </div>
-      <p className={styles.label}>Commerce Command Studio</p>
     </div>
   );
 }

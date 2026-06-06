@@ -1,5 +1,23 @@
 # Engineering Patterns
 
+## Pattern: API Response DTO Serializer [feature: flutter-content-response-nullability-fix]
+
+- **Problem:** Returning ORM records directly can drift from the OpenAPI DTO, especially when generated clients enforce non-null fields.
+- **Solution:** Services that expose documented DTOs should serialize ORM records into explicit response objects before returning them.
+- **Example:** `apps/api/src/modules/content/services/content.service.ts` serializes `ContentPageRecord` into `ContentPageResponseDto` with non-null fallback fields and ISO timestamps.
+- **Gotchas:** Keep admin and public response DTOs separate when the payload shapes differ, even if they share similar domain names.
+
+---
+
+## Pattern: Generated SDK Runtime Contract Samples [feature: flutter-runtime-contract-full-audit]
+
+- **Problem:** A clean OpenAPI schema can still hide runtime response drift until Flutter `built_value` deserialization hits a null, renamed field, or raw ORM relation.
+- **Solution:** Keep generated Dart runtime tests with representative payloads for every feature group and make `flutter:client:generate` / `flutter:client:verify` run those tests after OpenAPI generation.
+- **Example:** `packages/contracts/openapi/generate-flutter-client.ts` writes `test/model_runtime_test.dart`, which round-trips identity, catalog, carts, wishlist, checkout, pricing, orders, payments, fulfillment, returns, notifications, reporting, audit, content, and health DTOs.
+- **Gotchas:** These samples must mirror documented DTOs, not database records. When a backend DTO changes, update the generated runtime sample before trusting the SDK.
+
+---
+
 ## Pattern: Phase Folder as Execution Contract [feature: all-phases]
 
 - **Problem:** A long-running backend build can lose continuity across sessions if planning, assumptions, and progress are not stored in a resumable structure.
@@ -150,5 +168,14 @@
 - **Solution:** Treat shipments and received returns as first-class artifacts, then recalculate `Order.status` and `Order.fulfillmentStatus` from those records in one dedicated service after each operational change.
 - **Example:** `apps/api/src/modules/orders/services/order-post-purchase.service.ts`
 - **Gotchas:** Count only shipped or delivered shipments toward fulfillment, count only received or closed returns toward returned quantity, and avoid implicit stock changes outside the return-receiving step.
+
+---
+
+## Pattern: SDK-Safe OpenAPI Action Endpoints [feature: openapi-contract-accuracy-audit]
+
+- **Problem:** Generated TypeScript and Flutter SDKs break or become unstable when OpenAPI paths collide by template shape, integer query params emit `number`, or empty-body command routes omit explicit metadata.
+- **Solution:** Normalize route design so semantically different lookups do not share the same templated path, emit integer pagination schemas explicitly, document `401` and `403` on secured operations, and mark intentional empty-body POST or PUT or PATCH endpoints with `x-sdk-allow-empty-request-body: true`.
+- **Example:** `apps/api/src/modules/promotions/controllers/promotions-admin.controller.ts`, `packages/contracts/openapi/verify-openapi-contract.ts`, `apps/api/src/openapi/openapi-contract.spec.ts`
+- **Gotchas:** Nest validation decorators alone are not enough for integer query schemas, and OpenAPI treats `/foo/{id}` plus `/foo/{key}` as the same path for SDK generation purposes.
 
 ---

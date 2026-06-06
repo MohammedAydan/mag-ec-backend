@@ -1,13 +1,32 @@
-import { Controller, Get, Headers, Inject, Post, UnauthorizedException } from '@nestjs/common';
+import { Controller, Inject, Post, Req, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { ApiHeader, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { SkipThrottle } from '@nestjs/throttler';
+import { ApiExcludeController } from '@nestjs/swagger';
+import type { FastifyRequest } from 'fastify';
 
 import type { AppConfig } from '../../../config/app.config';
 import { DirectRuntimeService } from '../services/direct-runtime.service';
 
-@ApiTags('System Maintenance')
-@SkipThrottle()
+/**
+ * Operational maintenance endpoint.
+ *
+ * This controller is excluded from the public OpenAPI surface and is NOT
+ * throttled at the global rate-limiter — it uses the application-level
+ * global throttle ({{@link THROTTLE_LIMIT}} requests per
+ * {{@link THROTTLE_TTL_MS}} ms window).
+ *
+ * ## Security hardening recommendations
+ *
+ * - Deploy this endpoint behind a reverse-proxy or firewall IP allowlist so
+ *   that only known operational IP addresses (or an internal VPC CIDR) can
+ *   reach `POST /api/v1/system/maintenance/run`.
+ * - Rotate `MAINTENANCE_SECRET` and `CRON_SECRET` on a regular cadence and
+ *   store them in a secrets manager (e.g., HashiCorp Vault, AWS Secrets
+ *   Manager, or Doppler).
+ * - Consider HMAC-signed request bodies (with a timestamp window) as a
+ *   stronger alternative to shared-secret Bearer auth for maintenance
+ *   invocations from external tooling.
+ */
+@ApiExcludeController()
 @Controller('system/maintenance')
 export class MaintenanceController {
   private readonly config: AppConfig;
@@ -19,28 +38,15 @@ export class MaintenanceController {
     this.config = configService.getOrThrow<AppConfig>('app');
   }
 
-  @Get('run')
-  @ApiOperation({ summary: 'Execute direct-mode maintenance from a protected cron invocation' })
-  @ApiHeader({
-    name: 'Authorization',
-    required: true,
-    description: 'Bearer CRON_SECRET or MAINTENANCE_SECRET',
-  })
-  runCron(@Headers('authorization') authorization?: string) {
-    this.assertSecret(authorization);
+  @Post('run')
+  runManual(@Req() request: FastifyRequest) {
+    this.assertSecret(this.readAuthorizationHeader(request));
     return this.runtime.runMaintenance();
   }
 
-  @Post('run')
-  @ApiOperation({ summary: 'Execute direct-mode maintenance manually from operations tooling' })
-  @ApiHeader({
-    name: 'Authorization',
-    required: true,
-    description: 'Bearer MAINTENANCE_SECRET or CRON_SECRET',
-  })
-  runManual(@Headers('authorization') authorization?: string) {
-    this.assertSecret(authorization);
-    return this.runtime.runMaintenance();
+  private readAuthorizationHeader(request: FastifyRequest): string | undefined {
+    const authorization = request.headers.authorization as string | string[] | undefined;
+    return Array.isArray(authorization) ? authorization[0] : authorization;
   }
 
   private assertSecret(authorization?: string): void {

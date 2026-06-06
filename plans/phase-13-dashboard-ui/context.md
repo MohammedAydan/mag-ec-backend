@@ -11,6 +11,8 @@
 
 - `apps/api/public/dashboard/vite.config.ts` (modified: set outDir to '../admin' and proxy target to port 3003)
 - `apps/api/public/dashboard/package.json` (modified: verify dependencies and build command)
+- `apps/api/public/dashboard/src/components/ui/AdminUi.tsx` (modified: replace JsonActionDialog text area with dynamic inputs)
+- `apps/api/public/dashboard/src/components/ui/AdminUi.module.css` (modified: add styles for dynamic form inputs)
 - `package.json` (modified: add workspace-level scripts for dashboard development and build)
 - `plans/phase-13-dashboard-ui/tasks.md` (modified: track integration tasks)
 - `plans/phase-13-dashboard-ui/context.md` (modified: this file)

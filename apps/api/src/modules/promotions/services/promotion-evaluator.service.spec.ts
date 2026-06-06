@@ -249,4 +249,96 @@ describe('PromotionEvaluatorService', () => {
       ]),
     });
   });
+
+  it('rejects promotion when total usage limit is exhausted (reserved+redeemed >= totalUsageLimit)', async () => {
+    prisma.promotion.findMany.mockResolvedValue([
+      {
+        id: 'promo_limited',
+        key: 'limited_promo',
+        name: 'Limited Promo',
+        status: 'ACTIVE',
+        trigger: 'AUTOMATIC',
+        rewardType: 'FIXED_AMOUNT',
+        currencyCode: 'USD',
+        fixedAmount: 500,
+        percentageBps: null,
+        maxDiscountAmount: null,
+        minSubtotalAmount: 0,
+        isCombinable: true,
+        priority: 0,
+        startsAt: null,
+        endsAt: null,
+        totalUsageLimit: 100,
+        perCustomerUsageLimit: null,
+        maxApplicationsPerOrder: 1,
+        reservedCount: 20,
+        redeemedCount: 80, // 20 + 80 = 100 → exhausted
+        exclusions: [],
+      },
+    ]);
+    prisma.coupon.findMany.mockResolvedValue([]);
+
+    await expect(
+      service.evaluate({
+        subtotalAmount: 2000,
+        currencyCode: 'USD',
+        countryCode: 'US',
+      }),
+    ).resolves.toMatchObject({
+      appliedPromotions: [],
+      rejectedPromotions: [{ key: 'limited_promo', reason: 'promotion_usage_exhausted' }],
+    });
+  });
+
+  it('rejects coupon when total usage limit is exhausted', async () => {
+    prisma.promotion.findMany.mockResolvedValue([]);
+    prisma.coupon.findMany.mockResolvedValue([
+      {
+        id: 'coupon_limited',
+        code: 'FULL',
+        status: 'ACTIVE',
+        startsAt: null,
+        endsAt: null,
+        totalUsageLimit: 500,
+        perCustomerUsageLimit: null,
+        reservedCount: 50,
+        redeemedCount: 450, // 50 + 450 = 500 → exhausted
+        promotion: {
+          id: 'promo_coupon_limited',
+          key: 'coupon_promo',
+          name: 'Coupon Promo',
+          status: 'ACTIVE',
+          trigger: 'COUPON',
+          rewardType: 'PERCENTAGE',
+          currencyCode: null,
+          fixedAmount: null,
+          percentageBps: 1000,
+          maxDiscountAmount: null,
+          minSubtotalAmount: 0,
+          isCombinable: true,
+          priority: 0,
+          startsAt: null,
+          endsAt: null,
+          totalUsageLimit: null,
+          perCustomerUsageLimit: null,
+          maxApplicationsPerOrder: 1,
+          reservedCount: 0,
+          redeemedCount: 0,
+          exclusions: [],
+        },
+      },
+    ]);
+
+    await expect(
+      service.evaluate({
+        subtotalAmount: 2000,
+        currencyCode: 'USD',
+        countryCode: 'US',
+        couponCodes: ['FULL'],
+      }),
+    ).resolves.toMatchObject({
+      appliedPromotions: [],
+      rejectedPromotions: [{ couponCode: 'FULL', reason: 'coupon_usage_exhausted' }],
+    });
+  });
 });

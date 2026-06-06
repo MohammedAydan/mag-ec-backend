@@ -6,9 +6,9 @@ Build a reusable, production-grade headless e-commerce backend API for a single 
 
 ## Current Status
 
-- Active feature: `phase-13-dashboard-ui`
+- Active feature: `api-reference-handbook`
 - Overall health: green
-- Last updated: 2026-05-28
+- Last updated: 2026-06-07
 
 ## Critical Constraints
 
@@ -35,19 +35,41 @@ Build a reusable, production-grade headless e-commerce backend API for a single 
 - `phase-11-reviews-notifications-reporting`: Complete. Reviews, notification preferences and dispatch records, reports and exports, audit views, and content or legal-reference APIs are in place. (Note: Local MySQL/Redis-backed migration, seed, and integration verification remain environment-dependent.)
 - `phase-12-hardening-release`: Environment-blocked closeout. Contract verification workflow, Flutter client generation path, release runbooks, tunable throttle baseline, security negative coverage, script hardening, API boot smoke evidence, Docker-free MySQL migration/seed/direct integration evidence, user-confirmed full project testing on `mysql://root:@localhost:3306/ecommerce`, and local release checklist evidence are in place. Remaining release evidence requires Redis for the full integration runner, Docker for generated Flutter client verification, and a staging target.
 - `phase-13-dashboard-ui`: Complete. Integrated user's new React/Vite dashboard SPA into the workspace. It compiles, tests, and runs cleanly with NestJS static serving, mapped to `/admin`.
+- `dashboard-heroui-rebuild`: Complete. The embedded admin SPA now uses HeroUI v3 plus Tailwind CSS v4 for the shell and shared surfaces, and the API/auth layer is centralized with env-configurable `/api/v1` access and safer refresh-token retry handling.
+- `dashboard-auth-runtime-fix`: Complete. Local schema drift is now fail-fast at startup, stock-HeroUI simplification is applied to the shell/login surface, and the reported admin list/runtime 500s were fixed by explicit query integer coercion plus shared response normalization.
+- `dashboard-build-compat-fix`: Complete. The embedded admin SPA now matches the locally installed HeroUI component contracts again, the missing Tailwind Vite plugin dependency is declared in the dashboard package, and both package-level plus workspace builds are green.
+- `dashboard-theme-form-system`: Complete. The embedded admin SPA now follows HeroUI quick-start CSS import order, supports persistent light/dark/system theme switching, replaces raw JSON action payload flows with structured drawers, fixes prompt-based maintenance input, and removes mojibake across the dashboard shell and action pages.
+- `dashboard-redesign-summary-package`: Complete. A top-level `redesign-dashboard-summary/` handoff package now captures the dashboard redesign context, official HeroUI research links and findings, file map, verification, open issues, and a next-agent prompt for follow-up work.
+- `dashboard-production-readiness`: Complete. P0 theme-breaking colors fixed, chipColor helper migrated across all 14 pages, Feedback auto-dismiss added, Sidebar ScrollShadow added, ErrorBoundary wrapping the app tree, and Ctrl+K sidebar shortcut implemented. Build and typecheck verified green.
+- `dashboard-reference-selects`: Complete. All entity reference ID fields across 5 dashboard pages converted from `text`/`string-list` to `select`/`checkbox-list` with API-fetched options. Added `SelectActionField` type and Atelier-styled select renderer to the form engine. Build verified green.
+- `openapi-settings-audit`: Complete. Runtime Swagger setup and generated OpenAPI now share one configuration, stale `swagger-ui-express` is removed, catalog admin success responses are typed, and the Flutter contract audit reports 0 errors / 0 warnings.
+- `openapi-dto-coverage-audit`: Complete. All exposed module features are represented in OpenAPI; cart, checkout, and maintenance header metadata was corrected; contract sanity audit and Flutter SDK audit are green.
+- `flutter-openapi-feature-completion`: Complete. OpenAPI generation is stable, the Flutter/Dio SDK regenerates and verifies cleanly, and generated Dart quality checks pass.
+- `flutter-client-runtime-hardening`: Complete. Pricing Admin request bodies, health models, reporting aggregate schemas, generator schema-quality audits, and generated Dart runtime model tests are fixed and verified.
+- `flutter-content-response-nullability-fix`: Complete. Content page responses now serialize to the documented flattened DTO shape, admin/public legal-reference response DTOs are separated, OpenAPI regenerated cleanly, and Flutter SDK model conversion tests cover the affected DTOs.
+- `flutter-runtime-contract-full-audit`: Complete. Broader DTO/runtime mismatches across content, wishlist, commerce support, pricing, notifications, and identity/profile were fixed; OpenAPI and the Flutter/Dio SDK regenerate and verify cleanly with expanded generated Dart model conversion coverage.
+- `endpoint-openapi-consistency-audit`: Complete. All 141 endpoints across 32 controllers now have @ApiOperation summaries, error @ApiResponse decorators, @ApiParam annotations, and request DTOs with @ApiProperty. P0 locale required/optional + permission stacking bugs fixed. OpenAPI regenerated cleanly.
+- `openapi-contract-accuracy-audit`: Complete. Promotions admin path-template conflict removed with explicit `by-key` routing; audited pagination query schemas now emit integer types; protected cancellation docs include `403`; audited preview or mutation-result endpoints now document `200`; contract verification and SDK audits are green.
+- `openapi-generator-command-hardening`: Complete. TypeScript and Flutter client generation no longer depend on the user-global npm cache, TypeScript generated-package pnpm checks are workspace-isolated, Flutter Windows Dart invocation is corrected, and deterministic Dart import cleanup keeps full generation green.
+- `security-report`: Complete. Source-grounded security report saved at `docs/security/security-report-2026-06-01.md`; it identifies high-priority remediation around notification response serialization, seed/config fail-closed behavior, duplicate checkout prevention, refund permissions, and admin token freshness.
+- `security-remediation`: Complete. All 21 findings from SEC-001 through SEC-021 remediated. Notification sensitive-data exposure fixed; seed/config fail-closed behavior enforced; atomic checkout already confirmed; refund permission split with policy caps; admin token freshness already in place; customer guard applied; docs/SPA secured; maintenance hardened; header/DTO validation tightened; Stripe reconciliation audit logged; promotion race safety confirmed; audit gate lowered; Docker/CI hardened; customer object existence normalized; media upload checksum enforced.
+- `api-reference-handbook`: Complete. Added `docs/api/api-reference-handbook.md`, a contract-driven API handbook covering the current 139 OpenAPI operations, request and response details, usage conventions, and example storefront/admin page mappings.
 
 ## Known Issues / Tech Debt
 
 - Local implementation ran on Node `25.9.0` while the intended project target line remains Node `24 LTS`.
-- `swagger-ui-express` was left installed after the initial dependency batch because a later removal attempt hit a pnpm store-location mismatch.
+- OpenAPI Generator CLI execution through `npx` needs access to the user npm cache outside the workspace sandbox in this local environment.
 - Docker is not available in the current local environment; MySQL migration, seed, and direct DB-backed verification have since been completed against `mysql://root:@localhost:3306/ecommerce`.
 - The worktree contains an unrelated untracked `.antigravitycli/` directory that was intentionally left untouched.
 - Repo-wide `pnpm.cmd format` still fails because the repository contains broad pre-existing Prettier drift outside the current phase scope.
+- Dashboard build now succeeds, but Vite reports a large frontend chunk warning; route/code splitting remains a follow-up optimization rather than a release blocker for the current rebuild.
 - Stripe online payments require real `STRIPE_SECRET_KEY` and `PAYMENT_WEBHOOK_SECRET` values in environments that enable `PAYMENT_PROVIDER=stripe`.
 - Operational constraints such as deployment target, email provider, payment provider, and object-storage vendor are not finalized.
 - Local MySQL was repaired on 2026-05-27 using non-destructive Prisma migration metadata resolution for phase 05 and phase 06, then migrations through phase 11 and seed ran successfully. The database still records historical DB-only migration `20260525141708_init_2`; `prisma/migrations/20260526210402_init_1` is now present as an applied local repair artifact.
 - Redis-backed integration runner remains blocked because Redis is not listening on `localhost:6379`; latest `pnpm.cmd test:integration:mysql` failed with `Redis did not become ready at localhost:6379 within 30000ms`.
 - Dashboard UI implementation must respect the current backend-only repository constraint until a separate frontend app/repo or approved workspace expansion is selected.
+- The former backend-only dashboard boundary is already superseded by the approved embedded SPA decision in `plans/phase-13-dashboard-ui/plan.md`; new dashboard work must stay inside `apps/api/public/dashboard` and the `/admin` static output path.
+- One moderate `@hono/node-server` advisory (CVE-2026-39406) persists in Prisma 7 toolchain dependency; no compatible patched version available yet.
 
 ## Team / Ownership
 

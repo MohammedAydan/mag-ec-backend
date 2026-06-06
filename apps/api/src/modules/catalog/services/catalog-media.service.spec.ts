@@ -127,4 +127,120 @@ describe('CatalogMediaService', () => {
       }),
     );
   });
+
+  // ── SEC-019: Checksum verification ──
+
+  it('accepts a matching caller-provided checksum', async () => {
+    prisma.catalogMedia.findUnique.mockResolvedValue({
+      id: 'media_1',
+      productId: 'product_1',
+      uploadedByUserId: 'user_1',
+      status: 'PENDING_UPLOAD',
+      objectKey: 'catalog/product_1/object.jpg',
+      mimeType: 'image/jpeg',
+      sizeBytes: 1024,
+      uploadExpiresAt: new Date(Date.now() + 60_000),
+      uploadTokenHash: service.hashToken('upload-token'),
+    });
+    storage.verifyCatalogObject.mockResolvedValue({
+      contentLength: 1024,
+      contentType: 'image/jpeg',
+      etag: '"d41d8cd98f00b204e9800998ecf8427e"',
+    });
+    tx.catalogMedia.updateMany.mockResolvedValue({ count: 1 });
+    tx.catalogMedia.findUniqueOrThrow.mockResolvedValue({
+      id: 'media_1',
+      objectKey: 'catalog/product_1/object.jpg',
+    });
+
+    await expect(
+      service.attachUploadedMedia({
+        productId: 'product_1',
+        mediaId: 'media_1',
+        uploadToken: 'upload-token',
+        actorUserId: 'user_1',
+        checksum: '"d41d8cd98f00b204e9800998ecf8427e"',
+      }),
+    ).resolves.toMatchObject({
+      id: 'media_1',
+      publicUrl: 'https://cdn.example/catalog/object.jpg',
+    });
+
+    expect(tx.catalogMedia.updateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          checksum: '"d41d8cd98f00b204e9800998ecf8427e"',
+        }),
+      }),
+    );
+  });
+
+  it('rejects a mismatched caller-provided checksum', async () => {
+    prisma.catalogMedia.findUnique.mockResolvedValue({
+      id: 'media_1',
+      productId: 'product_1',
+      uploadedByUserId: 'user_1',
+      status: 'PENDING_UPLOAD',
+      objectKey: 'catalog/product_1/object.jpg',
+      mimeType: 'image/jpeg',
+      sizeBytes: 1024,
+      uploadExpiresAt: new Date(Date.now() + 60_000),
+      uploadTokenHash: service.hashToken('upload-token'),
+    });
+    storage.verifyCatalogObject.mockResolvedValue({
+      contentLength: 1024,
+      contentType: 'image/jpeg',
+      etag: '"abc123"',
+    });
+    tx.catalogMedia.updateMany.mockResolvedValue({ count: 1 });
+    tx.catalogMedia.findUniqueOrThrow.mockResolvedValue({
+      id: 'media_1',
+      objectKey: 'catalog/product_1/object.jpg',
+    });
+
+    await expect(
+      service.attachUploadedMedia({
+        productId: 'product_1',
+        mediaId: 'media_1',
+        uploadToken: 'upload-token',
+        actorUserId: 'user_1',
+        checksum: '"mismatched"',
+      }),
+    ).rejects.toThrow(BadRequestException);
+  });
+
+  it('rejects a provided checksum when the stored object has no ETag', async () => {
+    prisma.catalogMedia.findUnique.mockResolvedValue({
+      id: 'media_1',
+      productId: 'product_1',
+      uploadedByUserId: 'user_1',
+      status: 'PENDING_UPLOAD',
+      objectKey: 'catalog/product_1/object.jpg',
+      mimeType: 'image/jpeg',
+      sizeBytes: 1024,
+      uploadExpiresAt: new Date(Date.now() + 60_000),
+      uploadTokenHash: service.hashToken('upload-token'),
+    });
+    // No etag returned
+    storage.verifyCatalogObject.mockResolvedValue({
+      contentLength: 1024,
+      contentType: 'image/jpeg',
+      etag: null,
+    });
+    tx.catalogMedia.updateMany.mockResolvedValue({ count: 1 });
+    tx.catalogMedia.findUniqueOrThrow.mockResolvedValue({
+      id: 'media_1',
+      objectKey: 'catalog/product_1/object.jpg',
+    });
+
+    await expect(
+      service.attachUploadedMedia({
+        productId: 'product_1',
+        mediaId: 'media_1',
+        uploadToken: 'upload-token',
+        actorUserId: 'user_1',
+        checksum: '"expected-hash"',
+      }),
+    ).rejects.toThrow(BadRequestException);
+  });
 });

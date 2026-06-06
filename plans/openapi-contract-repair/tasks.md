@@ -1,0 +1,37 @@
+# Tasks: OpenAPI Contract Repair & Flutter SDK Generation
+
+- [ ] Phase 0: Baseline Verification & Setup
+  - [ ] Verify `@nestjs/cli` is installed and ready
+  - [ ] Implement programmatical metadata generation script
+  - [ ] Wire programmatic metadata generation into build and OpenAPI generation pipelines
+  - [ ] Verify baseline contract generation output with metadata loaded
+- [ ] Phase 1: Repair Server Prefixes & Routing
+  - [ ] Remove duplicate prefix config in `DocumentBuilder`
+  - [ ] Add assertion/test to verify server URLs do not duplicate paths prefix
+- [ ] Phase 2: DTO Schema Coverage & Decorator Alignment
+  - [ ] Verify standard responses (pagination, envelopes, errors) are represented by reusable DTOs
+  - [ ] Apply `@ApiProperty()` or ensure AST metadata generation works for all schema DTOs
+- [ ] Phase 3: Annotate and Document Every Endpoint Group
+  - [ ] Audit & Annotate Health endpoints
+  - [ ] Audit & Annotate Authentication endpoints
+  - [ ] Audit & Annotate Identity/admin endpoints
+  - [ ] Audit & Annotate Promotions and Coupon endpoints
+  - [ ] Audit & Annotate Catalog public and admin endpoints
+  - [ ] Audit & Annotate Pricing and Settings endpoints
+  - [ ] Audit & Annotate Inventory endpoints
+  - [ ] Audit & Annotate Cart and Wishlist endpoints
+  - [ ] Audit & Annotate Checkout and Orders endpoints
+  - [ ] Audit & Annotate Payments, Webhooks, Refunds endpoints
+  - [ ] Audit & Annotate Return and Shipment endpoints
+  - [ ] Audit & Annotate Reviews, Moderation endpoints
+  - [ ] Audit & Annotate Notifications, push devices endpoints
+  - [ ] Audit & Annotate Reports, exports, audit endpoints
+  - [ ] Audit & Annotate Content/legal pages endpoints
+  - [ ] Audit & Annotate System maintenance endpoints
+- [ ] Phase 4: Contract Quality Gate & Verification
+  - [ ] Run contract verification tests and ensure 0 errors
+- [ ] Phase 5: Flutter SDK Regeneration & Validation
+  - [ ] Run `pnpm flutter:client:generate`
+  - [ ] Verify generated Dart models and services are fully typed
+  - [ ] Run `dart analyze` on the generated package
+  - [ ] Close feature and update plans/review.md

@@ -2,6 +2,29 @@ import { ConflictException, Inject, Injectable, NotFoundException } from '@nestj
 import type { Prisma } from '@prisma/client';
 
 import { PrismaService } from '../../persistence/services/prisma.service';
+import type { WishlistResponseDto } from '../dto/wishlist.dto';
+
+const wishlistInclude = {
+  items: {
+    orderBy: [{ createdAt: 'asc' as const }],
+    include: {
+      variant: {
+        include: {
+          price: true,
+          product: {
+            select: {
+              id: true,
+              sku: true,
+              status: true,
+            },
+          },
+        },
+      },
+    },
+  },
+} satisfies Prisma.WishlistInclude;
+
+type WishlistRecord = Prisma.WishlistGetPayload<{ include: typeof wishlistInclude }>;
 
 @Injectable()
 export class WishlistService {
@@ -23,7 +46,11 @@ export class WishlistService {
     });
   }
 
-  async addItem(userId: string, variantId: string, tx: Prisma.TransactionClient = this.prisma) {
+  async addItem(
+    userId: string,
+    variantId: string,
+    tx: Prisma.TransactionClient = this.prisma,
+  ): Promise<WishlistResponseDto> {
     await this.assertPublishedVariant(variantId, tx);
     const wishlist = await this.getOrCreateWishlist(userId, tx);
 
@@ -50,7 +77,11 @@ export class WishlistService {
     return this.getWishlist(userId, tx);
   }
 
-  async removeItem(userId: string, variantId: string, tx: Prisma.TransactionClient = this.prisma) {
+  async removeItem(
+    userId: string,
+    variantId: string,
+    tx: Prisma.TransactionClient = this.prisma,
+  ): Promise<WishlistResponseDto> {
     const wishlist = await this.getOrCreateWishlist(userId, tx);
     const existingItem = await tx.wishlistItem.findUnique({
       where: {
@@ -72,8 +103,11 @@ export class WishlistService {
     return this.getWishlist(userId, tx);
   }
 
-  async getWishlist(userId: string, tx: Prisma.TransactionClient = this.prisma) {
-    return this.getOrCreateWishlist(userId, tx);
+  async getWishlist(
+    userId: string,
+    tx: Prisma.TransactionClient = this.prisma,
+  ): Promise<WishlistResponseDto> {
+    return this.serializeWishlist(await this.getOrCreateWishlist(userId, tx));
   }
 
   private async assertPublishedVariant(variantId: string, tx: Prisma.TransactionClient) {
@@ -95,23 +129,18 @@ export class WishlistService {
     }
   }
 
-  private readonly wishlistInclude = {
-    items: {
-      orderBy: [{ createdAt: 'asc' as const }],
-      include: {
-        variant: {
-          include: {
-            price: true,
-            product: {
-              select: {
-                id: true,
-                sku: true,
-                status: true,
-              },
-            },
-          },
-        },
-      },
-    },
-  } satisfies Prisma.WishlistInclude;
+  private serializeWishlist(wishlist: WishlistRecord): WishlistResponseDto {
+    return {
+      id: wishlist.id,
+      userId: wishlist.userId,
+      items: wishlist.items.map((item) => ({
+        id: item.id,
+        variantId: item.variantId,
+        addedAt: item.createdAt.toISOString(),
+      })),
+      itemCount: wishlist.items.length,
+    };
+  }
+
+  private readonly wishlistInclude = wishlistInclude;
 }

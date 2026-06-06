@@ -1,0 +1,11 @@
+metric,value
+orders_count,0
+orders_grand_total_amount,0
+orders_subtotal_amount,0
+orders_tax_amount,0
+orders_shipping_amount,0
+order_lines_count,0
+order_lines_quantity,0
+order_lines_subtotal_amount,0
+refunds_count,0
+refunds_amount,0

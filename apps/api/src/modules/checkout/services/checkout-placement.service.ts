@@ -2,6 +2,7 @@ import { createHash, randomUUID } from 'node:crypto';
 
 import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   Inject,
   Injectable,
@@ -74,6 +75,18 @@ export class CheckoutPlacementService {
       throw new BadRequestException('Idempotency-Key header is required');
     }
 
+    if (normalizedIdempotencyKey.length > 128) {
+      throw new BadRequestException(
+        'Idempotency-Key header must not exceed 128 characters',
+      );
+    }
+
+    if (!/^[a-zA-Z0-9_-]{1,128}$/.test(normalizedIdempotencyKey)) {
+      throw new BadRequestException(
+        'Idempotency-Key header may only contain alphanumeric characters, dashes, and underscores',
+      );
+    }
+
     const scope = this.resolveIdempotencyScope(options.actorUserId, options.guestToken);
 
     const executionResult = await this.checkoutIdempotencyService.execute({
@@ -87,7 +100,7 @@ export class CheckoutPlacementService {
           : null,
         ...dto,
       },
-      execute: async () => {
+      execute: async (idempotencyKeyId: string) => {
         const placement = await this.prismaTransactionService.runInTransaction(async (tx) => {
           const transactionalCart = await this.cartService.getCartOrThrow(dto.cartId, tx);
           this.cartService.assertCartAccess(transactionalCart, {
@@ -100,6 +113,19 @@ export class CheckoutPlacementService {
               'Cart must contain at least one item before checkout placement',
             );
           }
+
+          // ── Atomically claim the cart to prevent concurrent checkout ──
+          const cartClaim = await tx.cart.updateMany({
+            where: { id: transactionalCart.id, status: 'ACTIVE' },
+            data: { status: 'ABANDONED' },
+          });
+
+          if (cartClaim.count !== 1) {
+            throw new ConflictException(
+              'This cart is no longer active or is already being checked out',
+            );
+          }
+          // ────────────────────────────────────────────────────────────────
 
           this.paymentAttemptService.assertCheckoutMethodAllowed(dto.paymentMethod);
           const pricingPreview = await this.pricingPreviewService.previewCheckout(
@@ -168,6 +194,7 @@ export class CheckoutPlacementService {
               orderNumber: this.generateOrderNumber(),
               userId: options.actorUserId ?? transactionalCart.userId ?? null,
               cartId: transactionalCart.id,
+              idempotencyKeyId,
               reservationKey,
               customerEmail: dto.customerEmail.trim(),
               customerName: dto.shippingAddress.recipientName.trim(),
@@ -264,11 +291,6 @@ export class CheckoutPlacementService {
           if (dto.paymentMethod === CheckoutPaymentMethod.CASH_ON_DELIVERY) {
             await this.inventoryCoreService.redeemStockReservation(reservationKey, order.id, tx);
           }
-
-          await tx.cart.update({
-            where: { id: transactionalCart.id },
-            data: { status: 'ABANDONED' },
-          });
 
           await this.orderOutboxService.emitPlaced(order, tx);
 

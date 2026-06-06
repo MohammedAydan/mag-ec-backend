@@ -48,10 +48,17 @@
 ## Notes
 
 - `.env.example` contains the current local-development defaults and placeholders.
-- `DATABASE_URL` and `REDIS_URL` default to local development values in phase 00 to keep local bootstrap and contract generation self-contained.
+- `DATABASE_URL` and `REDIS_URL` use localhost defaults ONLY in `development` and `test`. In `staging` and `production` they are REQUIRED — the app will fail-fast with a clear error if they are missing.
+- The Prisma CLI (`prisma.config.ts`) enforces the same fail-closed behavior: an explicit `DATABASE_URL` is required in staging/production.
 - `THROTTLE_TTL_MS` and `THROTTLE_LIMIT` tune the global abuse-protection baseline without code changes.
 - `PAYMENT_PROVIDER=stripe` requires both `STRIPE_SECRET_KEY` and `PAYMENT_WEBHOOK_SECRET`.
 - Production deployments should override every secret-bearing value explicitly.
+
+## Seed Behavior
+
+- `prisma/seed.ts` refuses to run when `NODE_ENV` is not `development` or `test` unless `SEED_ALLOW_PRODUCTION=true` is set.
+- `DEV_SEED_ADMIN_EMAIL` and `DEV_SEED_ADMIN_PASSWORD` are required for non-development environments; the hardcoded defaults are only used in dev/test.
+- The seed script creates the admin user if absent but does NOT overwrite an existing admin password.
 
 ## Execution and integrated dashboard
 

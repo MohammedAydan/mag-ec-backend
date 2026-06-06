@@ -1,0 +1,10 @@
+model_list:
+  - model_name: claude-4-6-sonnet
+    litellm_params:
+      model: "deepseek-v4-pro"
+      custom_llm_provider: "together_ai"
+      api_base: "https://opencode.ai/zen/go/v1"
+      api_key: "sk-hCYDZMXDJTiN4tEeWha2fWzk8hhnlUScaRewSyMbW9F3UF1Gwa8KAyRYJtk38hwn"
+
+litellm_settings:
+  drop_params: true

@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
 
+import { coercePositiveInt } from '../../../common/http/query-int';
 import { PrismaService } from '../../persistence/services/prisma.service';
 import {
   ListPaymentAttemptsQueryDto,
@@ -15,7 +16,7 @@ export class PaymentAdminService {
   constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
 
   async listAttempts(query: ListPaymentAttemptsQueryDto) {
-    const limit = query.limit ?? DEFAULT_LIMIT;
+    const limit = coercePositiveInt(query.limit, DEFAULT_LIMIT);
     const where: Prisma.PaymentAttemptWhereInput = {
       ...(query.orderId ? { orderId: query.orderId } : {}),
       ...(query.provider ? { provider: query.provider } : {}),
@@ -50,7 +51,7 @@ export class PaymentAdminService {
   }
 
   async listWebhookEvents(query: ListPaymentWebhookEventsQueryDto) {
-    const limit = query.limit ?? DEFAULT_LIMIT;
+    const limit = coercePositiveInt(query.limit, DEFAULT_LIMIT);
     const where: Prisma.PaymentWebhookEventWhereInput = {
       ...(query.orderId ? { orderId: query.orderId } : {}),
       ...(query.provider ? { provider: query.provider } : {}),
@@ -80,7 +81,7 @@ export class PaymentAdminService {
   }
 
   async listRefunds(query: ListRefundsQueryDto) {
-    const limit = query.limit ?? DEFAULT_LIMIT;
+    const limit = coercePositiveInt(query.limit, DEFAULT_LIMIT);
     const where: Prisma.RefundWhereInput = {
       ...(query.orderId ? { orderId: query.orderId } : {}),
       ...(query.provider ? { provider: query.provider } : {}),

@@ -1,7 +1,7 @@
 import { Controller, Get, Inject, Param } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 
-import type { PublicLegalReferencesDto } from '../dto/content.dto';
+import { ContentPageResponseDto, LegalReferencesResponseDto } from '../dto/content-response.dto';
 import { ContentService } from '../services/content.service';
 
 @ApiTags('Content')
@@ -10,12 +10,18 @@ export class PublicContentController {
   constructor(@Inject(ContentService) private readonly contentService: ContentService) {}
 
   @Get('pages/:slug')
-  getPage(@Param('slug') slug: string) {
+  @ApiOperation({ summary: 'Get a published content page by its slug' })
+  @ApiParam({ name: 'slug', description: 'Content page slug', type: String })
+  @ApiOkResponse({ type: ContentPageResponseDto, description: 'Published content page' })
+  @ApiNotFoundResponse({ description: 'Content page not found' })
+  async getPage(@Param('slug') slug: string): Promise<ContentPageResponseDto> {
     return this.contentService.getPublicContentPage(slug);
   }
 
   @Get('legal-references')
-  getLegalReferences(): Promise<PublicLegalReferencesDto> {
+  @ApiOperation({ summary: 'Get public legal reference page keys' })
+  @ApiOkResponse({ type: LegalReferencesResponseDto, description: 'Public legal references' })
+  async getLegalReferences(): Promise<LegalReferencesResponseDto> {
     return this.contentService.getPublicLegalReferences();
   }
 }

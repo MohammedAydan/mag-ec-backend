@@ -5,6 +5,9 @@ import { CartService } from './cart.service';
 describe('CartService', () => {
   type CartServiceDependencies = ConstructorParameters<typeof CartService>;
 
+  const validGuestToken = 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d';
+  const otherGuestToken = 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e';
+
   const prisma = {
     cart: {
       findFirst: jest.fn(),
@@ -41,11 +44,11 @@ describe('CartService', () => {
   it('returns an existing active guest cart', async () => {
     prisma.cart.findFirst.mockResolvedValue({
       id: 'cart_1',
-      guestToken: service.hashGuestToken('guest-token'),
+      guestToken: service.hashGuestToken(validGuestToken),
       items: [],
     });
 
-    await expect(service.getOrCreateCart('guest-token')).resolves.toMatchObject({
+    await expect(service.getOrCreateCart(validGuestToken)).resolves.toMatchObject({
       id: 'cart_1',
     });
     expect(prisma.cart.create).not.toHaveBeenCalled();
@@ -55,13 +58,13 @@ describe('CartService', () => {
     prisma.cart.findFirst.mockResolvedValue(null);
     prisma.cart.create.mockResolvedValue({
       id: 'cart_2',
-      guestToken: service.hashGuestToken('guest-token'),
+      guestToken: service.hashGuestToken(validGuestToken),
       items: [],
     });
 
-    await expect(service.getOrCreateCart('guest-token')).resolves.toMatchObject({
+    await expect(service.getOrCreateCart(validGuestToken)).resolves.toMatchObject({
       id: 'cart_2',
-      guestToken: service.hashGuestToken('guest-token'),
+      guestToken: service.hashGuestToken(validGuestToken),
     });
   });
 
@@ -108,7 +111,7 @@ describe('CartService', () => {
     prisma.cart.findFirst
       .mockResolvedValueOnce({
         id: 'guest_cart',
-        guestToken: service.hashGuestToken('guest-token'),
+        guestToken: service.hashGuestToken(validGuestToken),
         couponCode: 'SAVE10',
         normalizedCouponCode: 'SAVE10',
         items: [{ id: 'guest_item', variantId: 'variant_1', quantity: 2 }],
@@ -128,7 +131,7 @@ describe('CartService', () => {
       items: [{ id: 'user_item', variantId: 'variant_1', quantity: 3 }],
     });
 
-    await service.mergeGuestCartIntoUserCart('guest-token', 'user_1');
+    await service.mergeGuestCartIntoUserCart(validGuestToken, 'user_1');
 
     expect(prisma.cartItem.update).toHaveBeenCalledWith({
       where: { id: 'user_item' },
@@ -152,8 +155,8 @@ describe('CartService', () => {
   it('rejects guest cart access when the token does not match', () => {
     expect(() =>
       service.assertCartAccess(
-        { id: 'cart_1', guestToken: service.hashGuestToken('guest-token'), userId: null },
-        { guestToken: 'wrong-token' },
+        { id: 'cart_1', guestToken: service.hashGuestToken(validGuestToken), userId: null },
+        { guestToken: otherGuestToken },
       ),
     ).toThrow(ForbiddenException);
   });

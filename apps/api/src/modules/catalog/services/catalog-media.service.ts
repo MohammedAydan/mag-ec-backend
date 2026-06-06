@@ -127,6 +127,17 @@ export class CatalogMediaService {
       );
     }
 
+    // SEC-019: Verify caller-provided checksum against the stored object's ETag.
+    // This prevents storing a mismatched checksum and ensures upload integrity.
+    if (input.checksum?.trim()) {
+      const expectedChecksum = input.checksum.trim();
+      if (!storedObject.etag || storedObject.etag !== expectedChecksum) {
+        throw new BadRequestException(
+          'Provided checksum does not match the uploaded media object; upload may be corrupted',
+        );
+      }
+    }
+
     return this.prisma.$transaction(async (tx) => {
       const claimed = await tx.catalogMedia.updateMany({
         where: {

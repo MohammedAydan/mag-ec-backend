@@ -4,6 +4,7 @@ import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fa
 import { Test } from '@nestjs/testing';
 
 import { AuthGuard } from '../../src/modules/identity/guards/auth.guard';
+import { CustomerGuard } from '../../src/modules/identity/guards/customer.guard';
 import { PermissionsGuard } from '../../src/modules/identity/guards/permissions.guard';
 import { AdminGuard } from '../../src/modules/identity/guards/admin.guard';
 import { TokenService } from '../../src/modules/identity/services/token.service';
@@ -13,6 +14,7 @@ import { FulfillmentService } from '../../src/modules/fulfillment/services/fulfi
 import { AdminReturnsController } from '../../src/modules/returns/controllers/admin-returns.controller';
 import { CustomerReturnsController } from '../../src/modules/returns/controllers/customer-returns.controller';
 import { ReturnsService } from '../../src/modules/returns/services/returns.service';
+import { PrismaService } from '../../src/modules/persistence/services/prisma.service';
 
 describe('Fulfillment and returns (e2e)', () => {
   let app: NestFastifyApplication;
@@ -33,6 +35,12 @@ describe('Fulfillment and returns (e2e)', () => {
     reviewReturnRequest: jest.fn().mockResolvedValue({ id: 'return_1', status: 'APPROVED' }),
     receiveReturnRequest: jest.fn().mockResolvedValue({ id: 'return_1', status: 'RECEIVED' }),
     executeReturnRefund: jest.fn().mockResolvedValue({ id: 'return_1', status: 'CLOSED' }),
+  };
+
+  const mockPrismaService = {
+    user: {
+      findUnique: jest.fn().mockResolvedValue({ id: 'admin_1', tokenVersion: undefined, status: 'ACTIVE', deletedAt: null }),
+    },
   };
 
   const mockTokenService = {
@@ -59,6 +67,7 @@ describe('Fulfillment and returns (e2e)', () => {
             'returns.read',
             'returns.write',
             'inventory.write',
+            'payments.refund',
           ],
         };
       }
@@ -78,9 +87,11 @@ describe('Fulfillment and returns (e2e)', () => {
       providers: [
         AuthGuard,
         AdminGuard,
+        CustomerGuard,
         PermissionsGuard,
         { provide: FulfillmentService, useValue: mockFulfillmentService },
         { provide: ReturnsService, useValue: mockReturnsService },
+        { provide: PrismaService, useValue: mockPrismaService },
         { provide: TokenService, useValue: mockTokenService },
       ],
     }).compile();
@@ -131,7 +142,7 @@ describe('Fulfillment and returns (e2e)', () => {
       .send({
         decision: 'approve',
       })
-      .expect(201)
+      .expect(200)
       .expect(({ body }: { body: { status: string } }) => {
         expect(body.status).toBe('APPROVED');
       });
@@ -145,5 +156,30 @@ describe('Fulfillment and returns (e2e)', () => {
       .expect(({ body }: { body: Array<{ id: string }> }) => {
         expect(body[0]?.id).toBe('return_1');
       });
+  });
+
+  it('forbids admin tokens on customer return routes', async () => {
+    await request(app.getHttpServer())
+      .get('/api/v1/returns/me')
+      .set('Authorization', 'Bearer admin-token')
+      .expect(403);
+
+    await request(app.getHttpServer())
+      .get('/api/v1/returns/me/return_1')
+      .set('Authorization', 'Bearer admin-token')
+      .expect(403);
+
+    await request(app.getHttpServer())
+      .post('/api/v1/returns/me/orders/order_1')
+      .set('Authorization', 'Bearer admin-token')
+      .send({ reason: 'not_needed', items: [{ orderLineId: 'line_1', quantity: 1 }] })
+      .expect(403);
+  });
+
+  it('forbids admin tokens on customer fulfillment routes', async () => {
+    await request(app.getHttpServer())
+      .get('/api/v1/orders/me/order_1/shipments')
+      .set('Authorization', 'Bearer admin-token')
+      .expect(403);
   });
 });

@@ -8,6 +8,7 @@ import { AuthGuard } from '../../src/modules/identity/guards/auth.guard';
 import { PermissionsGuard } from '../../src/modules/identity/guards/permissions.guard';
 import { AdminGuard } from '../../src/modules/identity/guards/admin.guard';
 import { TokenService } from '../../src/modules/identity/services/token.service';
+import { PrismaService } from '../../src/modules/persistence/services/prisma.service';
 import { PromotionsAdminController } from '../../src/modules/promotions/controllers/promotions-admin.controller';
 import { PromotionAdminService } from '../../src/modules/promotions/services/promotion-admin.service';
 
@@ -16,6 +17,12 @@ describe('Promotions admin (e2e)', () => {
 
   const mockPromotionAdminService = {
     upsertPromotion: jest.fn().mockResolvedValue({ key: 'summer-sale' }),
+  };
+
+  const mockPrismaService = {
+    user: {
+      findUnique: jest.fn().mockResolvedValue({ id: 'admin_1', tokenVersion: undefined, status: 'ACTIVE', deletedAt: null }),
+    },
   };
 
   const mockTokenService = {
@@ -53,6 +60,7 @@ describe('Promotions admin (e2e)', () => {
         PermissionsGuard,
         Reflector,
         { provide: PromotionAdminService, useValue: mockPromotionAdminService },
+        { provide: PrismaService, useValue: mockPrismaService },
         { provide: TokenService, useValue: mockTokenService },
       ],
     }).compile();
@@ -77,7 +85,7 @@ describe('Promotions admin (e2e)', () => {
 
   it('rejects promotion admin writes without authentication', async () => {
     await request(app.getHttpServer())
-      .put('/api/v1/promotions/admin/summer-sale')
+      .put('/api/v1/promotions/admin/by-key/summer-sale')
       .send({
         name: 'Summer Sale',
         status: 'ACTIVE',
@@ -90,7 +98,7 @@ describe('Promotions admin (e2e)', () => {
 
   it('rejects promotion admin writes without the required role and permission', async () => {
     await request(app.getHttpServer())
-      .put('/api/v1/promotions/admin/summer-sale')
+      .put('/api/v1/promotions/admin/by-key/summer-sale')
       .set('Authorization', 'Bearer limited-token')
       .send({
         name: 'Summer Sale',
@@ -104,7 +112,7 @@ describe('Promotions admin (e2e)', () => {
 
   it('allows an authorized admin to upsert a promotion', async () => {
     await request(app.getHttpServer())
-      .put('/api/v1/promotions/admin/summer-sale')
+      .put('/api/v1/promotions/admin/by-key/summer-sale')
       .set('Authorization', 'Bearer admin-token')
       .send({
         name: 'Summer Sale',

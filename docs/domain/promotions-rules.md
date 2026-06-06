@@ -46,7 +46,7 @@ If a promotion grants free shipping, all otherwise eligible shipping methods are
 
 Phase 05 adds:
 
-- `PUT /api/v1/promotions/admin/:promotionKey`
+- `PUT /api/v1/promotions/admin/by-key/:promotionKey`
 - `PUT /api/v1/promotions/admin/:promotionId/coupons/:code`
 
 Both routes require `super_admin` plus `promotions.write`, and both emit audit-log entries on change.

@@ -1,0 +1,22 @@
+# Strict OpenAPI Generator config for the real TypeScript SDK.
+# Place at: packages/contracts/openapi/typescript-fetch-config.yaml
+# Generator: typescript-fetch
+
+npmName: '@mag/generated-api-client'
+npmVersion: 0.1.0
+snapshot: false
+supportsES6: true
+withInterfaces: true
+useSingleRequestParameter: true
+enumPropertyNaming: original
+stringEnums: true
+withoutRuntimeChecks: false
+disallowAdditionalPropertiesIfNotPresent: false
+withSeparateModelsAndApi: true
+apiPackage: apis
+modelPackage: models
+prefixParameterInterfaces: true
+sortModelPropertiesByRequiredFlag: true
+sortParamsByRequiredFlag: true
+ensureUniqueParams: true
+legacyDiscriminatorBehavior: false

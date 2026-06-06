@@ -87,6 +87,52 @@ export class PaymentWebhookService {
 
         switch (verifiedEvent.eventType) {
           case 'payment_intent.succeeded':
+            // SEC-012: Verify Stripe amount/currency matches the local payment attempt.
+            if (verifiedEvent.amount !== undefined && verifiedEvent.amount !== paymentAttempt!.amount) {
+              // Persist audit log outside the business transaction so the security
+              // warning survives even when the payment transition is rolled back.
+              await this.prisma.auditLog.create({
+                data: {
+                  category: 'SECURITY',
+                  action: 'payment.amount_mismatch',
+                  entityType: 'PaymentAttempt',
+                  entityId: paymentAttempt!.id,
+                  metadata: {
+                    webhookEventId: verifiedEvent.externalEventId,
+                    webhookAmount: verifiedEvent.amount,
+                    localAmount: paymentAttempt!.amount,
+                    orderId: paymentAttempt!.orderId,
+                  },
+                },
+              });
+              throw new BadRequestException(
+                `Webhook amount ${verifiedEvent.amount} does not match payment attempt amount ${paymentAttempt!.amount}`,
+              );
+            }
+            if (
+              verifiedEvent.currency &&
+              verifiedEvent.currency.toLowerCase() !== paymentAttempt!.currencyCode.toLowerCase()
+            ) {
+              // Persist audit log outside the business transaction so the security
+              // warning survives even when the payment transition is rolled back.
+              await this.prisma.auditLog.create({
+                data: {
+                  category: 'SECURITY',
+                  action: 'payment.currency_mismatch',
+                  entityType: 'PaymentAttempt',
+                  entityId: paymentAttempt!.id,
+                  metadata: {
+                    webhookEventId: verifiedEvent.externalEventId,
+                    webhookCurrency: verifiedEvent.currency,
+                    localCurrency: paymentAttempt!.currencyCode,
+                    orderId: paymentAttempt!.orderId,
+                  },
+                },
+              });
+              throw new BadRequestException(
+                `Webhook currency "${verifiedEvent.currency}" does not match payment attempt currency "${paymentAttempt!.currencyCode}"`,
+              );
+            }
             await this.orderPaymentTransitionService.markPaid(
               paymentAttempt!.orderId,
               paymentAttempt!.id,

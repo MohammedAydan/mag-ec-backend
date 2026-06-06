@@ -23,6 +23,9 @@ describe('Inventory admin (e2e)', () => {
   };
 
   const mockPrismaService = {
+    user: {
+      findUnique: jest.fn().mockResolvedValue({ id: 'admin_1', tokenVersion: undefined, status: 'ACTIVE', deletedAt: null }),
+    },
     stockLevel: {
       findMany: jest
         .fn()

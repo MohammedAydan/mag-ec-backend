@@ -1,6 +1,7 @@
 import { Inject, Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { type Prisma } from '@prisma/client';
 
+import { coercePositiveInt } from '../../../common/http/query-int';
 import { PrismaService } from '../../persistence/services/prisma.service';
 import { TaskDispatcherService } from '../../queue/task-dispatcher.service';
 import { ObjectStorageService } from '../../storage/object-storage.service';
@@ -169,15 +170,16 @@ export class ReportingService {
   }
 
   async listExports(query: ListReportExportsQueryDto) {
+    const limit = coercePositiveInt(query.limit, 20);
     const exports = await this.prisma.reportExport.findMany({
       include: reportExportInclude,
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       ...(query.cursor ? { cursor: { id: query.cursor }, skip: 1 } : {}),
-      take: (query.limit ?? 20) + 1,
+      take: limit + 1,
     });
 
-    const hasNextPage = exports.length > (query.limit ?? 20);
-    const items = hasNextPage ? exports.slice(0, query.limit ?? 20) : exports;
+    const hasNextPage = exports.length > limit;
+    const items = hasNextPage ? exports.slice(0, limit) : exports;
 
     return {
       items,

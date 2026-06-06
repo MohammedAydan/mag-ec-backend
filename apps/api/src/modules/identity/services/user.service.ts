@@ -98,9 +98,16 @@ export class UserService {
       displayName: user.displayName,
       userType: user.userType,
       status: user.status,
-      emailVerifiedAt: user.emailVerifiedAt,
-      lastLoginAt: user.lastLoginAt,
-      roles: authDetails.roles,
+      emailVerifiedAt: user.emailVerifiedAt?.toISOString() ?? null,
+      lastLoginAt: user.lastLoginAt?.toISOString() ?? null,
+      createdAt: user.createdAt.toISOString(),
+      roles: user.userRoles
+        .filter((userRole) => !userRole.role.archivedAt)
+        .map((userRole) => ({
+          id: userRole.role.id,
+          key: userRole.role.key,
+          name: userRole.role.name,
+        })),
       permissions: authDetails.permissions,
     };
   }
@@ -112,6 +119,7 @@ export class UserService {
       where: { id: userId },
       data: {
         passwordHash,
+        tokenVersion: { increment: 1 },
       },
     });
   }
@@ -170,6 +178,7 @@ export class UserService {
       email: user.email,
       userType: user.userType,
       status: user.status,
+      tokenVersion: user.tokenVersion,
       roles,
       permissions: Array.from(permissionsSet),
     };

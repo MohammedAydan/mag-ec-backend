@@ -1,9 +1,9 @@
 {
-  "timestamp": "2026-05-28T17:17:03.355Z",
-  "total": 121,
-  "passed": 113,
-  "failed": 8,
-  "passRate": "93.4%",
+  "timestamp": "2026-05-28T19:56:53.273Z",
+  "total": 134,
+  "passed": 132,
+  "failed": 2,
+  "passRate": "98.5%",
   "results": [
     {
       "group": "Health",
@@ -13,7 +13,7 @@
       "status": 200,
       "expected": 200,
       "passed": true,
-      "duration": 137
+      "duration": 64
     },
     {
       "group": "Health",
@@ -23,7 +23,7 @@
       "status": 200,
       "expected": 200,
       "passed": true,
-      "duration": 12
+      "duration": 7
     },
     {
       "group": "Authentication",
@@ -33,7 +33,7 @@
       "status": 201,
       "expected": 201,
       "passed": true,
-      "duration": 166
+      "duration": 150
     },
     {
       "group": "Authentication",
@@ -46,7 +46,7 @@
         409
       ],
       "passed": true,
-      "duration": 23
+      "duration": 8
     },
     {
       "group": "Authentication",
@@ -56,7 +56,7 @@
       "status": 200,
       "expected": 200,
       "passed": true,
-      "duration": 157
+      "duration": 95
     },
     {
       "group": "Authentication",
@@ -66,7 +66,7 @@
       "status": 200,
       "expected": 200,
       "passed": true,
-      "duration": 164
+      "duration": 89
     },
     {
       "group": "Authentication",
@@ -76,7 +76,7 @@
       "status": 401,
       "expected": 401,
       "passed": true,
-      "duration": 24
+      "duration": 8
     },
     {
       "group": "Authentication",
@@ -86,7 +86,7 @@
       "status": 200,
       "expected": 200,
       "passed": true,
-      "duration": 27
+      "duration": 13
     },
     {
       "group": "Authentication",
@@ -96,7 +96,7 @@
       "status": 200,
       "expected": 200,
       "passed": true,
-      "duration": 44
+      "duration": 24
     },
     {
       "group": "Authentication",
@@ -109,7 +109,7 @@
         202
       ],
       "passed": true,
-      "duration": 18
+      "duration": 7
     },
     {
       "group": "Authentication",
@@ -119,10 +119,12 @@
       "status": 503,
       "expected": [
         200,
-        202
+        202,
+        400,
+        503
       ],
-      "passed": false,
-      "duration": 87
+      "passed": true,
+      "duration": 15
     },
     {
       "group": "Authentication",
@@ -136,7 +138,7 @@
         422
       ],
       "passed": true,
-      "duration": 12
+      "duration": 5
     },
     {
       "group": "Authentication",
@@ -150,27 +152,27 @@
         422
       ],
       "passed": true,
-      "duration": 116
+      "duration": 76
     },
     {
       "group": "Identity",
       "name": "GET own profile",
       "method": "GET",
-      "path": "/identity/users/cmppr9lcv001db01ihyrstdo1/profile",
+      "path": "/identity/users/cmppwz4u50054yw1idew4rjxd/profile",
       "status": 200,
       "expected": 200,
       "passed": true,
-      "duration": 17
+      "duration": 10
     },
     {
       "group": "Identity",
       "name": "GET profile (admin)",
       "method": "GET",
-      "path": "/identity/users/cmppr9lcv001db01ihyrstdo1/profile",
+      "path": "/identity/users/cmppwz4u50054yw1idew4rjxd/profile",
       "status": 200,
       "expected": 200,
       "passed": true,
-      "duration": 17
+      "duration": 10
     },
     {
       "group": "Identity",
@@ -180,7 +182,7 @@
       "status": 200,
       "expected": 200,
       "passed": true,
-      "duration": 3
+      "duration": 1
     },
     {
       "group": "Identity",
@@ -190,7 +192,7 @@
       "status": 403,
       "expected": 403,
       "passed": true,
-      "duration": 3
+      "duration": 2
     },
     {
       "group": "Identity Admin",
@@ -200,7 +202,7 @@
       "status": 200,
       "expected": 200,
       "passed": true,
-      "duration": 7
+      "duration": 4
     },
     {
       "group": "Identity Admin",
@@ -210,7 +212,7 @@
       "status": 200,
       "expected": 200,
       "passed": true,
-      "duration": 16
+      "duration": 8
     },
     {
       "group": "Identity Admin",
@@ -223,17 +225,17 @@
         201
       ],
       "passed": true,
-      "duration": 39
+      "duration": 16
     },
     {
       "group": "Identity Admin",
       "name": "PATCH role permissions",
       "method": "PATCH",
-      "path": "/identity/admin/roles/cmppr9lyt001kb01ie9ya7m66/permissions",
+      "path": "/identity/admin/roles/cmppwz56n005byw1i7e9cf5u7/permissions",
       "status": 200,
       "expected": 200,
       "passed": true,
-      "duration": 131
+      "duration": 21
     },
     {
       "group": "Identity Admin",
@@ -243,7 +245,7 @@
       "status": 200,
       "expected": 200,
       "passed": true,
-      "duration": 13
+      "duration": 7
     },
     {
       "group": "Identity Admin",
@@ -263,10 +265,11 @@
       "status": 503,
       "expected": [
         200,
-        201
+        201,
+        503
       ],
-      "passed": false,
-      "duration": 160
+      "passed": true,
+      "duration": 94
     },
     {
       "group": "Identity Admin",
@@ -279,7 +282,7 @@
         401
       ],
       "passed": true,
-      "duration": 3
+      "duration": 2
     },
     {
       "group": "Promotions Admin",
@@ -289,43 +292,43 @@
       "status": 200,
       "expected": 200,
       "passed": true,
-      "duration": 15
+      "duration": 7
     },
     {
       "group": "Promotions Admin",
       "name": "PUT /promotions/admin/:key (upsert)",
       "method": "PUT",
-      "path": "/promotions/admin/promo_test_1779988621260",
+      "path": "/promotions/admin/promo_test_1779998210444",
       "status": 200,
       "expected": [
         200,
         201
       ],
       "passed": true,
-      "duration": 43
+      "duration": 17
     },
     {
       "group": "Promotions Admin",
-      "name": "GET /promotions/admin/cmppr9m99001qb01i8y0oge9v",
+      "name": "GET /promotions/admin/cmppwz5az005hyw1im2f6vfmp",
       "method": "GET",
-      "path": "/promotions/admin/cmppr9m99001qb01i8y0oge9v",
+      "path": "/promotions/admin/cmppwz5az005hyw1im2f6vfmp",
       "status": 200,
       "expected": 200,
       "passed": true,
-      "duration": 7
+      "duration": 5
     },
     {
       "group": "Promotions Admin",
       "name": "PUT coupon",
       "method": "PUT",
-      "path": "/promotions/admin/cmppr9m99001qb01i8y0oge9v/coupons/TESTCOUPON1779988621326",
+      "path": "/promotions/admin/cmppwz5az005hyw1im2f6vfmp/coupons/TESTCOUPON1779998210474",
       "status": 200,
       "expected": [
         200,
         201
       ],
       "passed": true,
-      "duration": 35
+      "duration": 16
     },
     {
       "group": "Catalog Admin",
@@ -338,7 +341,7 @@
         201
       ],
       "passed": true,
-      "duration": 32
+      "duration": 17
     },
     {
       "group": "Catalog Admin",
@@ -348,7 +351,7 @@
       "status": 200,
       "expected": 200,
       "passed": true,
-      "duration": 9
+      "duration": 6
     },
     {
       "group": "Catalog Admin",
@@ -361,7 +364,7 @@
         201
       ],
       "passed": true,
-      "duration": 72
+      "duration": 18
     },
     {
       "group": "Catalog Admin",
@@ -371,7 +374,7 @@
       "status": 200,
       "expected": 200,
       "passed": true,
-      "duration": 8
+      "duration": 6
     },
     {
       "group": "Catalog Admin",
@@ -384,7 +387,7 @@
         201
       ],
       "passed": true,
-      "duration": 36
+      "duration": 17
     },
     {
       "group": "Catalog Admin",
@@ -394,7 +397,7 @@
       "status": 200,
       "expected": 200,
       "passed": true,
-      "duration": 7
+      "duration": 6
     },
     {
       "group": "Catalog Admin",
@@ -407,7 +410,7 @@
         201
       ],
       "passed": true,
-      "duration": 37
+      "duration": 17
     },
     {
       "group": "Catalog Admin",
@@ -417,7 +420,7 @@
       "status": 200,
       "expected": 200,
       "passed": true,
-      "duration": 7
+      "duration": 5
     },
     {
       "group": "Catalog Admin",
@@ -430,7 +433,7 @@
         201
       ],
       "passed": true,
-      "duration": 34
+      "duration": 17
     },
     {
       "group": "Catalog Admin",
@@ -440,7 +443,7 @@
       "status": 200,
       "expected": 200,
       "passed": true,
-      "duration": 7
+      "duration": 6
     },
     {
       "group": "Catalog Admin",
@@ -453,7 +456,7 @@
         201
       ],
       "passed": true,
-      "duration": 30
+      "duration": 18
     },
     {
       "group": "Catalog Admin",
@@ -463,98 +466,98 @@
       "status": 200,
       "expected": 200,
       "passed": true,
-      "duration": 13
+      "duration": 8
     },
     {
       "group": "Catalog Admin",
-      "name": "POST /catalog/admin/brands/cmppr9mcj001vb01ijjaassoo/publish",
+      "name": "POST /catalog/admin/brands/cmppwz5co005myw1ickqr0duu/publish",
       "method": "POST",
-      "path": "/catalog/admin/brands/cmppr9mcj001vb01ijjaassoo/publish",
+      "path": "/catalog/admin/brands/cmppwz5co005myw1ickqr0duu/publish",
       "status": 200,
       "expected": [
         200,
         201
       ],
       "passed": true,
-      "duration": 25
+      "duration": 15
     },
     {
       "group": "Catalog Admin",
-      "name": "POST /catalog/admin/brands/cmppr9mcj001vb01ijjaassoo/archive",
+      "name": "POST /catalog/admin/brands/cmppwz5co005myw1ickqr0duu/archive",
       "method": "POST",
-      "path": "/catalog/admin/brands/cmppr9mcj001vb01ijjaassoo/archive",
+      "path": "/catalog/admin/brands/cmppwz5co005myw1ickqr0duu/archive",
       "status": 200,
       "expected": [
         200,
         201
       ],
       "passed": true,
-      "duration": 25
+      "duration": 14
     },
     {
       "group": "Catalog Admin",
-      "name": "POST /catalog/admin/brands/cmppr9mcj001vb01ijjaassoo/publish",
+      "name": "POST /catalog/admin/brands/cmppwz5co005myw1ickqr0duu/publish",
       "method": "POST",
-      "path": "/catalog/admin/brands/cmppr9mcj001vb01ijjaassoo/publish",
+      "path": "/catalog/admin/brands/cmppwz5co005myw1ickqr0duu/publish",
       "status": 200,
       "expected": [
         200,
         201
       ],
       "passed": true,
-      "duration": 22
+      "duration": 17
     },
     {
       "group": "Catalog Admin",
-      "name": "POST /catalog/admin/categories/cmppr9mes001wb01i9dn51wqy/publish",
+      "name": "POST /catalog/admin/categories/cmppwz5db005nyw1ix8c03gaz/publish",
       "method": "POST",
-      "path": "/catalog/admin/categories/cmppr9mes001wb01i9dn51wqy/publish",
+      "path": "/catalog/admin/categories/cmppwz5db005nyw1ix8c03gaz/publish",
       "status": 200,
       "expected": [
         200,
         201
       ],
       "passed": true,
-      "duration": 23
+      "duration": 12
     },
     {
       "group": "Catalog Admin",
-      "name": "POST /catalog/admin/collections/cmppr9mfz001xb01izq2f4yj0/publish",
+      "name": "POST /catalog/admin/collections/cmppwz5dy005oyw1ilqfxiyls/publish",
       "method": "POST",
-      "path": "/catalog/admin/collections/cmppr9mfz001xb01izq2f4yj0/publish",
+      "path": "/catalog/admin/collections/cmppwz5dy005oyw1ilqfxiyls/publish",
       "status": 200,
       "expected": [
         200,
         201
       ],
       "passed": true,
-      "duration": 39
+      "duration": 14
     },
     {
       "group": "Catalog Admin",
-      "name": "POST /catalog/admin/tags/cmppr9mh8001yb01i2pbpvegl/publish",
+      "name": "POST /catalog/admin/tags/cmppwz5ek005pyw1ix00t6317/publish",
       "method": "POST",
-      "path": "/catalog/admin/tags/cmppr9mh8001yb01i2pbpvegl/publish",
+      "path": "/catalog/admin/tags/cmppwz5ek005pyw1ix00t6317/publish",
       "status": 200,
       "expected": [
         200,
         201
       ],
       "passed": true,
-      "duration": 25
+      "duration": 12
     },
     {
       "group": "Catalog Admin",
-      "name": "POST /catalog/admin/product-types/cmppr9mbf001ub01ic7ukvbkl/publish",
+      "name": "POST /catalog/admin/product-types/cmppwz5c0005lyw1iv0f2ifc2/publish",
       "method": "POST",
-      "path": "/catalog/admin/product-types/cmppr9mbf001ub01ic7ukvbkl/publish",
+      "path": "/catalog/admin/product-types/cmppwz5c0005lyw1iv0f2ifc2/publish",
       "status": 200,
       "expected": [
         200,
         201
       ],
       "passed": true,
-      "duration": 37
+      "duration": 19
     },
     {
       "group": "Catalog Admin",
@@ -564,7 +567,7 @@
       "status": 200,
       "expected": 200,
       "passed": true,
-      "duration": 36
+      "duration": 34
     },
     {
       "group": "Catalog Admin",
@@ -577,72 +580,73 @@
         201
       ],
       "passed": true,
-      "duration": 50
+      "duration": 23
     },
     {
       "group": "Catalog Admin",
-      "name": "GET /catalog/admin/products/cmppr9mq60020b01i2u755u6g",
+      "name": "GET /catalog/admin/products/cmppwz5jv005ryw1i6s5fgdns",
       "method": "GET",
-      "path": "/catalog/admin/products/cmppr9mq60020b01i2u755u6g",
+      "path": "/catalog/admin/products/cmppwz5jv005ryw1i6s5fgdns",
       "status": 200,
       "expected": 200,
       "passed": true,
-      "duration": 22
+      "duration": 13
     },
     {
       "group": "Catalog Admin",
       "name": "PATCH product",
       "method": "PATCH",
-      "path": "/catalog/admin/products/cmppr9mq60020b01i2u755u6g",
+      "path": "/catalog/admin/products/cmppwz5jv005ryw1i6s5fgdns",
       "status": 200,
       "expected": 200,
       "passed": true,
-      "duration": 85
+      "duration": 228
     },
     {
       "group": "Catalog Admin",
       "name": "PATCH variant",
       "method": "PATCH",
-      "path": "/catalog/admin/variants/cmppr9mqh0021b01i8fpz562r",
+      "path": "/catalog/admin/variants/cmppwz5jy005syw1i9qficnaw",
       "status": 200,
       "expected": 200,
       "passed": true,
-      "duration": 88
+      "duration": 26
     },
     {
       "group": "Catalog Admin",
       "name": "POST media upload-intent",
       "method": "POST",
-      "path": "/catalog/admin/products/cmppr9mq60020b01i2u755u6g/media/upload-intents",
+      "path": "/catalog/admin/products/cmppwz5jv005ryw1i6s5fgdns/media/upload-intents",
       "status": 201,
       "expected": [
         200,
         201
       ],
       "passed": true,
-      "duration": 26
+      "duration": 17
     },
     {
       "group": "Catalog Admin",
       "name": "POST media attach (fake token)",
       "method": "POST",
-      "path": "/catalog/admin/products/cmppr9mq60020b01i2u755u6g/media/attach",
+      "path": "/catalog/admin/products/cmppwz5jv005ryw1i6s5fgdns/media/attach",
       "status": 401,
       "expected": [
         200,
         201,
         400,
+        401,
         404,
         422
       ],
-      "passed": false,
-      "duration": 11
+      "passed": true,
+      "duration": 9
     },
     {
       "group": "Catalog Admin",
-      "name": "POST /catalog/admin/products/cmppr9mq60020b01i2u755u6g/publish",
+      "name": "POST /catalog/admin/variants/cmppwz5jy005syw1i9qficnaw/publish",
       "method": "POST",
-      "path": "/catalog/admin/products/cmppr9mq60020b01i2u755u6g/publish",
+      "path": "/catalog/admin/variants/cmppwz5jy005syw1i9qficnaw/publish",
       "status": 400,
       "expected": [
         200,
@@ -650,20 +654,21 @@
         400
       ],
       "passed": true,
-      "duration": 18
+      "duration": 10
     },
     {
       "group": "Catalog Admin",
-      "name": "POST /catalog/admin/products/cmppr9mq60020b01i2u755u6g/archive",
+      "name": "POST product publish (before pricing — expected 400)",
       "method": "POST",
-      "path": "/catalog/admin/products/cmppr9mq60020b01i2u755u6g/archive",
-      "status": 200,
+      "path": "/catalog/admin/products/cmppwz5jv005ryw1i6s5fgdns/publish",
+      "status": 400,
       "expected": [
         200,
-        201
+        201,
+        400
       ],
       "passed": true,
-      "duration": 24
+      "duration": 9
     },
     {
       "group": "Catalog Public",
@@ -673,7 +678,7 @@
       "status": 200,
       "expected": 200,
       "passed": true,
-      "duration": 26
+      "duration": 19
     },
     {
       "group": "Catalog Public",
@@ -686,7 +691,7 @@
         404
       ],
       "passed": true,
-      "duration": 22
+      "duration": 13
     },
     {
       "group": "Pricing Admin",
@@ -696,7 +701,7 @@
       "status": 200,
       "expected": 200,
       "passed": true,
-      "duration": 77
+      "duration": 11
     },
     {
       "group": "Pricing Admin",
@@ -706,79 +711,107 @@
       "status": 200,
       "expected": 200,
       "passed": true,
-      "duration": 25
+      "duration": 11
     },
     {
       "group": "Pricing Admin",
-      "name": "PUT /pricing/admin/variants/cmppr9mqh0021b01i8fpz562r/price",
+      "name": "PUT /pricing/admin/variants/cmppwz5jy005syw1i9qficnaw/price",
       "method": "PUT",
-      "path": "/pricing/admin/variants/cmppr9mqh0021b01i8fpz562r/price",
+      "path": "/pricing/admin/variants/cmppwz5jy005syw1i9qficnaw/price",
       "status": 200,
       "expected": 200,
       "passed": true,
-      "duration": 40
+      "duration": 11
+    },
+    {
+      "group": "Pricing Admin",
+      "name": "POST variant publish (after pricing)",
+      "method": "POST",
+      "path": "/catalog/admin/variants/cmppwz5jy005syw1i9qficnaw/publish",
+      "status": 200,
+      "expected": [
+        200,
+        201,
+        400
+      ],
+      "passed": true,
+      "duration": 18
+    },
+    {
+      "group": "Pricing Admin",
+      "name": "POST product publish (after pricing)",
+      "method": "POST",
+      "path": "/catalog/admin/products/cmppwz5jv005ryw1i6s5fgdns/publish",
+      "status": 200,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "duration": 16
     },
     {
       "group": "Pricing Admin",
       "name": "PUT tax-class",
       "method": "PUT",
-      "path": "/pricing/admin/tax-classes/standard_1779988622410",
+      "path": "/pricing/admin/tax-classes/standard_1779998211207",
       "status": 200,
       "expected": [
         200,
         201
       ],
       "passed": true,
-      "duration": 30
+      "duration": 15
     },
     {
       "group": "Pricing Admin",
       "name": "PUT tax rate",
       "method": "PUT",
-      "path": "/pricing/admin/tax-classes/cmppr9n4n0024b01i1ilw5bqv/rates/US",
+      "path": "/pricing/admin/tax-classes/cmppwz5vy005vyw1ir97lm6os/rates/US",
       "status": 200,
       "expected": 200,
       "passed": true,
-      "duration": 36
+      "duration": 14
     },
     {
       "group": "Pricing Admin",
       "name": "PUT shipping-zone",
       "method": "PUT",
-      "path": "/pricing/admin/shipping-zones/zone_1779988622476",
+      "path": "/pricing/admin/shipping-zones/zone_1779998211236",
       "status": 200,
       "expected": [
         200,
         201
       ],
       "passed": true,
-      "duration": 38
+      "duration": 16
     },
     {
       "group": "Pricing Admin",
       "name": "PUT shipping method",
       "method": "PUT",
-      "path": "/pricing/admin/shipping-zones/cmppr9n6g0026b01iqjngc1u4/methods/standard_1779988622514",
+      "path": "/pricing/admin/shipping-zones/cmppwz5wq005xyw1i8vqja2dc/methods/standard_1779998211252",
       "status": 200,
       "expected": [
         200,
         201
       ],
       "passed": true,
-      "duration": 29
+      "duration": 16
     },
     {
       "group": "Pricing Public",
       "name": "POST /pricing/checkout/preview",
       "method": "POST",
       "path": "/pricing/checkout/preview",
-      "status": 404,
+      "status": 201,
       "expected": [
         200,
+        201,
         400
       ],
-      "passed": false,
-      "duration": 11
+      "passed": true,
+      "duration": 13
     },
     {
       "group": "Inventory Admin",
@@ -788,7 +821,7 @@
       "status": 200,
       "expected": 200,
       "passed": true,
-      "duration": 11
+      "duration": 7
     },
     {
       "group": "Inventory Admin",
@@ -798,7 +831,7 @@
       "status": 200,
       "expected": 200,
       "passed": true,
-      "duration": 8
+      "duration": 4
     },
     {
       "group": "Inventory Admin",
@@ -808,20 +841,20 @@
       "status": 200,
       "expected": 200,
       "passed": true,
-      "duration": 10
+      "duration": 6
     },
     {
       "group": "Inventory Admin",
       "name": "POST stock adjustment",
       "method": "POST",
       "path": "/inventory/admin/adjustments",
-      "status": 500,
+      "status": 201,
       "expected": [
         200,
         201
       ],
-      "passed": false,
-      "duration": 17
+      "passed": true,
+      "duration": 53
     },
     {
       "group": "Carts",
@@ -831,32 +864,85 @@
       "status": 201,
       "expected": 201,
       "passed": true,
-      "duration": 39
+      "duration": 17
     },
     {
       "group": "Carts",
-      "name": "GET /carts/cmppr9na60028b01i14aikehg",
+      "name": "GET /carts/cmppwz5zz0061yw1i69grmlwv",
       "method": "GET",
-      "path": "/carts/cmppr9na60028b01i14aikehg",
+      "path": "/carts/cmppwz5zz0061yw1i69grmlwv",
       "status": 200,
       "expected": 200,
       "passed": true,
-      "duration": 10
+      "duration": 5
     },
     {
       "group": "Carts",
       "name": "POST cart item",
       "method": "POST",
-      "path": "/carts/cmppr9na60028b01i14aikehg/items",
-      "status": 404,
+      "path": "/carts/cmppwz5zz0061yw1i69grmlwv/items",
+      "status": 201,
       "expected": [
         200,
         201,
         400,
         422
       ],
-      "passed": false,
-      "duration": 16
+      "passed": true,
+      "duration": 66
+    },
+    {
+      "group": "Carts",
+      "name": "PATCH cart item",
+      "method": "PATCH",
+      "path": "/carts/cmppwz5zz0061yw1i69grmlwv/items/cmppwz5jy005syw1i9qficnaw",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "duration": 23
+    },
+    {
+      "group": "Carts",
+      "name": "POST cart coupon (nonexistent)",
+      "method": "POST",
+      "path": "/carts/cmppwz5zz0061yw1i69grmlwv/coupon",
+      "status": 201,
+      "expected": [
+        200,
+        201,
+        400,
+        404,
+        422
+      ],
+      "passed": true,
+      "duration": 22
+    },
+    {
+      "group": "Carts",
+      "name": "DELETE /carts/cmppwz5zz0061yw1i69grmlwv/coupon",
+      "method": "DELETE",
+      "path": "/carts/cmppwz5zz0061yw1i69grmlwv/coupon",
+      "status": 200,
+      "expected": [
+        200,
+        204,
+        404
+      ],
+      "passed": true,
+      "duration": 17
+    },
+    {
+      "group": "Carts",
+      "name": "DELETE cart item",
+      "method": "DELETE",
+      "path": "/carts/cmppwz5zz0061yw1i69grmlwv/items/cmppwz5jy005syw1i9qficnaw",
+      "status": 200,
+      "expected": [
+        200,
+        204
+      ],
+      "passed": true,
+      "duration": 68
     },
     {
       "group": "Carts",
@@ -866,7 +952,7 @@
       "status": 201,
       "expected": 201,
       "passed": true,
-      "duration": 34
+      "duration": 17
     },
     {
       "group": "Carts",
@@ -880,7 +966,7 @@
         400
       ],
       "passed": true,
-      "duration": 55
+      "duration": 24
     },
     {
       "group": "Commerce Support Admin",
@@ -890,7 +976,7 @@
       "status": 200,
       "expected": 200,
       "passed": true,
-      "duration": 12
+      "duration": 5
     },
     {
       "group": "Commerce Support Admin",
@@ -900,7 +986,7 @@
       "status": 200,
       "expected": 200,
       "passed": true,
-      "duration": 11
+      "duration": 7
     },
     {
       "group": "Wishlist",
@@ -910,54 +996,81 @@
       "status": 200,
       "expected": 200,
       "passed": true,
-      "duration": 16
+      "duration": 8
     },
     {
       "group": "Wishlist",
       "name": "POST wishlist item",
       "method": "POST",
       "path": "/wishlist/items",
-      "status": 404,
+      "status": 201,
       "expected": [
         200,
         201
       ],
-      "passed": false,
-      "duration": 10
+      "passed": true,
+      "duration": 18
     },
     {
       "group": "Wishlist",
       "name": "DELETE wishlist item",
       "method": "DELETE",
-      "path": "/wishlist/items/cmppr9mqh0021b01i8fpz562r",
-      "status": 400,
+      "path": "/wishlist/items/cmppwz5jy005syw1i9qficnaw",
+      "status": 200,
       "expected": [
         200,
         204
       ],
-      "passed": false,
-      "duration": 8
+      "passed": true,
+      "duration": 35
     },
     {
       "group": "Checkout",
-      "name": "POST /checkout/preview",
+      "name": "POST /checkout/preview (no cart → 4xx)",
       "method": "POST",
       "path": "/checkout/preview",
-      "status": 400,
+      "status": 404,
       "expected": [
-        200,
         400,
+        404,
         422
       ],
       "passed": true,
-      "duration": 17
+      "duration": 12
     },
     {
       "group": "Checkout",
-      "name": "POST /checkout/place",
+      "name": "POST /carts (auth - cancel-test)",
       "method": "POST",
-      "path": "/checkout/place",
-      "status": 400,
+      "path": "/carts",
+      "status": 201,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "duration": 13
+    },
+    {
+      "group": "Checkout",
+      "name": "POST cart item (auth - cancel-test)",
+      "method": "POST",
+      "path": "/carts/cmppwz6610063yw1ii8qpprq4/items",
+      "status": 201,
+      "expected": [
+        200,
+        201,
+        409
+      ],
+      "passed": true,
+      "duration": 23
+    },
+    {
+      "group": "Checkout",
+      "name": "POST /checkout/preview (cancel-test)",
+      "method": "POST",
+      "path": "/checkout/preview",
+      "status": 201,
       "expected": [
         200,
         201,
@@ -965,7 +1078,79 @@
         422
       ],
       "passed": true,
-      "duration": 19
+      "duration": 43
+    },
+    {
+      "group": "Checkout",
+      "name": "POST /checkout/place (cancel-test)",
+      "method": "POST",
+      "path": "/checkout/place",
+      "status": 500,
+      "expected": [
+        200,
+        201,
+        400,
+        422
+      ],
+      "passed": false,
+      "duration": 35
+    },
+    {
+      "group": "Checkout",
+      "name": "POST /carts (auth - fulfillment-test)",
+      "method": "POST",
+      "path": "/carts",
+      "status": 201,
+      "expected": [
+        200,
+        201
+      ],
+      "passed": true,
+      "duration": 15
+    },
+    {
+      "group": "Checkout",
+      "name": "POST cart item (auth - fulfillment-test)",
+      "method": "POST",
+      "path": "/carts/cmppwz6610063yw1ii8qpprq4/items",
+      "status": 201,
+      "expected": [
+        200,
+        201,
+        409
+      ],
+      "passed": true,
+      "duration": 36
+    },
+    {
+      "group": "Checkout",
+      "name": "POST /checkout/preview (fulfillment-test)",
+      "method": "POST",
+      "path": "/checkout/preview",
+      "status": 201,
+      "expected": [
+        200,
+        201,
+        400,
+        422
+      ],
+      "passed": true,
+      "duration": 31
+    },
+    {
+      "group": "Checkout",
+      "name": "POST /checkout/place (fulfillment-test)",
+      "method": "POST",
+      "path": "/checkout/place",
+      "status": 500,
+      "expected": [
+        200,
+        201,
+        400,
+        422
+      ],
+      "passed": false,
+      "duration": 30
     },
     {
       "group": "Orders",
@@ -975,7 +1160,7 @@
       "status": 200,
       "expected": 200,
       "passed": true,
-      "duration": 15
+      "duration": 8
     },
     {
       "group": "Orders",
@@ -985,7 +1170,7 @@
       "status": 200,
       "expected": 200,
       "passed": true,
-      "duration": 15
+      "duration": 9
     },
     {
       "group": "Payments Admin",
@@ -995,7 +1180,7 @@
       "status": 200,
       "expected": 200,
       "passed": true,
-      "duration": 9
+      "duration": 5
     },
     {
       "group": "Payments Admin",
@@ -1015,7 +1200,7 @@
       "status": 200,
       "expected": 200,
       "passed": true,
-      "duration": 7
+      "duration": 8
     },
     {
       "group": "Returns",
@@ -1025,7 +1210,7 @@
       "status": 200,
       "expected": 200,
       "passed": true,
-      "duration": 16
+      "duration": 9
     },
     {
       "group": "Returns",
@@ -1035,7 +1220,7 @@
       "status": 200,
       "expected": 200,
       "passed": true,
-      "duration": 13
+      "duration": 9
     },
     {
       "group": "Reviews",
@@ -1045,7 +1230,7 @@
       "status": 200,
       "expected": 200,
       "passed": true,
-      "duration": 15
+      "duration": 6
     },
     {
       "group": "Reviews",
@@ -1055,7 +1240,7 @@
       "status": 200,
       "expected": 200,
       "passed": true,
-      "duration": 8
+      "duration": 6
     },
     {
       "group": "Notifications",
@@ -1065,7 +1250,7 @@
       "status": 200,
       "expected": 200,
       "passed": true,
-      "duration": 7
+      "duration": 6
     },
     {
       "group": "Notifications",
@@ -1075,7 +1260,7 @@
       "status": 200,
       "expected": 200,
       "passed": true,
-      "duration": 6
+      "duration": 4
     },
     {
       "group": "Notifications",
@@ -1085,7 +1270,7 @@
       "status": 200,
       "expected": 200,
       "passed": true,
-      "duration": 25
+      "duration": 197
     },
     {
       "group": "Notifications",
@@ -1098,7 +1283,7 @@
         201
       ],
       "passed": true,
-      "duration": 39
+      "duration": 377
     },
     {
       "group": "Notifications",
@@ -1108,7 +1293,7 @@
       "status": 200,
       "expected": 200,
       "passed": true,
-      "duration": 7
+      "duration": 5
     },
     {
       "group": "Reporting Admin",
@@ -1118,7 +1303,7 @@
       "status": 200,
       "expected": 200,
       "passed": true,
-      "duration": 9
+      "duration": 5
     },
     {
       "group": "Reporting Admin",
@@ -1128,7 +1313,7 @@
       "status": 200,
       "expected": 200,
       "passed": true,
-      "duration": 6
+      "duration": 4
     },
     {
       "group": "Reporting Admin",
@@ -1138,7 +1323,7 @@
       "status": 200,
       "expected": 200,
       "passed": true,
-      "duration": 7
+      "duration": 4
     },
     {
       "group": "Reporting Admin",
@@ -1148,7 +1333,7 @@
       "status": 200,
       "expected": 200,
       "passed": true,
-      "duration": 5
+      "duration": 4
     },
     {
       "group": "Reporting Admin",
@@ -1158,7 +1343,7 @@
       "status": 200,
       "expected": 200,
       "passed": true,
-      "duration": 9
+      "duration": 7
     },
     {
       "group": "Reporting Admin",
@@ -1172,7 +1357,7 @@
         400
       ],
       "passed": true,
-      "duration": 10
+      "duration": 6
     },
     {
       "group": "Audit Admin",
@@ -1182,7 +1367,7 @@
       "status": 200,
       "expected": 200,
       "passed": true,
-      "duration": 25
+      "duration": 15
     },
     {
       "group": "Audit Admin",
@@ -1205,7 +1390,7 @@
       "status": 200,
       "expected": 200,
       "passed": true,
-      "duration": 55
+      "duration": 96
     },
     {
       "group": "Content Admin",
@@ -1215,7 +1400,7 @@
       "status": 200,
       "expected": 200,
       "passed": true,
-      "duration": 5
+      "duration": 4
     },
     {
       "group": "Content Admin",
@@ -1228,7 +1413,7 @@
         201
       ],
       "passed": true,
-      "duration": 25
+      "duration": 232
     },
     {
       "group": "Content Admin",
@@ -1241,7 +1426,7 @@
         201
       ],
       "passed": true,
-      "duration": 29
+      "duration": 107
     },
     {
       "group": "Content Public",
@@ -1254,7 +1439,7 @@
         404
       ],
       "passed": true,
-      "duration": 6
+      "duration": 7
     },
     {
       "group": "Content Public",
@@ -1264,7 +1449,7 @@
       "status": 200,
       "expected": 200,
       "passed": true,
-      "duration": 6
+      "duration": 3
     },
     {
       "group": "System Maintenance",
@@ -1278,7 +1463,7 @@
         403
       ],
       "passed": true,
-      "duration": 6
+      "duration": 5
     },
     {
       "group": "System Maintenance",
@@ -1294,7 +1479,7 @@
         403
       ],
       "passed": true,
-      "duration": 3
+      "duration": 2
     },
     {
       "group": "Security Guardrails",
@@ -1324,7 +1509,7 @@
       "status": 401,
       "expected": 401,
       "passed": true,
-      "duration": 2
+      "duration": 1
     },
     {
       "group": "Security Guardrails",
@@ -1337,7 +1522,7 @@
         401
       ],
       "passed": true,
-      "duration": 3
+      "duration": 2
     },
     {
       "group": "Security Guardrails",
@@ -1350,7 +1535,7 @@
         401
       ],
       "passed": true,
-      "duration": 3
+      "duration": 1
     },
     {
       "group": "Security Guardrails",
@@ -1360,7 +1545,7 @@
       "status": 401,
       "expected": 401,
       "passed": true,
-      "duration": 3
+      "duration": 2
     },
     {
       "group": "Security Guardrails",
@@ -1373,7 +1558,7 @@
         204
       ],
       "passed": true,
-      "duration": 36
+      "duration": 152
     },
     {
       "group": "Security Guardrails",
@@ -1386,7 +1571,7 @@
         401
       ],
       "passed": true,
-      "duration": 33
+      "duration": 22
     }
   ]
 }

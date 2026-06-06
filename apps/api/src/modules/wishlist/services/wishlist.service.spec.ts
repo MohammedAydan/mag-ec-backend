@@ -39,6 +39,33 @@ describe('WishlistService', () => {
     });
   });
 
+  it('serializes wishlist item timestamps as addedAt', async () => {
+    prisma.wishlist.findUnique.mockResolvedValue({
+      id: 'wishlist_1',
+      userId: 'user_1',
+      items: [
+        {
+          id: 'wishlist_item_1',
+          variantId: 'variant_1',
+          createdAt: new Date('2026-05-31T00:00:00.000Z'),
+        },
+      ],
+    });
+
+    await expect(service.getWishlist('user_1')).resolves.toEqual({
+      id: 'wishlist_1',
+      userId: 'user_1',
+      items: [
+        {
+          id: 'wishlist_item_1',
+          variantId: 'variant_1',
+          addedAt: '2026-05-31T00:00:00.000Z',
+        },
+      ],
+      itemCount: 1,
+    });
+  });
+
   it('adds a published variant to the wishlist', async () => {
     prisma.catalogProductVariant.findFirst.mockResolvedValue({ id: 'variant_1' });
     prisma.wishlist.findUnique.mockResolvedValue({

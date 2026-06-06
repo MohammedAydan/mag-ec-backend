@@ -1,11 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
 import { PageShell } from '@/components/ui/PageShell';
-import { Badge, DataTable, LoadError, PageLoading, Panel, layout } from '@/components/ui/AdminUi';
+import { DataTable } from '@/components/ui/DataTable';
+import { PageLoading, LoadError } from '@/components/ui/PageLoading';
 import { useAuth } from '@/lib/auth';
-import { asArray, dateOf, money } from '@/lib/format';
+import { useT } from '@/lib/i18n';
+import { asArray, chipClass, dateOf, money } from '@/lib/format';
 
 export function PaymentsPage() {
   const { request } = useAuth();
+  const { t } = useT();
   const result = useQuery({
     queryKey: ['payments'],
     queryFn: async () => {
@@ -18,48 +21,82 @@ export function PaymentsPage() {
     },
   });
 
-  if (result.isPending) return <PageShell title="Payments"><PageLoading /></PageShell>;
-  if (result.isError) return <PageShell title="Payments"><LoadError error={result.error} /></PageShell>;
+  if (result.isPending) {
+    return (
+      <PageShell title={t('payments.title')}>
+        <PageLoading />
+      </PageShell>
+    );
+  }
+
+  if (result.isError) {
+    return (
+      <PageShell title={t('payments.title')}>
+        <LoadError error={result.error} />
+      </PageShell>
+    );
+  }
 
   return (
-    <PageShell title="Payments" subtitle="Financial attempts, provider events, and refund reconciliation.">
-      <Panel title="Payment attempts" subtitle="Payment visibility without exposing provider secrets.">
-        <DataTable headers={['Order', 'Provider', 'Amount', 'Status', 'Created']} empty={!result.data.attempts.length}>
-          {result.data.attempts.map((payment) => (
-            <tr key={payment.id}>
-              <td><strong>{payment.order?.orderNumber ?? payment.orderId ?? '—'}</strong></td>
-              <td>{payment.provider ?? '—'}</td>
-              <td>{money(payment.amount, payment.currencyCode || 'EGP')}</td>
-              <td><Badge value={payment.status} /></td>
-              <td>{dateOf(payment.createdAt)}</td>
-            </tr>
-          ))}
-        </DataTable>
-      </Panel>
-      <section className={layout.grid2}>
-        <Panel title="Webhook events" subtitle="Signed events and processing status">
-          <DataTable headers={['Event', 'Status', 'Received']} empty={!result.data.events.length}>
-            {result.data.events.slice(0, 10).map((event) => (
-              <tr key={event.id ?? event.providerEventId}>
-                <td>{event.eventType ?? event.providerEventId ?? 'Event'}</td>
-                <td><Badge value={event.status} /></td>
-                <td>{dateOf(event.createdAt)}</td>
+    <PageShell title={t('payments.title')} subtitle={t('payments.subtitle')}>
+      <div className="space-y-6 p-6">
+        <div className="space-y-2">
+          <h2 className="text-sm font-semibold uppercase tracking-[0.15em] text-neutral-400">{t('payments.paymentAttempts')}</h2>
+          <DataTable headers={[t('payments.order'), t('payments.provider'), t('payments.amount'), t('common.status'), t('payments.created')]} empty={!result.data.attempts.length}>
+            {result.data.attempts.map((payment) => (
+              <tr key={payment.id}>
+                <td>
+                  <strong className="block text-sm">{payment.order?.orderNumber ?? payment.orderId ?? t('common.unknown')}</strong>
+                </td>
+                <td>{payment.provider ?? t('common.unknown')}</td>
+                <td>{money(payment.amount, payment.currencyCode || 'EGP')}</td>
+                <td>
+                  <span className={chipClass(payment.status)}>
+                    {String(payment.status ?? t('common.unknown'))}
+                  </span>
+                </td>
+                <td>{dateOf(payment.createdAt)}</td>
               </tr>
             ))}
           </DataTable>
-        </Panel>
-        <Panel title="Refunds" subtitle="Refund allocations and results">
-          <DataTable headers={['Order', 'Amount', 'Status']} empty={!result.data.refunds.length}>
-            {result.data.refunds.slice(0, 10).map((refund) => (
-              <tr key={refund.id}>
-                <td>{refund.orderId ?? refund.id}</td>
-                <td>{money(refund.amount, refund.currencyCode || 'EGP')}</td>
-                <td><Badge value={refund.status} /></td>
-              </tr>
-            ))}
-          </DataTable>
-        </Panel>
-      </section>
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-2">
+          <div className="space-y-2">
+            <h2 className="text-sm font-semibold uppercase tracking-[0.15em] text-neutral-400">{t('payments.webhookEvents')}</h2>
+            <DataTable headers={[t('payments.event'), t('common.status'), t('payments.received')]} empty={!result.data.events.length}>
+              {result.data.events.slice(0, 10).map((event) => (
+                <tr key={event.id ?? event.providerEventId}>
+                  <td>{event.eventType ?? event.providerEventId ?? t('payments.event')}</td>
+                  <td>
+                    <span className={chipClass(event.status)}>
+                      {String(event.status ?? t('common.unknown'))}
+                    </span>
+                  </td>
+                  <td>{dateOf(event.createdAt)}</td>
+                </tr>
+              ))}
+            </DataTable>
+          </div>
+
+          <div className="space-y-2">
+            <h2 className="text-sm font-semibold uppercase tracking-[0.15em] text-neutral-400">{t('payments.refundsHeader')}</h2>
+            <DataTable headers={[t('payments.order'), t('payments.amount'), t('common.status')]} empty={!result.data.refunds.length}>
+              {result.data.refunds.slice(0, 10).map((refund) => (
+                <tr key={refund.id}>
+                  <td>{refund.orderId ?? refund.id}</td>
+                  <td>{money(refund.amount, refund.currencyCode || 'EGP')}</td>
+                  <td>
+                    <span className={chipClass(refund.status)}>
+                      {String(refund.status ?? t('common.unknown'))}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </DataTable>
+          </div>
+        </div>
+      </div>
     </PageShell>
   );
 }

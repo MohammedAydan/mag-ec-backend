@@ -11,8 +11,14 @@ import type {
 } from '../dto/notifications.dto';
 
 const notificationInclude = {
-  user: true,
+  user: {
+    select: { id: true, email: true, displayName: true, userType: true },
+  },
 } satisfies Prisma.NotificationInclude;
+
+type NotificationWithUser = Prisma.NotificationGetPayload<{
+  include: typeof notificationInclude;
+}>;
 
 @Injectable()
 export class NotificationsService {
@@ -24,8 +30,19 @@ export class NotificationsService {
   ) {}
 
   async getMyPreference(userId: string) {
-    return this.prisma.notificationPreference.findUnique({
+    const existing = await this.prisma.notificationPreference.findUnique({
       where: { userId },
+    });
+
+    if (existing) {
+      return existing;
+    }
+
+    return this.prisma.notificationPreference.create({
+      data: {
+        userId,
+        channel: 'EMAIL',
+      },
     });
   }
 
@@ -180,12 +197,41 @@ export class NotificationsService {
     return this.serializePage(notifications, 20);
   }
 
-  private serializePage(
-    notifications: Array<Prisma.NotificationGetPayload<{ include: typeof notificationInclude }>>,
-    limit: number,
-  ) {
+  private toNotificationResponse(notification: NotificationWithUser) {
+    return {
+      id: notification.id,
+      userId: notification.userId,
+      recipientEmail: notification.recipientEmail,
+      channel: notification.channel,
+      eventType: notification.eventType,
+      title: notification.title,
+      body: notification.body,
+      status: notification.status,
+      relatedEntityType: notification.relatedEntityType,
+      relatedEntityId: notification.relatedEntityId,
+      deduplicationKey: notification.deduplicationKey,
+      lastError: notification.lastError,
+      attempts: notification.attempts,
+      availableAt: null,
+      processedAt: notification.processedAt?.toISOString() ?? null,
+      createdAt: notification.createdAt.toISOString(),
+      updatedAt: notification.updatedAt.toISOString(),
+      user: notification.user
+        ? {
+            id: notification.user.id,
+            email: notification.user.email,
+            displayName: notification.user.displayName,
+            userType: notification.user.userType,
+          }
+        : null,
+    };
+  }
+
+  private serializePage(notifications: NotificationWithUser[], limit: number) {
     const hasNextPage = notifications.length > limit;
-    const items = hasNextPage ? notifications.slice(0, limit) : notifications;
+    const items = (hasNextPage ? notifications.slice(0, limit) : notifications).map((n) =>
+      this.toNotificationResponse(n),
+    );
     return {
       items,
       nextCursor: hasNextPage ? (items[items.length - 1]?.id ?? null) : null,

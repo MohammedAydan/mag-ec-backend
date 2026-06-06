@@ -1,0 +1,6 @@
+{
+  "name": "Atelier",
+  "description": "Premium minimalist-luxury full-stack editorial control center and management suite integrating with Universal E-Commerce APIs.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

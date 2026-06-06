@@ -26,11 +26,29 @@ describe('ContentService', () => {
   it('upserts content page and translation', async () => {
     const prisma = makePrismaMock() as unknown as PrismaService;
     (prisma.$transaction as jest.Mock).mockImplementation((cb: (tx: unknown) => unknown) => {
+      const now = new Date('2026-05-26T00:00:00.000Z');
       const tx = {
         contentPageTranslation: { upsert: jest.fn().mockResolvedValue({}) },
         contentPage: {
           upsert: jest.fn().mockResolvedValue({ id: 'p-1' }),
-          findUniqueOrThrow: jest.fn().mockResolvedValue({ id: 'p-1', translations: [] }),
+          findUniqueOrThrow: jest.fn().mockResolvedValue({
+            id: 'p-1',
+            key: 'terms',
+            slug: 'terms',
+            status: 'PUBLISHED',
+            sortOrder: 0,
+            isLegal: false,
+            createdAt: now,
+            updatedAt: now,
+            translations: [
+              {
+                locale: 'en',
+                slug: 'terms',
+                title: 'Terms',
+                body: 'T',
+              },
+            ],
+          }),
         },
       };
 
@@ -48,8 +66,49 @@ describe('ContentService', () => {
 
     const result = await svc.upsertContentPage('terms', dto);
 
-    expect(result).toBeDefined();
-    expect(result.id).toBe('p-1');
+    expect(result).toMatchObject({
+      key: 'terms',
+      slug: 'terms',
+      title: 'Terms',
+      body: 'T',
+      locale: 'en',
+      createdAt: '2026-05-26T00:00:00.000Z',
+    });
+  });
+
+  it('returns content pages with non-null fallback fields when translations are missing', async () => {
+    const prisma = makePrismaMock() as unknown as PrismaService;
+    const now = new Date('2026-05-26T00:00:00.000Z');
+    (prisma.contentPage.findMany as jest.Mock).mockResolvedValue([
+      {
+        key: 'empty-page',
+        slug: 'empty-page',
+        status: 'DRAFT',
+        sortOrder: 0,
+        isLegal: false,
+        createdAt: now,
+        updatedAt: now,
+        translations: [],
+      },
+    ]);
+
+    const svc = new ContentService(prisma);
+    const result = await svc.listContentPages();
+
+    expect(result).toEqual([
+      {
+        key: 'empty-page',
+        slug: 'empty-page',
+        title: 'empty-page',
+        body: '',
+        status: 'DRAFT',
+        locale: 'en',
+        sortOrder: 0,
+        isLegal: false,
+        createdAt: '2026-05-26T00:00:00.000Z',
+        updatedAt: '2026-05-26T00:00:00.000Z',
+      },
+    ]);
   });
 
   it('returns public legal references from configured published pages', async () => {
@@ -71,12 +130,13 @@ describe('ContentService', () => {
     const svc = new ContentService(prisma);
     const result = await svc.getPublicLegalReferences();
 
-    expect(result.references.terms).toMatchObject({
+    expect(result.terms).toMatchObject({
       key: 'terms',
       slug: 'terms',
       title: 'Terms of Service',
+      updatedAt: '2026-05-26T00:00:00.000Z',
     });
-    expect(result.references.privacy).toBeNull();
+    expect(result.privacy).toBeNull();
   });
 
   it('rejects legal references that point to non-legal pages', async () => {

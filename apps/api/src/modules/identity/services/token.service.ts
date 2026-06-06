@@ -10,6 +10,7 @@ export interface AccessTokenPayload {
   userType: 'ADMIN' | 'CUSTOMER' | 'SYSTEM';
   roles: string[];
   permissions: string[];
+  tokenVersion: number;
 }
 
 export interface RefreshTokenPayload {

@@ -4,30 +4,37 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
   type ReactNode,
 } from 'react';
 import { ApiRequestError, publicRequest, tokenRequest } from './http';
 
 const SESSION_KEY = 'atelier.admin.session';
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOGIN_COOLDOWN_MS = 30_000;
+const SESSION_MAX_AGE_MS = 8 * 60 * 60 * 1000;
 
 export interface AdminProfile {
-  id?: string;
+  id: string;
   email: string;
-  displayName?: string;
-  roles?: Array<string | { name?: string; key?: string }>;
-  role?: string;
-  userType?: string;
-  type?: string;
+  displayName: string;
+  userType: string;
+  status: string;
+  roles: Array<{ id?: string; name?: string; key?: string }>;
+}
+
+interface TokenResponse {
+  accessToken: string;
+  refreshToken: string;
+  user?: AdminProfile;
 }
 
 interface StoredSession {
   accessToken: string;
   refreshToken?: string;
-}
-
-interface LoginResponse extends StoredSession {
-  user?: AdminProfile;
+  fingerprint: string;
+  createdAt: number;
 }
 
 interface AuthState {
@@ -45,10 +52,27 @@ interface AuthContextValue extends AuthState {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+function buildFingerprint(): string {
+  const components = [
+    navigator.userAgent,
+    navigator.language,
+    screen.colorDepth,
+    screen.width,
+    screen.height,
+    new Date().getTimezoneOffset(),
+  ];
+  return btoa(components.join('|')).slice(0, 32);
+}
+
 function loadSession(): StoredSession | null {
   try {
     const raw = sessionStorage.getItem(SESSION_KEY);
-    return raw ? (JSON.parse(raw) as StoredSession) : null;
+    if (!raw) return null;
+    const session = JSON.parse(raw) as StoredSession;
+    if (!session?.accessToken || !session?.fingerprint || !session?.createdAt) return null;
+    if (session.fingerprint !== buildFingerprint()) return null;
+    if (Date.now() - session.createdAt > SESSION_MAX_AGE_MS) return null;
+    return session;
   } catch {
     return null;
   }
@@ -59,8 +83,8 @@ function saveSession(session: StoredSession | null): void {
   else sessionStorage.removeItem(SESSION_KEY);
 }
 
-function isAdmin(user: AdminProfile): boolean {
-  return (user.userType ?? user.type) === 'ADMIN';
+function isAdmin(user: Pick<AdminProfile, 'userType'>): boolean {
+  return user.userType === 'ADMIN';
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -70,25 +94,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isLoading: true,
     isAuthenticated: false,
   });
+  const refreshInFlight = useRef<Promise<StoredSession> | null>(null);
+  const loginAttempts = useRef<number>(0);
+  const lastLoginAttempt = useRef<number>(0);
 
   const clearSession = useCallback(() => {
     saveSession(null);
+    refreshInFlight.current = null;
     setState({ session: null, user: null, isLoading: false, isAuthenticated: false });
   }, []);
 
   const refreshTokens = useCallback(async (session: StoredSession): Promise<StoredSession> => {
-    if (!session.refreshToken) throw new Error('No refresh token is available.');
-    const refreshed = await publicRequest<StoredSession>('/auth/refresh', {
-      method: 'POST',
-      body: JSON.stringify({ refreshToken: session.refreshToken }),
-    });
-    const next = {
-      accessToken: refreshed.accessToken,
-      refreshToken: refreshed.refreshToken ?? session.refreshToken,
-    };
-    saveSession(next);
-    setState((current) => ({ ...current, session: next }));
-    return next;
+    if (!session.refreshToken) throw new Error('Session expired. Please sign in again.');
+
+    if (refreshInFlight.current) {
+      return refreshInFlight.current;
+    }
+
+    refreshInFlight.current = (async () => {
+      const refreshed = await publicRequest<TokenResponse>('/auth/refresh', {
+        method: 'POST',
+        body: JSON.stringify({ refreshToken: session.refreshToken }),
+      });
+
+      const next: StoredSession = {
+        accessToken: refreshed.accessToken,
+        refreshToken: refreshed.refreshToken ?? session.refreshToken,
+        fingerprint: session.fingerprint,
+        createdAt: Date.now(),
+      };
+
+      saveSession(next);
+      setState((current) => ({ ...current, session: next }));
+      return next;
+    })();
+
+    try {
+      return await refreshInFlight.current;
+    } finally {
+      refreshInFlight.current = null;
+    }
   }, []);
 
   const request = useCallback(
@@ -105,12 +150,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!(error instanceof ApiRequestError) || error.statusCode !== 401 || !active.refreshToken) {
           throw error;
         }
+
         try {
           const refreshed = await refreshTokens(active);
           return await tokenRequest<T>(path, refreshed.accessToken, options);
-        } catch (refreshError) {
+        } catch {
           clearSession();
-          throw refreshError;
+          throw new ApiRequestError({
+            message: 'Your session has expired. Please sign in again.',
+            code: 'SESSION_EXPIRED',
+            statusCode: 401,
+          });
         }
       }
     },
@@ -123,9 +173,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setState((current) => ({ ...current, isLoading: false }));
         return;
       }
+
       try {
-        const profile = await request<AdminProfile>('/auth/me');
+        const profile = await tokenRequest<AdminProfile>('/auth/me', state.session.accessToken);
         if (!isAdmin(profile)) throw new Error('Administrator access is required.');
+
         setState((current) => ({
           ...current,
           user: profile,
@@ -136,30 +188,55 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         clearSession();
       }
     };
+
     void boot();
-    // Run on the stored session during startup only; request performs token refresh when necessary.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
-    const session = await publicRequest<LoginResponse>('/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({ email, password }),
-    });
-    const stored: StoredSession = {
-      accessToken: session.accessToken,
-      refreshToken: session.refreshToken,
-    };
-    const profile = await tokenRequest<AdminProfile>('/auth/me', stored.accessToken);
-    if (!isAdmin(profile)) throw new Error('Administrator access is required.');
+    const now = Date.now();
 
-    saveSession(stored);
-    setState({
-      session: stored,
-      user: profile,
-      isLoading: false,
-      isAuthenticated: true,
-    });
+    if (loginAttempts.current >= MAX_LOGIN_ATTEMPTS && now - lastLoginAttempt.current < LOGIN_COOLDOWN_MS) {
+      const waitSeconds = Math.ceil((LOGIN_COOLDOWN_MS - (now - lastLoginAttempt.current)) / 1000);
+      throw new Error(`Too many login attempts. Please wait ${waitSeconds} seconds before trying again.`);
+    }
+
+    if (now - lastLoginAttempt.current > LOGIN_COOLDOWN_MS) {
+      loginAttempts.current = 0;
+    }
+
+    try {
+      const session = await publicRequest<TokenResponse>('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ email, password }),
+      });
+
+      loginAttempts.current = 0;
+      lastLoginAttempt.current = 0;
+
+      const fingerprint = buildFingerprint();
+      const stored: StoredSession = {
+        accessToken: session.accessToken,
+        refreshToken: session.refreshToken,
+        fingerprint,
+        createdAt: Date.now(),
+      };
+
+      const profile = await tokenRequest<AdminProfile>('/auth/me', stored.accessToken);
+      if (!isAdmin(profile)) throw new Error('Administrator access is required.');
+
+      saveSession(stored);
+      setState({
+        session: stored,
+        user: profile,
+        isLoading: false,
+        isAuthenticated: true,
+      });
+    } catch (error) {
+      loginAttempts.current++;
+      lastLoginAttempt.current = now;
+      throw error;
+    }
   }, []);
 
   const logout = useCallback(async () => {

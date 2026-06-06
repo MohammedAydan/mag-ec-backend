@@ -1,3 +1,4 @@
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsBoolean,
   IsIn,
@@ -13,33 +14,40 @@ import { Type } from 'class-transformer';
 const contentStatuses = ['DRAFT', 'PUBLISHED', 'ARCHIVED'] as const;
 
 export class UpsertContentPageDto {
+  @ApiProperty({ description: 'URL-friendly page slug' })
   @IsString()
   @IsNotEmpty()
   @MaxLength(255)
   slug!: string;
 
+  @ApiProperty({ description: 'Page title' })
   @IsString()
   @IsNotEmpty()
   title!: string;
 
+  @ApiProperty({ description: 'Page body content' })
   @IsString()
   @IsNotEmpty()
   body!: string;
 
+  @ApiProperty({ enum: contentStatuses, description: 'Publishing status' })
   @IsString()
   @IsIn(contentStatuses)
   status!: (typeof contentStatuses)[number];
 
+  @ApiPropertyOptional({ description: 'Display order' })
   @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(0)
   sortOrder?: number;
 
+  @ApiPropertyOptional({ description: 'Whether this page is a legal reference target' })
   @IsOptional()
   @IsBoolean()
   isLegal?: boolean;
 
+  @ApiPropertyOptional({ description: 'Locale code (e.g. en, ar)' })
   @IsOptional()
   @IsString()
   @MaxLength(8)
@@ -47,21 +55,25 @@ export class UpsertContentPageDto {
 }
 
 export class UpdateLegalReferencesDto {
+  @ApiPropertyOptional({ description: 'Key of the terms-of-service page (null to unset)' })
   @IsOptional()
   @IsString()
   @MaxLength(255)
   termsPageKey?: string | null;
 
+  @ApiPropertyOptional({ description: 'Key of the privacy-policy page (null to unset)' })
   @IsOptional()
   @IsString()
   @MaxLength(255)
   privacyPageKey?: string | null;
 
+  @ApiPropertyOptional({ description: 'Key of the returns-policy page (null to unset)' })
   @IsOptional()
   @IsString()
   @MaxLength(255)
   returnsPageKey?: string | null;
 
+  @ApiPropertyOptional({ description: 'Key of the shipping-policy page (null to unset)' })
   @IsOptional()
   @IsString()
   @MaxLength(255)
@@ -73,20 +85,4 @@ export interface LegalReferencesDto {
   privacyPageKey: string | null;
   returnsPageKey: string | null;
   shippingPageKey: string | null;
-}
-
-export interface PublicLegalReferenceDto {
-  key: string;
-  slug: string;
-  title: string;
-  updatedAt: Date;
-}
-
-export interface PublicLegalReferencesDto {
-  references: {
-    terms: PublicLegalReferenceDto | null;
-    privacy: PublicLegalReferenceDto | null;
-    returns: PublicLegalReferenceDto | null;
-    shipping: PublicLegalReferenceDto | null;
-  };
 }

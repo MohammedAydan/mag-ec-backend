@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import styles from './PageShell.module.css';
+import { useT } from '@/lib/i18n';
 
 interface PageShellProps {
   title: string;
@@ -9,16 +9,29 @@ interface PageShellProps {
 }
 
 export function PageShell({ title, subtitle, actions, children }: PageShellProps) {
+  const { t } = useT();
   return (
-    <div className={styles.page}>
-      <div className={styles.header}>
-        <div className={styles.headingGroup}>
-          <h1 className={styles.title}>{title}</h1>
-          {subtitle && <p className={styles.subtitle}>{subtitle}</p>}
+    <div className="space-y-8">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-neutral-500">
+            {t('common.operationalWorkspace')}
+          </p>
+          <h1 className="mt-2 font-serif text-3xl italic tracking-tight text-white">
+            {title}
+          </h1>
+          {subtitle && (
+            <p className="mt-2 font-mono text-xs uppercase tracking-widest text-neutral-500">
+              {subtitle}
+            </p>
+          )}
         </div>
-        {actions && <div className={styles.actions}>{actions}</div>}
+        {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
       </div>
-      <div className={styles.body}>{children}</div>
+
+      <div className="rounded-sm border border-neutral-800 bg-[#0f0f0f]">
+        <div className="p-0">{children}</div>
+      </div>
     </div>
   );
 }

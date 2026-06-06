@@ -6,7 +6,9 @@ import { Test } from '@nestjs/testing';
 import { WishlistController } from '../../src/modules/wishlist/controllers/wishlist.controller';
 import { WishlistService } from '../../src/modules/wishlist/services/wishlist.service';
 import { AuthGuard } from '../../src/modules/identity/guards/auth.guard';
+import { CustomerGuard } from '../../src/modules/identity/guards/customer.guard';
 import { TokenService } from '../../src/modules/identity/services/token.service';
+import { PrismaService } from '../../src/modules/persistence/services/prisma.service';
 
 describe('Wishlist (e2e)', () => {
   let app: NestFastifyApplication;
@@ -29,6 +31,12 @@ describe('Wishlist (e2e)', () => {
     }),
   };
 
+  const mockPrismaService = {
+    user: {
+      findUnique: jest.fn().mockResolvedValue({ id: 'user_1', tokenVersion: undefined, status: 'ACTIVE', deletedAt: null }),
+    },
+  };
+
   const mockTokenService = {
     verifyAccessToken: jest.fn((token: string) => {
       if (token === 'customer-token') {
@@ -40,6 +48,17 @@ describe('Wishlist (e2e)', () => {
           permissions: [],
         };
       }
+
+      if (token === 'admin-token') {
+        return {
+          sub: 'admin_1',
+          email: 'admin@example.com',
+          userType: 'ADMIN' as const,
+          roles: ['super_admin'],
+          permissions: [],
+        };
+      }
+
       throw new Error('invalid token');
     }),
   };
@@ -49,7 +68,9 @@ describe('Wishlist (e2e)', () => {
       controllers: [WishlistController],
       providers: [
         AuthGuard,
+        CustomerGuard,
         { provide: WishlistService, useValue: mockWishlistService },
+        { provide: PrismaService, useValue: mockPrismaService },
         { provide: TokenService, useValue: mockTokenService },
       ],
     }).compile();
@@ -95,5 +116,18 @@ describe('Wishlist (e2e)', () => {
       .expect(({ body }: { body: { items: Array<{ variantId: string }> } }) => {
         expect(body.items[0]?.variantId).toBe('variant_1');
       });
+  });
+
+  it('forbids admin tokens on customer wishlist routes', async () => {
+    await request(app.getHttpServer())
+      .get('/api/v1/wishlist')
+      .set('Authorization', 'Bearer admin-token')
+      .expect(403);
+
+    await request(app.getHttpServer())
+      .post('/api/v1/wishlist/items')
+      .set('Authorization', 'Bearer admin-token')
+      .send({ variantId: 'variant_2' })
+      .expect(403);
   });
 });

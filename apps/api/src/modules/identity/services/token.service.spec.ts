@@ -51,6 +51,7 @@ describe('TokenService', () => {
         userType: 'CUSTOMER' as const,
         roles: ['customer'],
         permissions: ['read:profile'],
+        tokenVersion: 0,
       };
 
       const token = await service.signAccessToken(payload);

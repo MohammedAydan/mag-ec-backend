@@ -35,6 +35,12 @@ export type VerifiedPaymentWebhookEvent = {
   providerRefundId?: string;
   providerObjectStatus?: string;
   providerReference?: string;
+  /** Stripe PaymentIntent `amount` (minor units) — used for amount reconciliation (SEC-012). */
+  amount?: number;
+  /** Stripe PaymentIntent `amount_received` (minor units) — used for amount reconciliation (SEC-012). */
+  amountReceived?: number;
+  /** Stripe PaymentIntent `currency` — used for currency reconciliation (SEC-012). */
+  currency?: string;
   metadata: Record<string, string>;
   payload: Record<string, unknown>;
 };

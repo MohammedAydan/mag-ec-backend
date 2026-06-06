@@ -254,6 +254,7 @@ model User {
   passwordHash    String
   userType        UserType
   status          UserStatus       @default(ACTIVE)
+  tokenVersion    Int              @default(0)
   emailVerifiedAt DateTime?
   lastLoginAt     DateTime?
   deletedAt       DateTime?

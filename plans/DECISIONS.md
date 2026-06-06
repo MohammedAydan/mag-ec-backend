@@ -153,3 +153,47 @@
 - **Consequences:** Dashboard planning can proceed now without violating the backend-only constraint. Before UI code starts, the team must approve implementation location, frontend stack, product design context, auth/session strategy, and any required backend contract gaps.
 
 ---
+
+## ADR-015: Keep API Prefix in OpenAPI Paths, Not Server URLs
+
+- **Date:** 2026-05-31
+- **Status:** Accepted
+- **Context:** NestJS keeps the global `/api/v1` prefix in generated operation paths by default. Adding the same prefix to `servers[].url` causes generated clients to compose duplicated URLs such as `/api/v1/api/v1/...`.
+- **Decision:** Centralize OpenAPI setup in `apps/api/src/openapi/openapi.config.ts`, keep `/api/v1` in operation paths, leave generated contract `servers` empty, and use the same config for runtime Swagger docs and generated contract output.
+- **Alternatives considered:** Keeping `/api/v1` as a server URL, ignoring the global prefix during document generation, or maintaining separate runtime and generation Swagger configs.
+- **Consequences:** Generated clients use host-only runtime base URLs while operation paths remain fully versioned. Runtime docs and checked-in contracts now stay aligned, but future OpenAPI config changes must go through the shared config helper.
+
+---
+
+## ADR-016: Treat OpenAPI Response DTOs as Runtime Serialization Boundaries
+
+- **Date:** 2026-05-31
+- **Status:** Accepted
+- **Context:** The generated Flutter/Dio client uses strict `built_value` models, so endpoints that advertise DTOs but return raw Prisma records or partial projections fail at runtime when required fields are null, renamed, or nested differently.
+- **Decision:** Services/controllers that expose documented response DTOs must serialize ORM records into DTO-shaped plain objects before returning them. Generated Dart runtime model tests are part of the contract verification path.
+- **Alternatives considered:** Relaxing generated Flutter model nullability, returning raw ORM records and changing DTOs to match them, or manually patching Flutter models after generation.
+- **Consequences:** Backend handlers carry a small explicit mapping cost, but OpenAPI, runtime JSON, and generated Flutter models stay aligned. Raw database relation names should not leak into public SDK models.
+
+---
+
+## ADR-017: Embedded Admin Dashboard Uses HeroUI v3 with Centralized Same-Origin API Access
+
+- **Date:** 2026-06-05
+- **Status:** Accepted
+- **Context:** The repository already approved an embedded administrator SPA at `/admin`, but the initial dashboard implementation was a custom React/CSS shell with direct fetch wrappers and inconsistent frontend system choices. The rebuild needed a professional component foundation without changing backend auth semantics or the embedded deployment boundary.
+- **Decision:** Rebuild the embedded dashboard on HeroUI v3 plus Tailwind CSS v4, keep the SPA inside `apps/api/public/dashboard`, preserve Vite output to `apps/api/public/admin`, and centralize API access through a shared request/auth layer with env-configurable same-origin `/api/v1` integration and refresh-token retry handling.
+- **Alternatives considered:** Keeping the custom CSS shell, moving the dashboard into a separate repository, or adopting a different component library while the embedded SPA decision is already in place.
+- **Consequences:** The admin UI now has a maintainable design system and a cleaner API integration boundary while staying deployable with the NestJS app. Bundle size and route chunking remain follow-up optimization work because the current SPA still builds as one large frontend bundle.
+
+---
+
+## ADR-018: Dashboard Actions Use Schema-Driven Drawers and HeroUI Theme Intents
+
+- **Date:** 2026-06-05
+- **Status:** Accepted
+- **Context:** The embedded dashboard still exposed placeholder JSON payloads, prompt-based maintenance input, and inconsistent form/dialog behavior even after the initial HeroUI rebuild. The user explicitly requested official HeroUI-guided light/dark support plus specific inputs instead of raw JSON editors.
+- **Decision:** Use HeroUI's plain React `useTheme` hook for persistent light, dark, and system theme selection, and standardize create or mutate flows on a shared schema-driven `Drawer` form system that renders explicit field controls rather than raw JSON text areas or prompts.
+- **Alternatives considered:** Keeping page-specific ad hoc dialogs, leaving generic JSON payload submission in place, or introducing a separate theming library despite HeroUI already providing a supported plain React solution.
+- **Consequences:** Dashboard actions now share accessible validation, server-field error wiring, and consistent UX across pages, and theme state stays aligned with HeroUI's documented DOM class plus `data-theme` behavior. The shared renderer adds some abstraction cost, so unusually bespoke future flows may still need page-specific editors.
+
+---

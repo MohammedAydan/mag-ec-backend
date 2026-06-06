@@ -146,6 +146,7 @@ export class AuthService {
       userType: user.userType,
       roles: authDetails.roles,
       permissions: authDetails.permissions,
+      tokenVersion: authDetails.tokenVersion,
     });
 
     const refreshToken = await this.tokenService.signRefreshToken({
@@ -221,6 +222,7 @@ export class AuthService {
         userType: user.userType,
         roles: authDetails.roles,
         permissions: authDetails.permissions,
+        tokenVersion: authDetails.tokenVersion,
       });
 
       const newRefreshToken = await this.tokenService.signRefreshToken({
@@ -339,9 +341,8 @@ export class AuthService {
     ipAddress?: string,
     userAgent?: string,
   ): Promise<{ passwordReset: true }> {
-    const passwordHash = await this.userService.hashPassword(newPassword);
-
     await this.prisma.$transaction(async (tx) => {
+      // Validate and consume the token first, before performing expensive hashing.
       const actionToken = await this.accountActionTokenService.consumePasswordResetToken(token, tx);
       const account = await tx.user.findUnique({ where: { id: actionToken.userId } });
       if (
@@ -351,10 +352,14 @@ export class AuthService {
       ) {
         throw new UnauthorizedException('Invalid or expired account action token');
       }
+
+      const passwordHash = await this.userService.hashPassword(newPassword);
+
       await tx.user.update({
         where: { id: actionToken.userId },
         data: {
           passwordHash,
+          tokenVersion: { increment: 1 },
           status: account.status === UserStatus.INVITED ? UserStatus.ACTIVE : undefined,
           emailVerifiedAt: account.status === UserStatus.INVITED ? new Date() : undefined,
         },

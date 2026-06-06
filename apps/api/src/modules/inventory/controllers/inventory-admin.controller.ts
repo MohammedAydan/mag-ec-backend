@@ -1,7 +1,17 @@
 import { Body, Controller, Get, Inject, Post, Query, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiForbiddenResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
 import type { Prisma } from '@prisma/client';
 
+import { coercePositiveInt } from '../../../common/http/query-int';
 import { CurrentUser } from '../../identity/decorators/current-user.decorator';
 import { RequirePermissions } from '../../identity/decorators/permissions.decorator';
 import { AuthGuard } from '../../identity/guards/auth.guard';
@@ -15,6 +25,12 @@ import {
   QueryStockMovementsDto,
   QueryStockReservationsDto,
 } from '../dto/inventory-admin.dto';
+import {
+  PaginatedStockMovementsDto,
+  StockAdjustmentResponseDto,
+  StockLevelResponseDto,
+  StockReservationResponseDto,
+} from '../dto/inventory-response.dto';
 import { InventoryCoreService } from '../services/inventory-core.service';
 
 @ApiTags('Inventory Admin')
@@ -29,7 +45,15 @@ export class InventoryAdminController {
 
   @Post('adjustments')
   @RequirePermissions(['inventory.write'])
-  async adjustStock(@Body() body: AdjustStockDto, @CurrentUser() currentUser: AccessTokenPayload) {
+  @ApiOperation({ summary: 'Adjust stock quantity for a variant in a warehouse' })
+  @ApiCreatedResponse({ type: StockAdjustmentResponseDto, description: 'Stock adjustment applied' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
+  @ApiForbiddenResponse({ description: 'Insufficient permissions' })
+  @ApiBadRequestResponse({ description: 'Invalid request body or parameters' })
+  adjustStock(
+    @Body() body: AdjustStockDto,
+    @CurrentUser() currentUser: AccessTokenPayload,
+  ) {
     return this.inventoryCoreService.adjustStock(
       body.warehouseId,
       body.variantId,
@@ -39,12 +63,16 @@ export class InventoryAdminController {
       body.referenceId,
       currentUser.sub,
       body.reason ? { reason: body.reason } : undefined,
-    );
+    ) as unknown as StockAdjustmentResponseDto;
   }
 
   @Get('levels')
   @RequirePermissions(['inventory.read'])
-  async getStockLevels(@Query() query: QueryStockLevelsDto) {
+  @ApiOperation({ summary: 'Query current stock levels with optional filters' })
+  @ApiOkResponse({ type: [StockLevelResponseDto], description: 'Current stock levels' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
+  @ApiForbiddenResponse({ description: 'Insufficient permissions' })
+  getStockLevels(@Query() query: QueryStockLevelsDto) {
     const where: Prisma.StockLevelWhereInput = {};
     if (query.warehouseId) {
       where.warehouseId = query.warehouseId;
@@ -74,12 +102,17 @@ export class InventoryAdminController {
           },
         },
       },
-    });
+    }) as unknown as StockLevelResponseDto[];
   }
 
   @Get('reservations')
   @RequirePermissions(['inventory.read'])
-  async getReservations(@Query() query: QueryStockReservationsDto) {
+  @ApiOperation({ summary: 'Query stock reservations with optional filters and status' })
+  @ApiOkResponse({ type: [StockReservationResponseDto], description: 'Stock reservations' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
+  @ApiForbiddenResponse({ description: 'Insufficient permissions' })
+  getReservations(@Query() query: QueryStockReservationsDto) {
+    const limit = coercePositiveInt(query.limit, 50);
     const where: Prisma.StockReservationWhereInput = {};
     if (query.warehouseId) where.warehouseId = query.warehouseId;
     if (query.variantId) where.variantId = query.variantId;
@@ -87,19 +120,23 @@ export class InventoryAdminController {
 
     return this.prisma.stockReservation.findMany({
       where,
-      take: query.limit ?? 50,
+      take: limit,
       orderBy: [{ expiresAt: 'asc' }, { id: 'asc' }],
       include: {
         variant: { select: { id: true, sku: true } },
         warehouse: { select: { id: true, key: true, name: true } },
         user: { select: { id: true, email: true, displayName: true } },
       },
-    });
+    }) as unknown as StockReservationResponseDto[];
   }
 
   @Get('movements')
   @RequirePermissions(['inventory.read'])
-  async getStockMovements(@Query() query: QueryStockMovementsDto) {
+  @ApiOperation({ summary: 'Query paginated stock movement history' })
+  @ApiOkResponse({ type: PaginatedStockMovementsDto, description: 'Paginated stock movements' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
+  @ApiForbiddenResponse({ description: 'Insufficient permissions' })
+  async getStockMovements(@Query() query: QueryStockMovementsDto): Promise<PaginatedStockMovementsDto> {
     const where: Prisma.StockMovementWhereInput = {};
     if (query.warehouseId) {
       where.warehouseId = query.warehouseId;
@@ -111,8 +148,8 @@ export class InventoryAdminController {
       where.type = query.type;
     }
 
-    const page = query.page || 1;
-    const limit = query.limit || 20;
+    const page = coercePositiveInt(query.page, 1);
+    const limit = coercePositiveInt(query.limit, 20);
     const skip = (page - 1) * limit;
 
     const [items, total] = await Promise.all([
@@ -155,6 +192,6 @@ export class InventoryAdminController {
         total,
         totalPages: Math.ceil(total / limit),
       },
-    };
+    } as unknown as PaginatedStockMovementsDto;
   }
 }

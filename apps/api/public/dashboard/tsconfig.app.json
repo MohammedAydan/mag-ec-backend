@@ -19,7 +19,8 @@
     "baseUrl": ".",
     "ignoreDeprecations": "6.0",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "@sdk/*": ["../../../../packages/contracts/generated/typescript/src/*"]
     },
 
     /* Linting */
@@ -29,4 +30,3 @@
   },
   "include": ["src"]
 }
-

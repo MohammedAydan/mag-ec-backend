@@ -172,6 +172,7 @@ describe('AuthService', () => {
     const mockAuthDetails = {
       roles: ['customer'],
       permissions: ['read:profile'],
+      tokenVersion: 0,
     };
 
     it('should authenticate user and return access and refresh tokens', async () => {
@@ -215,6 +216,9 @@ describe('AuthService', () => {
         where: { id: mockUser.id },
         data: { lastLoginAt: expect.any(Date) },
       });
+      expect(mockTokenService.signAccessToken).toHaveBeenCalledWith(
+        expect.objectContaining({ tokenVersion: 0 }),
+      );
       expect(prisma.auditLog.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
           actorUserId: mockUser.id,
@@ -270,6 +274,7 @@ describe('AuthService', () => {
     const mockAuthDetails = {
       roles: ['customer'],
       permissions: ['read:profile'],
+      tokenVersion: 0,
     };
 
     it('should verify token, rotate session, and return new token set', async () => {
@@ -304,6 +309,9 @@ describe('AuthService', () => {
         ipAddress: '127.0.0.1',
         userAgent: 'Chrome',
       });
+      expect(mockTokenService.signAccessToken).toHaveBeenCalledWith(
+        expect.objectContaining({ tokenVersion: 0 }),
+      );
     });
 
     it('should throw UnauthorizedException if token verification fails', async () => {
@@ -398,6 +406,7 @@ describe('AuthService', () => {
         where: { id: 'user_1' },
         data: {
           passwordHash: 'new-password-hash',
+          tokenVersion: { increment: 1 },
           status: undefined,
           emailVerifiedAt: undefined,
         },

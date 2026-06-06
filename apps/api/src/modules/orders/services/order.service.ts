@@ -1,4 +1,4 @@
-import { ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
 
 import { PrismaService } from '../../persistence/services/prisma.service';
@@ -43,6 +43,8 @@ type OrderRecord = Prisma.OrderGetPayload<{
 
 @Injectable()
 export class OrderService {
+  private readonly logger = new Logger(OrderService.name);
+
   constructor(
     @Inject(PrismaService)
     private readonly prisma: PrismaService,
@@ -60,16 +62,13 @@ export class OrderService {
 
   async getCustomerOrder(orderId: string, userId: string) {
     const order = await this.prisma.order.findUnique({
-      where: { id: orderId },
+      where: { id: orderId, userId },
       include: orderInclude,
     });
 
     if (!order) {
+      this.logger.warn({ userId, orderId, resourceType: 'Order' }, 'Unauthorized or nonexistent order access probe');
       throw new NotFoundException(`Order "${orderId}" was not found`);
-    }
-
-    if (order.userId !== userId) {
-      throw new ForbiddenException('You do not have access to this order');
     }
 
     return this.serializeOrder(order);

@@ -208,6 +208,27 @@ const permissions: SeedPermission[] = [
     module: 'returns',
     description: 'Allows reviewing, receiving, and refunding return requests.',
   },
+  {
+    key: 'payments.refund',
+    name: 'Execute payment refunds',
+    module: 'payments',
+    description:
+      'Allows executing real provider refunds against captured payments.',
+  },
+  {
+    key: 'refunds.write',
+    name: 'Execute return refunds',
+    module: 'refunds',
+    description:
+      'Allows issuing real provider refunds against return-linked payment captures. Must be combined with returns.write for return-linked refunds.',
+  },
+  {
+    key: 'refunds.override_cap',
+    name: 'Override refund amount cap',
+    module: 'refunds',
+    description:
+      'Allows issuing return refunds above the received-items value cap when accompanied by an explicit override reason.',
+  },
 ];
 
 const roles: SeedRole[] = [
@@ -220,12 +241,28 @@ const roles: SeedRole[] = [
 ];
 
 async function main(): Promise<void> {
+  // ── Environment guard: refuse to seed in non-development environments ──
+  const nodeEnv = (process.env.NODE_ENV ?? 'development').toLowerCase();
+  const allowProduction = process.env.SEED_ALLOW_PRODUCTION === 'true';
+  if (!['development', 'test'].includes(nodeEnv) && !allowProduction) {
+    throw new Error(
+      `prisma seed is blocked in NODE_ENV=${nodeEnv}. ` +
+        `Set SEED_ALLOW_PRODUCTION=true to force seeding in non-development environments.`,
+    );
+  }
+
   const databaseUrl = getRequiredEnv('DATABASE_URL', 'mysql://root:root@localhost:3306/ecommerce');
   const adapter = createAdapter(databaseUrl);
   const prisma = new PrismaClient({ adapter });
 
-  const adminEmail = getRequiredEnv('DEV_SEED_ADMIN_EMAIL', 'admin@example.com');
-  const adminPassword = getRequiredEnv('DEV_SEED_ADMIN_PASSWORD', 'ChangeMe123!');
+  // In dev/test, allow default credentials; in production/staging they MUST be set explicitly.
+  const isDevOrTest = ['development', 'test'].includes(nodeEnv);
+  const adminEmail = isDevOrTest
+    ? getRequiredEnv('DEV_SEED_ADMIN_EMAIL', 'admin@example.com')
+    : getRequiredEnv('DEV_SEED_ADMIN_EMAIL');
+  const adminPassword = isDevOrTest
+    ? getRequiredEnv('DEV_SEED_ADMIN_PASSWORD', 'ChangeMe123!')
+    : getRequiredEnv('DEV_SEED_ADMIN_PASSWORD');
   const normalizedEmail = adminEmail.trim().toLowerCase();
   const passwordHash = await argon2.hash(adminPassword);
 
@@ -295,24 +332,24 @@ async function main(): Promise<void> {
         }
       }
 
-      const adminUser = await tx.user.upsert({
+      // Create the admin user if it does not exist yet.
+      // Do NOT overwrite an existing admin password — only set the hash on creation.
+      const existingAdmin = await tx.user.findUnique({
         where: { normalizedEmail },
-        update: {
-          email: adminEmail,
-          displayName: 'Development Admin',
-          passwordHash,
-          userType: UserType.ADMIN,
-          status: UserStatus.ACTIVE,
-        },
-        create: {
-          email: adminEmail,
-          normalizedEmail,
-          displayName: 'Development Admin',
-          passwordHash,
-          userType: UserType.ADMIN,
-          status: UserStatus.ACTIVE,
-        },
+        select: { id: true },
       });
+      const adminUser =
+        existingAdmin ??
+        (await tx.user.create({
+          data: {
+            email: adminEmail,
+            normalizedEmail,
+            displayName: 'Development Admin',
+            passwordHash,
+            userType: UserType.ADMIN,
+            status: UserStatus.ACTIVE,
+          },
+        }));
 
       const adminRole = await tx.role.findUniqueOrThrow({
         where: { key: 'super_admin' },

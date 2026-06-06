@@ -123,7 +123,7 @@ class AttributeOptionDto {
   @Matches(/^#?[A-Fa-f0-9]{6}$/)
   colorHex?: string;
 
-  @ApiProperty({ type: [AttributeOptionTranslationDto] })
+  @ApiProperty({ type: () => [AttributeOptionTranslationDto] })
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => AttributeOptionTranslationDto)
@@ -177,13 +177,13 @@ export class ProductVariantDto {
   @Min(0)
   position?: number;
 
-  @ApiProperty({ type: [ProductVariantTranslationDto] })
+  @ApiProperty({ type: () => [ProductVariantTranslationDto] })
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => ProductVariantTranslationDto)
   translations!: ProductVariantTranslationDto[];
 
-  @ApiProperty({ type: [VariantOptionValueDto] })
+  @ApiProperty({ type: () => [VariantOptionValueDto] })
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => VariantOptionValueDto)
@@ -219,13 +219,13 @@ export class CreateProductTypeDto {
   @Min(0)
   sortOrder?: number;
 
-  @ApiProperty({ type: [TranslationDto] })
+  @ApiProperty({ type: () => [TranslationDto] })
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => TranslationDto)
   translations!: TranslationDto[];
 
-  @ApiPropertyOptional({ type: [ProductTypeAttributeLinkDto] })
+  @ApiPropertyOptional({ type: () => [ProductTypeAttributeLinkDto] })
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
@@ -239,7 +239,7 @@ export class CreateBrandDto {
   @IsNotEmpty()
   key!: string;
 
-  @ApiProperty({ type: [TranslationDto] })
+  @ApiProperty({ type: () => [TranslationDto] })
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => TranslationDto)
@@ -264,7 +264,7 @@ export class CreateCategoryDto {
   @Min(0)
   sortOrder?: number;
 
-  @ApiProperty({ type: [TranslationDto] })
+  @ApiProperty({ type: () => [TranslationDto] })
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => TranslationDto)
@@ -283,7 +283,7 @@ export class CreateCollectionDto {
   @Min(0)
   sortOrder?: number;
 
-  @ApiProperty({ type: [TranslationDto] })
+  @ApiProperty({ type: () => [TranslationDto] })
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => TranslationDto)
@@ -296,7 +296,7 @@ export class CreateTagDto {
   @IsNotEmpty()
   key!: string;
 
-  @ApiProperty({ type: [TranslationDto] })
+  @ApiProperty({ type: () => [TranslationDto] })
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => TranslationDto)
@@ -329,13 +329,13 @@ export class CreateAttributeDto {
   @Min(0)
   sortOrder?: number;
 
-  @ApiProperty({ type: [AttributeTranslationDto] })
+  @ApiProperty({ type: () => [AttributeTranslationDto] })
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => AttributeTranslationDto)
   translations!: AttributeTranslationDto[];
 
-  @ApiPropertyOptional({ type: [AttributeOptionDto] })
+  @ApiPropertyOptional({ type: () => [AttributeOptionDto] })
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
@@ -386,47 +386,48 @@ export class CreateProductDto {
   @IsNotEmpty({ each: true })
   tagIds?: string[];
 
-  @ApiProperty({ type: [ProductTranslationDto] })
+  @ApiProperty({ type: () => [ProductTranslationDto] })
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => ProductTranslationDto)
   translations!: ProductTranslationDto[];
 
-  @ApiProperty({ type: [ProductVariantDto] })
+  @ApiPropertyOptional({ type: () => [ProductVariantDto], description: 'Product variants. Required before the product can be published.' })
+  @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => ProductVariantDto)
-  variants!: ProductVariantDto[];
+  variants?: ProductVariantDto[];
 }
 
 export class CreateProductVariantDto extends ProductVariantDto {}
 
 export class UpdateProductVariantDto {
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ type: String })
   @IsOptional()
   @IsString()
   @IsNotEmpty()
   sku?: string;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ type: Boolean })
   @IsOptional()
   @IsBoolean()
   isDefault?: boolean;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ type: Number })
   @IsOptional()
   @IsInt()
   @Min(0)
   position?: number;
 
-  @ApiPropertyOptional({ type: [ProductVariantTranslationDto] })
+  @ApiPropertyOptional({ type: () => [ProductVariantTranslationDto] })
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => ProductVariantTranslationDto)
   translations?: ProductVariantTranslationDto[];
 
-  @ApiPropertyOptional({ type: [VariantOptionValueDto] })
+  @ApiPropertyOptional({ type: () => [VariantOptionValueDto] })
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
@@ -435,13 +436,13 @@ export class UpdateProductVariantDto {
 }
 
 export class UpdateProductDto {
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ type: String, nullable: true })
   @IsOptional()
   @IsString()
   @IsNotEmpty()
   brandId?: string | null;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ type: Boolean })
   @IsOptional()
   @IsBoolean()
   isFeatured?: boolean;
@@ -467,7 +468,7 @@ export class UpdateProductDto {
   @IsNotEmpty({ each: true })
   tagIds?: string[];
 
-  @ApiPropertyOptional({ type: [ProductTranslationDto] })
+  @ApiPropertyOptional({ type: () => [ProductTranslationDto] })
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
@@ -518,7 +519,7 @@ export class AttachMediaDto {
   @IsString()
   checksum?: string;
 
-  @ApiPropertyOptional({ type: [MediaTranslationDto] })
+  @ApiPropertyOptional({ type: () => [MediaTranslationDto] })
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
@@ -534,7 +535,7 @@ export class ListCatalogProductsAdminQueryDto {
   @IsString()
   cursor?: string;
 
-  @ApiPropertyOptional({ default: 20, maximum: 100 })
+  @ApiPropertyOptional({ type: 'integer', minimum: 1, default: 20, maximum: 100 })
   @IsOptional()
   @Type(() => Number)
   @IsInt()

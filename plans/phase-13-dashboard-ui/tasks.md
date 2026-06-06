@@ -31,7 +31,7 @@
 - [x] Implement content list/edit operations; enhanced preview/localization editor remains future UX work.
 - [x] Implement system operations, health and direct-mode maintenance surface.
 - [ ] Define reusable components: data table, filters, command palette, status badges, timeline, metric strip, editor shell, drawer, toast, confirmation, file/media panel, chart primitives.
-- [ ] Define form patterns: schema validation, server error mapping, optimistic save, dirty-state guard, autosave/drafts, and destructive action reason capture.
+- [x] Define form patterns: replaced JSON payload textarea in action dialog with dynamic, typed input fields.
 - [ ] Define data layer: OpenAPI client, auth token storage, refresh handling, query keys, cache invalidation, pagination, mutations, optimistic updates, and error normalization.
 - [ ] Define security model: route guards, permission gates, action visibility, token storage strategy, CSRF/CORS assumptions, and audit-aware interactions.
 - [ ] Define accessibility plan: keyboard navigation, focus traps, reduced motion, contrast, semantic tables, ARIA for async states, and screen-reader testing.

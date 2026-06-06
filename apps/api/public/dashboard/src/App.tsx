@@ -1,4 +1,7 @@
 import { HashRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { TranslationProvider } from '@/lib/i18n';
+import en from '@/locales/en.json';
+import ar from '@/locales/ar.json';
 import { useAuth } from '@/lib/auth';
 import { ShellLayout } from '@/components/shell/ShellLayout';
 import { LoginPage } from '@/pages/LoginPage';
@@ -29,6 +32,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 export function App() {
   return (
+    <TranslationProvider translations={{ en, ar }}>
     <HashRouter>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
@@ -61,5 +65,6 @@ export function App() {
         </Route>
       </Routes>
     </HashRouter>
+    </TranslationProvider>
   );
 }
