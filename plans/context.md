@@ -6,7 +6,7 @@ Build a reusable, production-grade headless e-commerce backend API for a single 
 
 ## Current Status
 
-- Active feature: `vercel-prisma-build-fix`
+- Active feature: `vercel-deployment-shape-fix`
 - Overall health: green
 - Last updated: 2026-06-07
 
@@ -55,6 +55,7 @@ Build a reusable, production-grade headless e-commerce backend API for a single 
 - `security-remediation`: Complete. All 21 findings from SEC-001 through SEC-021 remediated. Notification sensitive-data exposure fixed; seed/config fail-closed behavior enforced; atomic checkout already confirmed; refund permission split with policy caps; admin token freshness already in place; customer guard applied; docs/SPA secured; maintenance hardened; header/DTO validation tightened; Stripe reconciliation audit logged; promotion race safety confirmed; audit gate lowered; Docker/CI hardened; customer object existence normalized; media upload checksum enforced.
 - `api-reference-handbook`: Complete. Added `docs/api/api-reference-handbook.md`, a contract-driven API handbook covering the current 139 OpenAPI operations, request and response details, usage conventions, and example storefront/admin page mappings.
 - `vercel-prisma-build-fix`: Complete. API and worker build scripts now regenerate Prisma explicitly before TypeScript compilation so clean pnpm/Vercel installs do not depend on skipped dependency build scripts for generated Prisma client types.
+- `vercel-deployment-shape-fix`: Complete. The repository now declares `apps/api` as the intended Vercel app root through `apps/api/vercel.json`, and the standalone `build:vercel` path builds the embedded dashboard before compiling the NestJS API for a single direct-mode deployment.
 
 ## Known Issues / Tech Debt
 
@@ -71,6 +72,8 @@ Build a reusable, production-grade headless e-commerce backend API for a single 
 - Dashboard UI implementation must respect the current backend-only repository constraint until a separate frontend app/repo or approved workspace expansion is selected.
 - The former backend-only dashboard boundary is already superseded by the approved embedded SPA decision in `plans/phase-13-dashboard-ui/plan.md`; new dashboard work must stay inside `apps/api/public/dashboard` and the `/admin` static output path.
 - One moderate `@hono/node-server` advisory (CVE-2026-39406) persists in Prisma 7 toolchain dependency; no compatible patched version available yet.
+- For Vercel, the project Root Directory must be `apps/api`; pointing Vercel at `apps/api/public/dashboard` builds the SPA but cannot deploy the full NestJS application because the server entrypoint lives at `apps/api/src/main.ts`.
+- Direct-mode Vercel deployments no longer require `REDIS_URL`; it is now required only when `EXECUTION_MODE=queue`, matching the documented serverless architecture.
 
 ## Team / Ownership
 

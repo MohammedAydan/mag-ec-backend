@@ -47,6 +47,25 @@ For Vercel, configure `CRON_SECRET`; Vercel Cron automatically supplies `Authori
 
 The daily schedule above is compatible with Vercel Hobby. Direct mode additionally performs bounded maintenance around mutating requests, so incoming store activity can release expired reservations before new checkout reservations are committed. On hosting that permits frequent schedules, choose an interval aligned to reservation TTL. The maintenance route is idempotent: it atomically claims reservations and outbox records before changing them.
 
+## Exact Vercel project shape for this repository
+
+This repository should be connected to Vercel with the **Root Directory set to `apps/api`**.
+
+Why:
+
+- `apps/api/src/main.ts` is the NestJS entrypoint that Vercel must detect.
+- `apps/api/vercel.json` contains the deployment-owned build command and cron configuration.
+- The embedded dashboard package at `apps/api/public/dashboard` is **not** the deploy root; it is a nested frontend package that must be built first and then served by the NestJS app from `/admin`.
+
+For this repo, the intended Vercel flow is:
+
+1. Install the workspace dependencies
+2. Run `pnpm run build:vercel` from `apps/api`
+3. Build `@atelier/admin-dashboard` into `apps/api/public/admin`
+4. Regenerate Prisma client types
+5. Compile the NestJS API from `apps/api/src/main.ts`
+6. Serve both `/api/v1/**` and `/admin` from the same Vercel deployment
+
 ## Queue mode — optional scalable execution
 
 Use `EXECUTION_MODE=queue` for deployments with a continuously available Redis instance and an independently deployed worker process.
@@ -79,7 +98,7 @@ In queue mode:
 - Configure a real email provider for reset, verification and commerce notification delivery.
 - Configure Stripe webhook secrets when online payment is enabled.
 - Use strong JWT, maintenance and cron secrets and do not expose them to browser code.
-- For serverless/direct deployments configure the platform build command as `pnpm build:direct`, so no standalone worker application is built.
+- For serverless/direct deployments in this repository, point the Vercel project root to `apps/api` and use the repo-owned `apps/api/vercel.json` config, which runs `pnpm run build:vercel`. This keeps the deployment in direct mode and avoids building the standalone worker application.
 - Run the release gate in `docs/operations/release-checklist.md` before deployment.
 
 ## Integrated dashboard

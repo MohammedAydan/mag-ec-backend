@@ -2765,3 +2765,54 @@ Open `docs/api/api-reference-handbook.md` first. If more API documentation work 
 ### Resume instructions
 
 Start from `plans/vercel-prisma-build-fix/review.md`. The deploy-facing Prisma compile fix is in place; next action is a Vercel redeploy, not more schema or service edits unless a new build log shows a different blocker.
+
+---
+
+## Session: 2026-06-07 - Vercel Deployment Shape Fix
+
+### What was done
+
+- Re-read `plans/context.md`, `plans/SESSION_LOG.md`, and the current deploy-fix state before editing.
+- Traced the new Vercel failure to project shape rather than build failure: the dashboard package built, then Vercel failed entrypoint detection because it was not targeting the NestJS app root.
+- Created `plans/vercel-deployment-shape-fix/` with plan, tasks, and context files for the Vercel root-directory fix.
+- Added `apps/api/vercel.json` with the NestJS framework declaration, repo-owned `buildCommand`, and the documented maintenance cron.
+- Added `apps/api` script `build:vercel` so the embedded dashboard builds first and then the API package compiles through the already-hardened Prisma-aware build path.
+- Updated `docs/operations/execution-modes-and-serverless.md` to document the exact Vercel Root Directory requirement for this repository: `apps/api`.
+- Fixed the direct-mode production config mismatch so `REDIS_URL` is required only when `EXECUTION_MODE=queue`.
+
+### Decisions made
+
+- Treat `apps/api` as the authoritative Vercel project root. Reason: the actual server entrypoint is `apps/api/src/main.ts`, and the embedded dashboard is only a nested package that must be built and then served by the API.
+- Keep the deployment as one direct-mode NestJS app serving both `/api/v1/**` and `/admin`. Reason: that matches the approved embedded-dashboard architecture already documented in the repo.
+
+### Files changed
+
+- `apps/api/package.json` - added `build:vercel`
+- `apps/api/vercel.json` - added repo-owned Vercel deployment config
+- `apps/api/src/config/app.config.ts` - removed the incorrect production Redis requirement for direct mode
+- `docs/operations/execution-modes-and-serverless.md` - documented exact Vercel root and build flow
+- `plans/vercel-deployment-shape-fix/plan.md` - added feature plan
+- `plans/vercel-deployment-shape-fix/tasks.md` - tracked and closed the task list
+- `plans/vercel-deployment-shape-fix/context.md` - recorded deploy-shape scope and assumptions
+- `plans/vercel-deployment-shape-fix/review.md` - recorded root cause, required Vercel settings, and verification
+- `plans/context.md` - updated active feature and known issue note
+- `plans/SESSION_LOG.md` - appended this handoff entry
+
+### Verification
+
+- `pnpm.cmd --dir apps/api run build:vercel` - reached the intended standalone Vercel build flow, but on this Windows sandbox it still stopped at the pre-existing local dashboard Vite/Tailwind native oxide issue
+- User-provided Vercel build log already proved the dashboard build itself succeeds on Vercel; the latest failure occurred only after that, during NestJS entrypoint detection
+- `pnpm.cmd --filter @ecommerce/api build` - had already passed in the preceding deploy-fix session, confirming the API compile path is healthy once Vercel uses the correct root
+- `pnpm.cmd --filter @ecommerce/api typecheck` - passed after the direct-mode Redis requirement fix
+- `pnpm.cmd --filter @ecommerce/api build` - passed after the direct-mode Redis requirement fix
+
+### State at end of session
+
+- Active feature: `vercel-deployment-shape-fix`
+- Last completed task: Repo-owned Vercel app-root configuration and standalone API deployment build path
+- Next task: Change the Vercel project Root Directory to `apps/api` and redeploy
+- Blockers: none in repo code; the remaining step is the Vercel project setting itself
+
+### Resume instructions
+
+Start from `plans/vercel-deployment-shape-fix/review.md`. The codebase is ready for the intended Vercel shape; the next action is to point the Vercel project at `apps/api` and redeploy.

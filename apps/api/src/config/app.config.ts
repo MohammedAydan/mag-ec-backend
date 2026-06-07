@@ -109,20 +109,15 @@ export const envValidationSchema = Joi.object({
   QUEUE_ENABLED: Joi.boolean().truthy('true').falsy('false').default(false),
   REDIS_URL: Joi.string()
     .uri({ scheme: [/redis/, /rediss/] })
-    .when('NODE_ENV', {
-      is: Joi.string().valid('production', 'staging'),
+    .when('EXECUTION_MODE', {
+      is: 'queue',
       then: Joi.string()
         .uri({ scheme: [/redis/, /rediss/] })
         .required(),
       otherwise: Joi.string()
         .uri({ scheme: [/redis/, /rediss/] })
-        .when('EXECUTION_MODE', {
-          is: 'queue',
-          then: Joi.string()
-            .uri({ scheme: [/redis/, /rediss/] })
-            .required(),
-          otherwise: Joi.string().allow('').default(''),
-        }),
+        .allow('')
+        .default(''),
     }),
   QUEUE_PREFIX: Joi.string().default('ecommerce'),
   CRON_SECRET: Joi.string().allow('').default(''),
@@ -233,8 +228,8 @@ export function buildAppConfig(): { app: AppConfig } {
   }
 
   const redisUrl = process.env.REDIS_URL?.trim();
-  if (isProdOrStaging && (!redisUrl || redisUrl.length === 0)) {
-    throw new Error('REDIS_URL is required in production and staging environments');
+  if (executionMode === 'queue' && (!redisUrl || redisUrl.length === 0)) {
+    throw new Error('REDIS_URL is required when EXECUTION_MODE=queue');
   }
 
   return {
