@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "build": "pnpm --dir ../.. prisma:generate && tsc -p tsconfig.build.json && node scripts/copy-dashboard-assets.mjs",
-    "build:vercel": "pnpm --dir ../.. --filter @atelier/admin-dashboard build && pnpm run build",
+    "build:vercel": "pnpm --dir ../.. --filter @ecommerce/domain-shared build && pnpm --dir ../.. --filter @atelier/admin-dashboard build && pnpm run build",
     "dev": "tsx watch src/main.ts",
     "start": "node --require ../../node_modules/.pnpm/dotenv*/node_modules/dotenv/config.js ../../dist/apps/api/src/main.js",
     "lint": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",

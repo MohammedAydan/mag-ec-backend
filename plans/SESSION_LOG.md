@@ -2816,3 +2816,45 @@ Start from `plans/vercel-prisma-build-fix/review.md`. The deploy-facing Prisma c
 ### Resume instructions
 
 Start from `plans/vercel-deployment-shape-fix/review.md`. The codebase is ready for the intended Vercel shape; the next action is to point the Vercel project at `apps/api` and redeploy.
+
+---
+
+## Session: 2026-06-07 - Vercel Domain Shared Build Fix
+
+### What was done
+
+- Re-read `plans/context.md`, `plans/SESSION_LOG.md`, and the current Vercel deployment state before editing.
+- Traced the new Vercel error to workspace package build order: `@ecommerce/api` imports `@ecommerce/domain-shared`, but the shared package's `dist/index.d.ts` did not exist in the clean Vercel checkout yet.
+- Created `plans/vercel-domain-shared-build-fix/` with plan, tasks, and context files.
+- Updated `apps/api` `build:vercel` so it builds `@ecommerce/domain-shared` before building the dashboard and API.
+
+### Decisions made
+
+- Keep the fix in the Vercel build order instead of changing TypeScript paths to source files. Reason: `@ecommerce/domain-shared` already declares `dist` as its package entry, and clean deployments should build package outputs in dependency order.
+
+### Files changed
+
+- `apps/api/package.json` - `build:vercel` now builds `@ecommerce/domain-shared` first
+- `plans/vercel-domain-shared-build-fix/plan.md` - added feature plan
+- `plans/vercel-domain-shared-build-fix/tasks.md` - tracked and closed task list
+- `plans/vercel-domain-shared-build-fix/context.md` - recorded source inputs and scope
+- `plans/vercel-domain-shared-build-fix/review.md` - recorded root cause, fix, and verification
+- `plans/context.md` - updated active feature/status
+- `plans/SESSION_LOG.md` - appended this handoff entry
+
+### Verification
+
+- `pnpm.cmd --filter @ecommerce/domain-shared build` - passed
+- `pnpm.cmd --filter @ecommerce/api typecheck` - passed
+- `pnpm.cmd --filter @ecommerce/api build` - passed
+
+### State at end of session
+
+- Active feature: `vercel-domain-shared-build-fix`
+- Last completed task: Shared package declaration build added to Vercel build path and verified locally
+- Next task: Redeploy on Vercel and inspect the next log
+- Blockers: none for the reported `TS2307` error
+
+### Resume instructions
+
+Start from `plans/vercel-domain-shared-build-fix/review.md`. The next Vercel build should show `@ecommerce/domain-shared` building before the dashboard and API compile steps.
