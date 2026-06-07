@@ -90,7 +90,8 @@ export class CatalogAdminService {
     });
     const hasMore = products.length > limit;
     const items = hasMore ? products.slice(0, limit) : products;
-    return { items, nextCursor: hasMore ? (items.at(-1)?.id ?? null) : null };
+    const lastItem = items[items.length - 1];
+    return { items, nextCursor: hasMore ? (lastItem?.id ?? null) : null };
   }
 
   async getProduct(productId: string) {

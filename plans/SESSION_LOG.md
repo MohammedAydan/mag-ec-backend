@@ -2999,3 +2999,45 @@ Start from `plans/vercel-postbuild-type-scan-fix/review.md`. The next Vercel bui
 ### Resume instructions
 
 Start from `plans/vercel-invalid-functions-config-fix/review.md`. The next Vercel build should no longer fail before install with the unmatched `functions` pattern, and the Vercel-only prune step should run after `public/admin` is built.
+
+---
+
+## Session: 2026-06-07 - Vercel Array.at Compatibility Fix
+
+### What was done
+
+- Re-read `plans/context.md`, `plans/SESSION_LOG.md`, and the active Vercel invalid-functions review before editing.
+- Traced the latest Vercel failure to the postbuild TypeScript scan rejecting `Array.prototype.at()` in API source.
+- Created `plans/vercel-array-at-compat-fix/` with plan, tasks, context, and review files.
+- Replaced `items.at(-1)` in catalog admin pagination with indexed access.
+- Replaced `items.at(-1)` in payment admin pagination with indexed access.
+- Scanned API source to confirm no `.at()` calls remain.
+
+### Decisions made
+
+- Avoid `.at()` in API source rather than changing global TypeScript lib settings. Reason: the repo build already targets `ES2023`, but Vercel's postbuild scan is using narrower lib behavior; indexed access is equivalent and more portable.
+
+### Files changed
+
+- `apps/api/src/modules/catalog/services/catalog-admin.service.ts` - replaced `.at(-1)` cursor extraction
+- `apps/api/src/modules/payments/services/payment-admin.service.ts` - replaced `.at(-1)` cursor extraction
+- `plans/vercel-array-at-compat-fix/*` - added and closed the feature plan package
+- `plans/context.md` - updated active feature/status
+- `plans/SESSION_LOG.md` - appended this handoff entry
+
+### Verification
+
+- `rg "\.at\(" apps/api/src -n` - no matches
+- `pnpm.cmd --filter @ecommerce/api typecheck` - passed
+- `pnpm.cmd --filter @ecommerce/api build` - passed
+
+### State at end of session
+
+- Active feature: `vercel-array-at-compat-fix`
+- Last completed task: Removed API `.at()` usage and verified API compile path
+- Next task: Redeploy on Vercel and inspect the next log
+- Blockers: none for the reported `Array.prototype.at` error
+
+### Resume instructions
+
+Start from `plans/vercel-array-at-compat-fix/review.md`. The next Vercel build should progress past `catalog-admin.service.ts(93,50)`.

@@ -6,7 +6,7 @@ Build a reusable, production-grade headless e-commerce backend API for a single 
 
 ## Current Status
 
-- Active feature: `vercel-invalid-functions-config-fix`
+- Active feature: `vercel-array-at-compat-fix`
 - Overall health: green
 - Last updated: 2026-06-07
 
@@ -60,6 +60,7 @@ Build a reusable, production-grade headless e-commerce backend API for a single 
 - `vercel-nest-entrypoint-detection-fix`: Complete. `apps/api/src/main.ts` now directly imports `@nestjs/core` so Vercel's NestJS detector recognizes the entrypoint while the existing shared bootstrap remains unchanged.
 - `vercel-postbuild-type-scan-fix`: Complete. API tsconfigs and Vercel function packaging now exclude nested dashboard source from postbuild API scans while including built `/admin` assets, and the Prisma schema guard no longer relies on the two-argument `Error` constructor overload.
 - `vercel-invalid-functions-config-fix`: Complete. Removed the invalid `functions.src/main.ts` Vercel config and moved dashboard-source exclusion to a Vercel-only end-of-build prune step after `public/admin` assets are generated.
+- `vercel-array-at-compat-fix`: Complete. Removed `Array.prototype.at()` from API cursor pagination so Vercel's postbuild TypeScript scan does not require an ES2022 lib target.
 
 ## Known Issues / Tech Debt
 

@@ -119,9 +119,10 @@ export class PaymentAdminService {
   private toPage<T extends { id: string }>(records: T[], limit: number) {
     const hasMore = records.length > limit;
     const items = hasMore ? records.slice(0, limit) : records;
+    const lastItem = items[items.length - 1];
     return {
       items,
-      nextCursor: hasMore ? (items.at(-1)?.id ?? null) : null,
+      nextCursor: hasMore ? (lastItem?.id ?? null) : null,
     };
   }
 }
