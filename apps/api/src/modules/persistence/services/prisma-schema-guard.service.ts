@@ -56,7 +56,7 @@ export class PrismaSchemaGuardService {
 
     try {
       const appliedRows = await this.prisma.$queryRawUnsafe<AppliedMigrationRow[]>(
-        'SELECT migration_name FROM `_prisma_migrations` WHERE finished_at IS NOT NULL AND rolled_back_at IS NULL',
+        'SELECT migration_name FROM _prisma_migrations WHERE finished_at IS NOT NULL AND rolled_back_at IS NULL',
       );
 
       return findPendingMigrationNames(
@@ -64,6 +64,15 @@ export class PrismaSchemaGuardService {
         appliedRows.map((row) => row.migration_name).filter((name): name is string => !!name),
       );
     } catch (error) {
+      // `prisma db push` does not create the _prisma_migrations table.
+      // In that case there are no tracked migrations — treat as fully in sync.
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        (error.code === 'P2021' || error.code === 'P2010')
+      ) {
+        return [];
+      }
+
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         throw new Error(
           `Unable to verify Prisma migration state against the current database: ${error.message}`,

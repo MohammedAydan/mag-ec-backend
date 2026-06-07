@@ -94,14 +94,14 @@ export const envValidationSchema = Joi.object({
   ADMIN_ALLOWED_ORIGINS: Joi.string().allow('').default(''),
   STORE_ALLOWED_ORIGINS: Joi.string().allow('').default('http://localhost:3001'),
   DATABASE_URL: Joi.string()
-    .uri({ scheme: [/mysql/] })
+    .uri({ scheme: [/mysql/, /postgres/, /postgresql/] })
     .when('NODE_ENV', {
       is: Joi.string().valid('production', 'staging'),
       then: Joi.string()
-        .uri({ scheme: [/mysql/] })
+        .uri({ scheme: [/mysql/, /postgres/, /postgresql/] })
         .required(),
       otherwise: Joi.string()
-        .uri({ scheme: [/mysql/] })
+        .uri({ scheme: [/mysql/, /postgres/, /postgresql/] })
         .default('mysql://root:root@localhost:3306/ecommerce'),
     }),
   EXECUTION_MODE: Joi.string().valid('direct', 'queue').default('direct'),

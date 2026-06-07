@@ -61,7 +61,7 @@ async function generateOpenApiDocument(): Promise<void> {
 }
 
 function configureGenerationEnvironment(): void {
-  process.env.DATABASE_URL ??= 'mysql://root:root@localhost:3306/ecommerce';
+  process.env.DATABASE_URL ??= 'postgresql://postgres:postgres@localhost:5432/ecommerce';
   process.env.REDIS_URL ??= 'redis://localhost:6379';
   process.env.OPENAPI_ENABLED = 'false';
   process.env.EXECUTION_MODE = 'direct';

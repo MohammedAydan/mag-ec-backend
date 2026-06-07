@@ -5,6 +5,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json && node scripts/copy-dashboard-assets.mjs",
     "dev": "tsx watch src/main.ts",
+    "start": "node --require ../../node_modules/.pnpm/dotenv*/node_modules/dotenv/config.js ../../dist/apps/api/src/main.js",
     "lint": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "jest --config test/jest.unit.config.ts",

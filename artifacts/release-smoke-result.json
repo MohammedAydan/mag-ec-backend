@@ -58,7 +58,7 @@
     {
       "name": "POST /promotions/admin → 201",
       "status": "pass",
-      "detail": "status=201 id=cmq34e1n1000lug1ipm3glxm0"
+      "detail": "status=201 id=cmq357fx90012ug1iobv0dfv3"
     },
     {
       "name": "GET /promotions/admin — created promo in list",
@@ -68,7 +68,7 @@
     {
       "name": "POST /content/admin/pages → 201",
       "status": "pass",
-      "detail": "status=201 key=smoke-test-page-mq34e1dd"
+      "detail": "status=201 key=smoke-test-page-mq357fn6"
     },
     {
       "name": "GET /content/admin/pages — created page in list",
@@ -78,7 +78,7 @@
     {
       "name": "POST /catalog/admin/products (no variants) → 201 DRAFT",
       "status": "pass",
-      "detail": "status=201 id=cmq34e1pg000oug1ighl557aa variants=[len=0]"
+      "detail": "status=201 id=cmq357g0e0015ug1ipwo897vq variants=[len=0]"
     },
     {
       "name": "POST /catalog/admin/products/:id/publish (no variants) → 400",
@@ -88,7 +88,7 @@
     {
       "name": "POST /identity/admin/staff/invitations → 201 (emailDelivered ok)",
       "status": "pass",
-      "detail": "status=201 staffId=cmq34e1tc000pug1i3q12mimq staffStatus=INVITED emailDelivered=false"
+      "detail": "status=201 staffId=cmq357g4m0016ug1iz1o4nhfz staffStatus=INVITED emailDelivered=false"
     },
     {
       "name": "POST /identity/admin/staff/:id/resend-invitation (no body) → success",

@@ -2,9 +2,14 @@ import { URL } from 'node:url';
 import { Injectable, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaMariaDb } from '@prisma/adapter-mariadb';
+import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@prisma/client';
 
 import type { WorkerConfig } from '../config/worker.config';
+
+function isPostgresUrl(url: string): boolean {
+  return /^postgres(ql)?:\/\//i.test(url);
+}
 
 function createMariaDbAdapter(databaseUrl: string): PrismaMariaDb {
   const url = new URL(databaseUrl);
@@ -19,13 +24,20 @@ function createMariaDbAdapter(databaseUrl: string): PrismaMariaDb {
   });
 }
 
+function createPgAdapter(databaseUrl: string): PrismaPg {
+  return new PrismaPg({
+    connectionString: databaseUrl,
+  });
+}
+
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleDestroy {
   constructor(configService: ConfigService) {
     const config = configService.getOrThrow<WorkerConfig>('worker');
+    const dbUrl = config.databaseUrl;
 
     super({
-      adapter: createMariaDbAdapter(config.databaseUrl),
+      adapter: isPostgresUrl(dbUrl) ? createPgAdapter(dbUrl) : createMariaDbAdapter(dbUrl),
     });
   }
 

@@ -1,7 +1,6 @@
 import 'dotenv/config';
 
 import argon2 from 'argon2';
-import { PrismaMariaDb } from '@prisma/adapter-mariadb';
 import {
   PrismaClient,
   UserStatus,
@@ -10,6 +9,8 @@ import {
   type Prisma,
   type Role,
 } from '@prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { PrismaMariaDb } from '@prisma/adapter-mariadb';
 
 interface SeedPermission {
   key: string;
@@ -35,7 +36,15 @@ function getRequiredEnv(name: string, fallback?: string): string {
   return value;
 }
 
-function createAdapter(connectionString: string): PrismaMariaDb {
+function isPostgresUrl(url: string): boolean {
+  return /^postgres(ql)?:\/\//i.test(url);
+}
+
+function createAdapter(connectionString: string): PrismaMariaDb | PrismaPg {
+  if (isPostgresUrl(connectionString)) {
+    return new PrismaPg({ connectionString });
+  }
+
   const url = new URL(connectionString);
 
   return new PrismaMariaDb({
@@ -44,7 +53,7 @@ function createAdapter(connectionString: string): PrismaMariaDb {
     user: decodeURIComponent(url.username),
     password: decodeURIComponent(url.password),
     database: url.pathname.replace(/^\//, ''),
-    connectionLimit: Number.parseInt(url.searchParams.get('connection_limit') ?? '10', 10),
+    connectionLimit: 5,
   });
 }
 
@@ -247,7 +256,7 @@ async function main(): Promise<void> {
   if (!['development', 'test'].includes(nodeEnv) && !allowProduction) {
     throw new Error(
       `prisma seed is blocked in NODE_ENV=${nodeEnv}. ` +
-        `Set SEED_ALLOW_PRODUCTION=true to force seeding in non-development environments.`,
+      `Set SEED_ALLOW_PRODUCTION=true to force seeding in non-development environments.`,
     );
   }
 
@@ -374,26 +383,26 @@ async function main(): Promise<void> {
         value: Prisma.InputJsonValue;
         description: string;
       }> = [
-        {
-          key: 'store.currency',
-          value: { code: 'USD', symbol: '$', minorUnit: 2 },
-          description: 'Default store currency configuration.',
-        },
-        {
-          key: 'store.locales',
-          value: ['en', 'ar'],
-          description: 'Enabled content locales.',
-        },
-        {
-          key: 'store.pricing',
-          value: {
-            pricesIncludeTax: false,
-            defaultTaxCountryCode: 'US',
-            shippingCurrencyCode: 'USD',
+          {
+            key: 'store.currency',
+            value: { code: 'USD', symbol: '$', minorUnit: 2 },
+            description: 'Default store currency configuration.',
           },
-          description: 'Pricing behavior defaults for tax and shipping policy.',
-        },
-      ];
+          {
+            key: 'store.locales',
+            value: ['en', 'ar'],
+            description: 'Enabled content locales.',
+          },
+          {
+            key: 'store.pricing',
+            value: {
+              pricesIncludeTax: false,
+              defaultTaxCountryCode: 'US',
+              shippingCurrencyCode: 'USD',
+            },
+            description: 'Pricing behavior defaults for tax and shipping policy.',
+          },
+        ];
 
       for (const setting of defaultSettings) {
         await tx.storeSetting.upsert({
@@ -1515,17 +1524,17 @@ async function main(): Promise<void> {
 
         const variantPricing = variantSeed.sku.startsWith('PERFUME')
           ? {
-              currencyCode: 'USD',
-              baseAmount: variantSeed.sku.includes('50') ? 12900 : 16900,
-              saleAmount: variantSeed.sku.includes('50') ? 10900 : 14900,
-              taxClassId: fragranceTaxClass.id,
-            }
+            currencyCode: 'USD',
+            baseAmount: variantSeed.sku.includes('50') ? 12900 : 16900,
+            saleAmount: variantSeed.sku.includes('50') ? 10900 : 14900,
+            taxClassId: fragranceTaxClass.id,
+          }
           : {
-              currencyCode: 'USD',
-              baseAmount: variantSeed.sku.includes('-M-') ? 8900 : 9400,
-              saleAmount: variantSeed.sku.includes('-M-') ? 7900 : null,
-              taxClassId: apparelTaxClass.id,
-            };
+            currencyCode: 'USD',
+            baseAmount: variantSeed.sku.includes('-M-') ? 8900 : 9400,
+            saleAmount: variantSeed.sku.includes('-M-') ? 7900 : null,
+            taxClassId: apparelTaxClass.id,
+          };
 
         await tx.catalogVariantPrice.upsert({
           where: {
@@ -1556,7 +1565,7 @@ async function main(): Promise<void> {
           },
         });
       }
-    });
+    }, { timeout: 120_000 });
   } finally {
     await prisma.$disconnect();
   }
