@@ -197,3 +197,14 @@
 - **Consequences:** Dashboard actions now share accessible validation, server-field error wiring, and consistent UX across pages, and theme state stays aligned with HeroUI's documented DOM class plus `data-theme` behavior. The shared renderer adds some abstraction cost, so unusually bespoke future flows may still need page-specific editors.
 
 ---
+
+## ADR-019: Vercel Deploys the API as One Direct-Mode Nest Function
+
+- **Date:** 2026-06-07
+- **Status:** Accepted
+- **Context:** Vercel's NestJS framework support packages a detected Nest entrypoint as a single Vercel Function. This repository embeds a dashboard source package under `apps/api/public/dashboard`, which must build before deployment but must not be typechecked or bundled as API source.
+- **Decision:** Keep `apps/api` as the Vercel project root, deploy `src/main.ts` as the single direct-mode NestJS function, include built `public/admin/**` assets, and exclude `public/dashboard/**` source from the function bundle.
+- **Alternatives considered:** Pointing Vercel at the dashboard package, moving the dashboard source outside `apps/api`, or relying only on TypeScript `exclude` settings.
+- **Consequences:** The deployment remains a single same-origin API plus `/admin` app, while Vercel's postbuild function scan avoids the nested dashboard TypeScript source. Future dashboard source moves must update the Vercel packaging rules and this ADR.
+
+---

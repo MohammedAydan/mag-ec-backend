@@ -2,6 +2,12 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nestjs",
   "buildCommand": "pnpm run build:vercel",
+  "functions": {
+    "src/main.ts": {
+      "includeFiles": "public/admin/**",
+      "excludeFiles": "public/dashboard/**"
+    }
+  },
   "crons": [
     {
       "path": "/api/v1/system/maintenance/run",

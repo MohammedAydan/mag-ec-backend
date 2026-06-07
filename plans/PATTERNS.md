@@ -1,5 +1,14 @@
 # Engineering Patterns
 
+## Pattern: Embedded SPA Source vs Built Asset Boundary [feature: vercel-postbuild-type-scan-fix]
+
+- **Problem:** A nested frontend package under a backend app root can be built successfully, then later break serverless function packaging when the platform scans frontend `.tsx` source with backend TypeScript settings.
+- **Solution:** Keep the frontend build output in a static asset folder included in the function bundle, and explicitly exclude the frontend source package from backend tsconfigs and Vercel function packaging.
+- **Example:** `apps/api/vercel.json` includes `public/admin/**` and excludes `public/dashboard/**` for the `src/main.ts` Nest function.
+- **Gotchas:** Build-time exclusions must not prevent the dashboard package from compiling; function packaging rules apply after the dashboard build has already produced static assets.
+
+---
+
 ## Pattern: API Response DTO Serializer [feature: flutter-content-response-nullability-fix]
 
 - **Problem:** Returning ORM records directly can drift from the OpenAPI DTO, especially when generated clients enforce non-null fields.

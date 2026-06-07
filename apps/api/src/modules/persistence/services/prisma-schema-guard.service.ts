@@ -75,8 +75,7 @@ export class PrismaSchemaGuardService {
 
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         throw new Error(
-          `Unable to verify Prisma migration state against the current database: ${error.message}`,
-          { cause: error },
+          `Unable to verify Prisma migration state against the current database: ${error.code}: ${error.message}`,
         );
       }
 

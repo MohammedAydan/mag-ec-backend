@@ -6,5 +6,12 @@
     "types": ["node", "jest"]
   },
   "include": ["src/**/*.ts", "test/**/*.ts"],
-  "exclude": ["src/metadata.ts", "src/metadata.js"]
+  "exclude": [
+    "src/metadata.ts",
+    "src/metadata.js",
+    "public/admin",
+    "public/admin/**/*",
+    "public/dashboard",
+    "public/dashboard/**/*"
+  ]
 }

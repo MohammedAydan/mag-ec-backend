@@ -1,4 +1,13 @@
 {
   "extends": "./tsconfig.json",
-  "exclude": ["test/**/*.ts", "src/**/*.spec.ts", "src/metadata.ts"]
+  "exclude": [
+    "test/**/*.ts",
+    "src/**/*.spec.ts",
+    "src/metadata.ts",
+    "src/metadata.js",
+    "public/admin",
+    "public/admin/**/*",
+    "public/dashboard",
+    "public/dashboard/**/*"
+  ]
 }

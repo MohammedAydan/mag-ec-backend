@@ -2899,3 +2899,52 @@ Start from `plans/vercel-domain-shared-build-fix/review.md`. The next Vercel bui
 ### Resume instructions
 
 Start from `plans/vercel-nest-entrypoint-detection-fix/review.md`. The next Vercel build should progress past the `No entrypoint found which imports nestjs` detector error.
+
+---
+
+## Session: 2026-06-07 - Vercel Postbuild Type Scan Fix
+
+### What was done
+
+- Re-read `plans/context.md`, `plans/SESSION_LOG.md`, and the active Vercel entrypoint fix plan before editing.
+- Traced the latest Vercel failure to the postbuild Nest/function TypeScript scan, not the repo-owned build command.
+- Created `plans/vercel-postbuild-type-scan-fix/` with plan, tasks, context, and review files.
+- Updated API TypeScript configs to exclude nested dashboard source/output directories from API scans.
+- Updated `apps/api/vercel.json` so the `src/main.ts` Nest function includes built `public/admin/**` assets but excludes `public/dashboard/**` source.
+- Replaced the Prisma schema guard's two-argument `Error` constructor with a single-argument form compatible with Vercel's TypeScript/lib scan.
+- Documented the Vercel function packaging boundary in operations docs, ADR-019, and the patterns registry.
+
+### Decisions made
+
+- Deploy `src/main.ts` as the single direct-mode NestJS Vercel Function and treat `public/dashboard` as build-time source only. Reason: Vercel packages NestJS as one function, while the dashboard source package has its own Vite/React TypeScript configuration and should not be compiled as API source.
+- Include `public/admin/**` in the Vercel function bundle. Reason: the API serves the built dashboard at `/admin` from that static asset directory.
+
+### Files changed
+
+- `apps/api/vercel.json` - added function include/exclude packaging rules
+- `apps/api/tsconfig.json` - excluded nested dashboard/admin static directories from API scans
+- `apps/api/tsconfig.build.json` - preserved the same exclusions for build-config consumers
+- `apps/api/src/modules/persistence/services/prisma-schema-guard.service.ts` - removed unsupported `Error` overload usage
+- `docs/operations/execution-modes-and-serverless.md` - documented Vercel function packaging boundaries
+- `plans/DECISIONS.md` - added ADR-019
+- `plans/PATTERNS.md` - added embedded SPA source vs built asset boundary pattern
+- `plans/vercel-postbuild-type-scan-fix/*` - added and closed the feature plan package
+- `plans/context.md` - updated active feature/status
+- `plans/SESSION_LOG.md` - appended this handoff entry
+
+### Verification
+
+- `Get-Content apps/api/vercel.json | ConvertFrom-Json | Out-Null` - passed
+- `pnpm.cmd --filter @ecommerce/api typecheck` - passed
+- `pnpm.cmd --filter @ecommerce/api build` - passed
+
+### State at end of session
+
+- Active feature: `vercel-postbuild-type-scan-fix`
+- Last completed task: Vercel postbuild scan boundary fixed and API compile path verified
+- Next task: Redeploy on Vercel and inspect the next log
+- Blockers: none for the reported dashboard-source scan and `Error` constructor failures
+
+### Resume instructions
+
+Start from `plans/vercel-postbuild-type-scan-fix/review.md`. The next Vercel build should progress past `prisma-schema-guard.service.ts(79,11)` and should not compile `public/dashboard/src/**/*.tsx` as API code.

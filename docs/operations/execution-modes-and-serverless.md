@@ -66,6 +66,12 @@ For this repo, the intended Vercel flow is:
 5. Compile the NestJS API from `apps/api/src/main.ts`
 6. Serve both `/api/v1/**` and `/admin` from the same Vercel deployment
 
+`apps/api/vercel.json` also pins the Nest function packaging boundary:
+
+- `src/main.ts` is the single Vercel Function entrypoint.
+- `public/admin/**` is included so the built dashboard can be served at `/admin`.
+- `public/dashboard/**` is excluded from the function bundle because it is dashboard source code that has its own Vite/React TypeScript configuration and should not be compiled as API code.
+
 ## Queue mode — optional scalable execution
 
 Use `EXECUTION_MODE=queue` for deployments with a continuously available Redis instance and an independently deployed worker process.
@@ -99,6 +105,7 @@ In queue mode:
 - Configure Stripe webhook secrets when online payment is enabled.
 - Use strong JWT, maintenance and cron secrets and do not expose them to browser code.
 - For serverless/direct deployments in this repository, point the Vercel project root to `apps/api` and use the repo-owned `apps/api/vercel.json` config, which runs `pnpm run build:vercel`. This keeps the deployment in direct mode and avoids building the standalone worker application.
+- Do not set the Vercel root to `apps/api/public/dashboard`; that only deploys the nested SPA package and bypasses the NestJS API entrypoint.
 - Run the release gate in `docs/operations/release-checklist.md` before deployment.
 
 ## Integrated dashboard
