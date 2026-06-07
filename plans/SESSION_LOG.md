@@ -2858,3 +2858,44 @@ Start from `plans/vercel-deployment-shape-fix/review.md`. The codebase is ready 
 ### Resume instructions
 
 Start from `plans/vercel-domain-shared-build-fix/review.md`. The next Vercel build should show `@ecommerce/domain-shared` building before the dashboard and API compile steps.
+
+---
+
+## Session: 2026-06-07 - Vercel Nest Entrypoint Detection Fix
+
+### What was done
+
+- Re-read `plans/context.md`, `plans/SESSION_LOG.md`, and the current Vercel deploy-fix state before editing.
+- Traced the latest Vercel failure to static NestJS entrypoint detection: Vercel found `src/main.ts`, but the file did not directly import a NestJS package because the real bootstrap lives in `src/bootstrap/create-api-application.ts`.
+- Created `plans/vercel-nest-entrypoint-detection-fix/` with plan, tasks, and context files.
+- Updated `apps/api/src/main.ts` to directly import `NestFactory` from `@nestjs/core` for Vercel detection while preserving the existing `createApiApplication()` runtime path.
+
+### Decisions made
+
+- Keep the shared bootstrap architecture and add only a detector-facing import in `main.ts`. Reason: tests, OpenAPI generation, and runtime startup already depend on `createApiApplication()` as the common app factory.
+
+### Files changed
+
+- `apps/api/src/main.ts` - added direct `@nestjs/core` import and detector comment
+- `plans/vercel-nest-entrypoint-detection-fix/plan.md` - added feature plan
+- `plans/vercel-nest-entrypoint-detection-fix/tasks.md` - tracked and closed task list
+- `plans/vercel-nest-entrypoint-detection-fix/context.md` - recorded source inputs and scope
+- `plans/vercel-nest-entrypoint-detection-fix/review.md` - recorded root cause, fix, and verification
+- `plans/context.md` - updated active feature/status
+- `plans/SESSION_LOG.md` - appended this handoff entry
+
+### Verification
+
+- `pnpm.cmd --filter @ecommerce/api typecheck` - passed
+- `pnpm.cmd --filter @ecommerce/api build` - passed
+
+### State at end of session
+
+- Active feature: `vercel-nest-entrypoint-detection-fix`
+- Last completed task: Vercel-detectable NestJS import added to API entrypoint and verified locally
+- Next task: Redeploy on Vercel and inspect the next log
+- Blockers: none for the reported entrypoint detection error
+
+### Resume instructions
+
+Start from `plans/vercel-nest-entrypoint-detection-fix/review.md`. The next Vercel build should progress past the `No entrypoint found which imports nestjs` detector error.

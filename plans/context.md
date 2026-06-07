@@ -6,7 +6,7 @@ Build a reusable, production-grade headless e-commerce backend API for a single 
 
 ## Current Status
 
-- Active feature: `vercel-domain-shared-build-fix`
+- Active feature: `vercel-nest-entrypoint-detection-fix`
 - Overall health: green
 - Last updated: 2026-06-07
 
@@ -57,6 +57,7 @@ Build a reusable, production-grade headless e-commerce backend API for a single 
 - `vercel-prisma-build-fix`: Complete. API and worker build scripts now regenerate Prisma explicitly before TypeScript compilation so clean pnpm/Vercel installs do not depend on skipped dependency build scripts for generated Prisma client types.
 - `vercel-deployment-shape-fix`: Complete. The repository now declares `apps/api` as the intended Vercel app root through `apps/api/vercel.json`, and the standalone `build:vercel` path builds the embedded dashboard before compiling the NestJS API for a single direct-mode deployment.
 - `vercel-domain-shared-build-fix`: Complete. The API-root Vercel build now compiles `@ecommerce/domain-shared` before dashboard/API steps so clean installs have the shared package declarations needed by API TypeScript imports.
+- `vercel-nest-entrypoint-detection-fix`: Complete. `apps/api/src/main.ts` now directly imports `@nestjs/core` so Vercel's NestJS detector recognizes the entrypoint while the existing shared bootstrap remains unchanged.
 
 ## Known Issues / Tech Debt
 
