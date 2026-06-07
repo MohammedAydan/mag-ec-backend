@@ -6,7 +6,7 @@ Build a reusable, production-grade headless e-commerce backend API for a single 
 
 ## Current Status
 
-- Active feature: `api-reference-handbook`
+- Active feature: `vercel-prisma-build-fix`
 - Overall health: green
 - Last updated: 2026-06-07
 
@@ -54,6 +54,7 @@ Build a reusable, production-grade headless e-commerce backend API for a single 
 - `security-report`: Complete. Source-grounded security report saved at `docs/security/security-report-2026-06-01.md`; it identifies high-priority remediation around notification response serialization, seed/config fail-closed behavior, duplicate checkout prevention, refund permissions, and admin token freshness.
 - `security-remediation`: Complete. All 21 findings from SEC-001 through SEC-021 remediated. Notification sensitive-data exposure fixed; seed/config fail-closed behavior enforced; atomic checkout already confirmed; refund permission split with policy caps; admin token freshness already in place; customer guard applied; docs/SPA secured; maintenance hardened; header/DTO validation tightened; Stripe reconciliation audit logged; promotion race safety confirmed; audit gate lowered; Docker/CI hardened; customer object existence normalized; media upload checksum enforced.
 - `api-reference-handbook`: Complete. Added `docs/api/api-reference-handbook.md`, a contract-driven API handbook covering the current 139 OpenAPI operations, request and response details, usage conventions, and example storefront/admin page mappings.
+- `vercel-prisma-build-fix`: Complete. API and worker build scripts now regenerate Prisma explicitly before TypeScript compilation so clean pnpm/Vercel installs do not depend on skipped dependency build scripts for generated Prisma client types.
 
 ## Known Issues / Tech Debt
 

@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "tsc -p tsconfig.build.json && node scripts/copy-dashboard-assets.mjs",
+    "build": "pnpm --dir ../.. prisma:generate && tsc -p tsconfig.build.json && node scripts/copy-dashboard-assets.mjs",
     "dev": "tsx watch src/main.ts",
     "start": "node --require ../../node_modules/.pnpm/dotenv*/node_modules/dotenv/config.js ../../dist/apps/api/src/main.js",
     "lint": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",
@@ -11,7 +11,7 @@
     "test": "jest --config test/jest.unit.config.ts",
     "test:integration": "jest --config test/jest.integration.config.ts",
     "test:e2e": "jest --config test/jest.e2e.config.ts",
-    "openapi:generate": "tsx src/scripts/generate-metadata.ts && tsc -p tsconfig.build.json && tsx ../../dist/apps/api/src/scripts/generate-openapi.js"
+    "openapi:generate": "pnpm --dir ../.. prisma:generate && tsx src/scripts/generate-metadata.ts && tsc -p tsconfig.build.json && tsx ../../dist/apps/api/src/scripts/generate-openapi.js"
   },
   "dependencies": {
     "@ecommerce/domain-shared": "workspace:*",

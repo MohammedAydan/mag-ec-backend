@@ -2719,3 +2719,49 @@ Start from plans/context.md and plans/SESSION_LOG.md. Dashboard i18n is complete
 ### Resume instructions
 
 Open `docs/api/api-reference-handbook.md` first. If more API documentation work is requested, treat `packages/contracts/openapi/openapi.json` as canonical and refresh the handbook from that contract before editing narrative details.
+
+---
+
+## Session: 2026-06-07 - Vercel Prisma Build Fix
+
+### What was done
+
+- Re-read `plans/context.md`, `plans/SESSION_LOG.md`, and the active feature context before changing build behavior.
+- Created `plans/vercel-prisma-build-fix/` with plan, tasks, and context files for the deploy failure.
+- Traced the provided Vercel build log to a clean pnpm 10 install where dependency build scripts were ignored, leaving `@prisma/client` without generated enums and model delegates during API compilation.
+- Hardened `@ecommerce/api` and `@ecommerce/worker` build scripts to run `pnpm --dir ../.. prisma:generate` before TypeScript compilation.
+- Hardened `@ecommerce/api` OpenAPI generation to regenerate Prisma before contract compilation as well.
+- Verified the API and worker package builds now succeed with explicit Prisma generation in the command path.
+
+### Decisions made
+
+- Fix the deploy break in repo-owned build scripts instead of relying on pnpm install-script approvals. Reason: Vercel clean installs may keep skipping dependency build scripts, while explicit `prisma generate` in the build path is deterministic and checkout-owned.
+- Apply the same hardening to the worker and OpenAPI build paths. Reason: they also compile against `@prisma/client` and should not depend on a previously generated local state.
+
+### Files changed
+
+- `apps/api/package.json` - prepend Prisma generation to `build` and `openapi:generate`
+- `apps/worker/package.json` - prepend Prisma generation to `build`
+- `plans/vercel-prisma-build-fix/plan.md` - added feature plan
+- `plans/vercel-prisma-build-fix/tasks.md` - tracked and closed the task list
+- `plans/vercel-prisma-build-fix/context.md` - recorded scope and source inputs
+- `plans/vercel-prisma-build-fix/review.md` - recorded root cause, fix, and verification
+- `plans/context.md` - updated active feature and feature inventory
+- `plans/SESSION_LOG.md` - appended this handoff entry
+
+### Verification
+
+- `pnpm.cmd --filter @ecommerce/api build` - passed
+- `pnpm.cmd --filter @ecommerce/worker build` - passed
+- `pnpm.cmd build:direct` - failed before the API step due a separate local dashboard Vite/Tailwind native binary load issue; this is distinct from the Vercel Prisma compile failure because the provided Vercel log already showed the dashboard build succeeding
+
+### State at end of session
+
+- Active feature: `vercel-prisma-build-fix`
+- Last completed task: Explicit Prisma generation added to build-time compile paths and verified for API plus worker
+- Next task: Redeploy on Vercel and confirm the API compile clears; optional follow-up only if you want to silence pnpm ignored-build warnings via `allowBuilds`
+- Blockers: none for the Prisma deploy break; local full-workspace build still has an unrelated dashboard native binary issue
+
+### Resume instructions
+
+Start from `plans/vercel-prisma-build-fix/review.md`. The deploy-facing Prisma compile fix is in place; next action is a Vercel redeploy, not more schema or service edits unless a new build log shows a different blocker.
