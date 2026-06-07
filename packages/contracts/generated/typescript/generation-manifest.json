@@ -1,0 +1,17 @@
+{
+  "generatedBy": "openapi-generator-cli",
+  "generatorName": "typescript-fetch",
+  "generatorVersion": "7.22.0",
+  "cliWrapperVersion": "2.34.0",
+  "dockerImage": "openapitools/openapi-generator-cli:v7.22.0",
+  "engine": "npx",
+  "inputPath": "packages/contracts/openapi/openapi.json",
+  "configPath": "packages/contracts/openapi/typescript-fetch-config.yaml",
+  "outputPath": "packages/contracts/generated/typescript",
+  "inputSha256": "360d7cf6558c37c8ee834015e8524b185ab07a9b4c09ed9c757c394a70c5fce7",
+  "configSha256": "a03d8d0f770b0be4bb1c8ecfa74a393a49db0c144589d756c458c1a60fb00769",
+  "packageName": "@mag/generated-api-client",
+  "packageVersion": "0.1.0",
+  "operationCount": 139,
+  "componentSchemaCount": 216
+}

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Inject, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Inject, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -110,6 +110,7 @@ export class AdminAccessController {
   }
 
   @Post('staff/invitations')
+  @HttpCode(HttpStatus.CREATED)
   @RequirePermissions(['identity.write'])
   @ApiOperation({ summary: 'Create a staff member invitation' })
   @ApiCreatedResponse({ type: StaffSummaryDto, description: 'Staff invitation created' })

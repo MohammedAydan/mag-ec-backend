@@ -1,0 +1,63 @@
+{
+  "generatedAt": "2026-06-06T18:02:13.504Z",
+  "results": [
+    {
+      "package": "typescript",
+      "label": "TypeScript fetch SDK",
+      "outputPath": "packages/contracts/generated/typescript",
+      "passed": true,
+      "checks": [
+        {
+          "name": "output directory exists",
+          "passed": true,
+          "details": "4ms"
+        },
+        {
+          "name": "required generated files exist",
+          "passed": true,
+          "details": "2ms"
+        },
+        {
+          "name": "OpenAPI Generator version matches pinned version",
+          "passed": true,
+          "details": "1ms"
+        },
+        {
+          "name": "OpenAPI Generator FILES manifest is not empty",
+          "passed": true,
+          "details": "0ms"
+        },
+        {
+          "name": "regeneration drift check",
+          "passed": true,
+          "details": "106038ms"
+        },
+        {
+          "name": "package.json is valid",
+          "passed": true,
+          "details": "0ms"
+        },
+        {
+          "name": "pnpm install",
+          "passed": true,
+          "details": "576ms"
+        },
+        {
+          "name": "TypeScript build/compile",
+          "passed": true,
+          "details": "7018ms"
+        },
+        {
+          "name": "generated SDK root import smoke compile",
+          "passed": true,
+          "details": "2193ms"
+        },
+        {
+          "name": "package can be packed",
+          "passed": true,
+          "details": "7499ms"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,149 @@
+{
+  "total": 28,
+  "passed": 28,
+  "failed": 0,
+  "skipped": 0,
+  "result": "PASS",
+  "checks": [
+    {
+      "name": "GET /health/liveness → 200",
+      "status": "pass",
+      "detail": "status=200"
+    },
+    {
+      "name": "GET /health/readiness → 200",
+      "status": "pass",
+      "detail": "status=200 keys={status,info,error,details}"
+    },
+    {
+      "name": "POST /auth/login → 200 + tokens",
+      "status": "pass",
+      "detail": "Token acquired: yes (917 chars)"
+    },
+    {
+      "name": "GET /auth/me → 200",
+      "status": "pass",
+      "detail": "email=admin@example.com"
+    },
+    {
+      "name": "POST /auth/refresh → 200",
+      "status": "pass",
+      "detail": "Token refreshed: yes"
+    },
+    {
+      "name": "GET /pricing/admin/settings/behavior → 200",
+      "status": "pass",
+      "detail": "status=200"
+    },
+    {
+      "name": "GET /pricing/admin/settings/currency → 200",
+      "status": "pass",
+      "detail": "status=200"
+    },
+    {
+      "name": "GET /pricing/admin/tax-classes/standard → 200",
+      "status": "pass",
+      "detail": "status=200"
+    },
+    {
+      "name": "GET /pricing/admin/tax-classes/nonexistent → 404",
+      "status": "pass",
+      "detail": "status=404"
+    },
+    {
+      "name": "GET /pricing/admin/shipping-zones/domestic → 200",
+      "status": "pass",
+      "detail": "status=200"
+    },
+    {
+      "name": "POST /promotions/admin → 201",
+      "status": "pass",
+      "detail": "status=201 id=cmq34e1n1000lug1ipm3glxm0"
+    },
+    {
+      "name": "GET /promotions/admin — created promo in list",
+      "status": "pass",
+      "detail": "found=true"
+    },
+    {
+      "name": "POST /content/admin/pages → 201",
+      "status": "pass",
+      "detail": "status=201 key=smoke-test-page-mq34e1dd"
+    },
+    {
+      "name": "GET /content/admin/pages — created page in list",
+      "status": "pass",
+      "detail": "found=true"
+    },
+    {
+      "name": "POST /catalog/admin/products (no variants) → 201 DRAFT",
+      "status": "pass",
+      "detail": "status=201 id=cmq34e1pg000oug1ighl557aa variants=[len=0]"
+    },
+    {
+      "name": "POST /catalog/admin/products/:id/publish (no variants) → 400",
+      "status": "pass",
+      "detail": "status=400 msg=The product brand must be published before publishing a prod"
+    },
+    {
+      "name": "POST /identity/admin/staff/invitations → 201 (emailDelivered ok)",
+      "status": "pass",
+      "detail": "status=201 staffId=cmq34e1tc000pug1i3q12mimq staffStatus=INVITED emailDelivered=false"
+    },
+    {
+      "name": "POST /identity/admin/staff/:id/resend-invitation (no body) → success",
+      "status": "pass",
+      "detail": "status=201 invitationSent=true emailDelivered=false"
+    },
+    {
+      "name": "OpenAPI: path /api/v1/pricing/admin/settings/behavior exists",
+      "status": "pass",
+      "detail": "present"
+    },
+    {
+      "name": "OpenAPI: path /api/v1/pricing/admin/settings/currency exists",
+      "status": "pass",
+      "detail": "present"
+    },
+    {
+      "name": "OpenAPI: path /api/v1/pricing/admin/tax-classes/{key} exists",
+      "status": "pass",
+      "detail": "present"
+    },
+    {
+      "name": "OpenAPI: path /api/v1/pricing/admin/shipping-zones/{key} exists",
+      "status": "pass",
+      "detail": "present"
+    },
+    {
+      "name": "OpenAPI: path /api/v1/promotions/admin exists",
+      "status": "pass",
+      "detail": "present"
+    },
+    {
+      "name": "OpenAPI: path /api/v1/content/admin/pages exists",
+      "status": "pass",
+      "detail": "present"
+    },
+    {
+      "name": "OpenAPI: POST /api/v1/promotions/admin documents 201",
+      "status": "pass",
+      "detail": "responses=201,400,401,403"
+    },
+    {
+      "name": "OpenAPI: POST /api/v1/content/admin/pages documents 201",
+      "status": "pass",
+      "detail": "responses=201,400,401,403"
+    },
+    {
+      "name": "OpenAPI: operation count",
+      "status": "pass",
+      "detail": "ops=145"
+    },
+    {
+      "name": "POST /auth/logout → 200/201",
+      "status": "pass",
+      "detail": "status=204"
+    }
+  ]
+}

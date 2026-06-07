@@ -45,6 +45,7 @@
     "clients:verify": "tsx packages/contracts/openapi/generate-all-openapi-clients.ts --verify --package-manager=skip",
     "clients:verify:strict": "tsx packages/contracts/openapi/generate-all-openapi-clients.ts --verify --package-manager=pnpm",
     "clients:test": "tsx packages/contracts/openapi/test-generated-packages.ts --all --package-manager=pnpm",
+    "release:smoke": "tsx scripts/release-smoke-test.ts",
     "openapi:clients": "pnpm openapi:contract:verify && pnpm clients:generate && pnpm clients:test",
     "openapi:clients:ci": "pnpm openapi:contract:verify && pnpm clients:verify && pnpm clients:test",
     "security:audit": "pnpm audit --prod --audit-level moderate",
@@ -55,6 +56,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.60.0",
     "@types/node": "^25.9.1",
     "dotenv": "^17.4.2",
     "eslint": "^10.4.0",

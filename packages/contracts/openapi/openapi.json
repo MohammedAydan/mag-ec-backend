@@ -868,6 +868,50 @@
       }
     },
     "/api/v1/promotions/admin": {
+      "post": {
+        "operationId": "PromotionsAdmin_createPromotion",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpsertPromotionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Promotion created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body or parameters"
+          },
+          "401": {
+            "description": "Missing or invalid access token"
+          },
+          "403": {
+            "description": "Insufficient permissions"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a new promotion (auto-generates key)",
+        "tags": [
+          "Promotions Admin"
+        ]
+      },
       "get": {
         "operationId": "PromotionsAdmin_listPromotions",
         "parameters": [],
@@ -2824,6 +2868,37 @@
       }
     },
     "/api/v1/pricing/admin/settings/currency": {
+      "get": {
+        "operationId": "PricingAdmin_getStoreCurrency",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Current store currency settings",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreSettingResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid access token"
+          },
+          "403": {
+            "description": "Insufficient permissions"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get the current store currency settings",
+        "tags": [
+          "Pricing Admin"
+        ]
+      },
       "put": {
         "operationId": "PricingAdmin_updateStoreCurrency",
         "parameters": [],
@@ -2870,6 +2945,37 @@
       }
     },
     "/api/v1/pricing/admin/settings/behavior": {
+      "get": {
+        "operationId": "PricingAdmin_getPricingBehavior",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Current pricing behavior settings",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreSettingResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid access token"
+          },
+          "403": {
+            "description": "Insufficient permissions"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get the current pricing behavior settings",
+        "tags": [
+          "Pricing Admin"
+        ]
+      },
       "put": {
         "operationId": "PricingAdmin_updatePricingBehavior",
         "parameters": [],
@@ -2972,6 +3078,50 @@
       }
     },
     "/api/v1/pricing/admin/tax-classes/{key}": {
+      "get": {
+        "operationId": "PricingAdmin_getTaxClass",
+        "parameters": [
+          {
+            "name": "key",
+            "required": true,
+            "in": "path",
+            "description": "Unique key of the tax class",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tax class found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaxClassResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid access token"
+          },
+          "403": {
+            "description": "Insufficient permissions"
+          },
+          "404": {
+            "description": "Tax class not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get a tax class by key",
+        "tags": [
+          "Pricing Admin"
+        ]
+      },
       "put": {
         "operationId": "PricingAdmin_upsertTaxClass",
         "parameters": [
@@ -3093,6 +3243,50 @@
       }
     },
     "/api/v1/pricing/admin/shipping-zones/{key}": {
+      "get": {
+        "operationId": "PricingAdmin_getShippingZone",
+        "parameters": [
+          {
+            "name": "key",
+            "required": true,
+            "in": "path",
+            "description": "Unique key of the shipping zone",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Shipping zone found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShippingZoneResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid access token"
+          },
+          "403": {
+            "description": "Insufficient permissions"
+          },
+          "404": {
+            "description": "Shipping zone not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get a shipping zone by key",
+        "tags": [
+          "Pricing Admin"
+        ]
+      },
       "put": {
         "operationId": "PricingAdmin_upsertShippingZone",
         "parameters": [
@@ -6700,6 +6894,50 @@
         "tags": [
           "Content Admin"
         ]
+      },
+      "post": {
+        "operationId": "AdminContent_createPage",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpsertContentPageDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Page created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContentPageResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body or parameters"
+          },
+          "401": {
+            "description": "Missing or invalid access token"
+          },
+          "403": {
+            "description": "Insufficient permissions"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a new content page",
+        "tags": [
+          "Content Admin"
+        ]
       }
     },
     "/api/v1/content/admin/legal-references": {
@@ -7397,6 +7635,9 @@
           },
           "status": {
             "type": "string"
+          },
+          "emailDelivered": {
+            "type": "boolean"
           }
         },
         "required": [
@@ -7468,6 +7709,9 @@
         "type": "object",
         "properties": {
           "invitationSent": {
+            "type": "boolean"
+          },
+          "emailDelivered": {
             "type": "boolean"
           }
         },
@@ -7558,105 +7802,6 @@
           "email",
           "displayName",
           "status"
-        ]
-      },
-      "PromotionResponseDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "key": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string",
-            "nullable": true
-          },
-          "status": {
-            "type": "string"
-          },
-          "trigger": {
-            "type": "string"
-          },
-          "rewardType": {
-            "type": "string"
-          },
-          "currencyCode": {
-            "type": "string",
-            "nullable": true
-          },
-          "fixedAmount": {
-            "type": "number",
-            "nullable": true
-          },
-          "percentageBps": {
-            "type": "number",
-            "nullable": true
-          },
-          "maxDiscountAmount": {
-            "type": "number",
-            "nullable": true
-          },
-          "minSubtotalAmount": {
-            "type": "number",
-            "nullable": true
-          },
-          "isCombinable": {
-            "type": "boolean"
-          },
-          "priority": {
-            "type": "number"
-          },
-          "startsAt": {
-            "type": "string",
-            "nullable": true
-          },
-          "endsAt": {
-            "type": "string",
-            "nullable": true
-          },
-          "totalUsageLimit": {
-            "type": "number",
-            "nullable": true
-          },
-          "perCustomerUsageLimit": {
-            "type": "number",
-            "nullable": true
-          },
-          "maxApplicationsPerOrder": {
-            "type": "number"
-          },
-          "reservedCount": {
-            "type": "number"
-          },
-          "redeemedCount": {
-            "type": "number"
-          },
-          "createdAt": {
-            "type": "string"
-          },
-          "updatedAt": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "key",
-          "name",
-          "status",
-          "trigger",
-          "rewardType",
-          "isCombinable",
-          "priority",
-          "maxApplicationsPerOrder",
-          "reservedCount",
-          "redeemedCount",
-          "createdAt",
-          "updatedAt"
         ]
       },
       "UpsertPromotionDto": {
@@ -7771,6 +7916,105 @@
           "status",
           "trigger",
           "rewardType"
+        ]
+      },
+      "PromotionResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "key": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string"
+          },
+          "trigger": {
+            "type": "string"
+          },
+          "rewardType": {
+            "type": "string"
+          },
+          "currencyCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "fixedAmount": {
+            "type": "number",
+            "nullable": true
+          },
+          "percentageBps": {
+            "type": "number",
+            "nullable": true
+          },
+          "maxDiscountAmount": {
+            "type": "number",
+            "nullable": true
+          },
+          "minSubtotalAmount": {
+            "type": "number",
+            "nullable": true
+          },
+          "isCombinable": {
+            "type": "boolean"
+          },
+          "priority": {
+            "type": "number"
+          },
+          "startsAt": {
+            "type": "string",
+            "nullable": true
+          },
+          "endsAt": {
+            "type": "string",
+            "nullable": true
+          },
+          "totalUsageLimit": {
+            "type": "number",
+            "nullable": true
+          },
+          "perCustomerUsageLimit": {
+            "type": "number",
+            "nullable": true
+          },
+          "maxApplicationsPerOrder": {
+            "type": "number"
+          },
+          "reservedCount": {
+            "type": "number"
+          },
+          "redeemedCount": {
+            "type": "number"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "key",
+          "name",
+          "status",
+          "trigger",
+          "rewardType",
+          "isCombinable",
+          "priority",
+          "maxApplicationsPerOrder",
+          "reservedCount",
+          "redeemedCount",
+          "createdAt",
+          "updatedAt"
         ]
       },
       "UpsertCouponDto": {
@@ -8882,6 +9126,7 @@
             }
           },
           "variants": {
+            "description": "Product variants. Required before the product can be published.",
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ProductVariantDto"
@@ -8891,8 +9136,7 @@
         "required": [
           "productTypeId",
           "sku",
-          "translations",
-          "variants"
+          "translations"
         ]
       },
       "UpdateProductDto": {
@@ -9406,32 +9650,6 @@
           "pageSize"
         ]
       },
-      "UpdateStoreCurrencyDto": {
-        "type": "object",
-        "properties": {
-          "currencyCode": {
-            "type": "string",
-            "maxLength": 3,
-            "description": "ISO 4217 currency code (e.g. USD)"
-          },
-          "symbol": {
-            "type": "string",
-            "maxLength": 8,
-            "description": "Currency symbol (e.g. $)"
-          },
-          "minorUnit": {
-            "type": "number",
-            "minimum": 0,
-            "maximum": 4,
-            "description": "Number of decimal minor units (e.g. 2 for cents)"
-          }
-        },
-        "required": [
-          "currencyCode",
-          "symbol",
-          "minorUnit"
-        ]
-      },
       "StoreSettingResponseDto": {
         "type": "object",
         "properties": {
@@ -9462,6 +9680,32 @@
           "value",
           "isPublic",
           "updatedAt"
+        ]
+      },
+      "UpdateStoreCurrencyDto": {
+        "type": "object",
+        "properties": {
+          "currencyCode": {
+            "type": "string",
+            "maxLength": 3,
+            "description": "ISO 4217 currency code (e.g. USD)"
+          },
+          "symbol": {
+            "type": "string",
+            "maxLength": 8,
+            "description": "Currency symbol (e.g. $)"
+          },
+          "minorUnit": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 4,
+            "description": "Number of decimal minor units (e.g. 2 for cents)"
+          }
+        },
+        "required": [
+          "currencyCode",
+          "symbol",
+          "minorUnit"
         ]
       },
       "UpdatePricingBehaviorDto": {
@@ -9567,23 +9811,6 @@
           "updatedAt"
         ]
       },
-      "UpsertTaxClassDto": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "maxLength": 64,
-            "description": "Display name of the tax class"
-          },
-          "isDefault": {
-            "type": "boolean",
-            "description": "Whether this class is the store default"
-          }
-        },
-        "required": [
-          "name"
-        ]
-      },
       "TaxClassResponseDto": {
         "type": "object",
         "properties": {
@@ -9609,6 +9836,23 @@
           "name",
           "isDefault",
           "updatedAt"
+        ]
+      },
+      "UpsertTaxClassDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 64,
+            "description": "Display name of the tax class"
+          },
+          "isDefault": {
+            "type": "boolean",
+            "description": "Whether this class is the store default"
+          }
+        },
+        "required": [
+          "name"
         ]
       },
       "UpsertManualTaxRateDto": {
@@ -9660,32 +9904,6 @@
           "updatedAt"
         ]
       },
-      "UpsertShippingZoneDto": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "maxLength": 64,
-            "description": "Display name of the shipping zone"
-          },
-          "isActive": {
-            "type": "boolean",
-            "description": "Whether this zone is active for checkout"
-          },
-          "countryCodes": {
-            "minItems": 1,
-            "description": "ISO 3166-1 alpha-2 country codes in this zone",
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        },
-        "required": [
-          "name",
-          "countryCodes"
-        ]
-      },
       "ShippingZoneResponseDto": {
         "type": "object",
         "properties": {
@@ -9718,6 +9936,32 @@
           "isActive",
           "countryCodes",
           "updatedAt"
+        ]
+      },
+      "UpsertShippingZoneDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 64,
+            "description": "Display name of the shipping zone"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether this zone is active for checkout"
+          },
+          "countryCodes": {
+            "minItems": 1,
+            "description": "ISO 3166-1 alpha-2 country codes in this zone",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "countryCodes"
         ]
       },
       "UpsertShippingMethodDto": {

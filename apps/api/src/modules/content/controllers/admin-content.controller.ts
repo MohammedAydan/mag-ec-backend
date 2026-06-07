@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Inject, Param, Post, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Inject, Param, Post, Put, UseGuards } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -50,6 +50,7 @@ export class AdminContentController {
   }
 
   @Post('pages')
+  @HttpCode(HttpStatus.CREATED)
   @RequirePermissions(['content.write'])
   @ApiOperation({ summary: 'Create a new content page' })
   @ApiCreatedResponse({ type: ContentPageResponseDto, description: 'Page created' })

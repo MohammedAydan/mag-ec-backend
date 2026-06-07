@@ -2626,7 +2626,7 @@ Open `plans/openapi-generator-command-hardening/review.md`. The generated SDK pa
 
 ---
 
-## Session: 2026-06-06 (Deep i18n Migration — All Dashboard Pages)
+## Session: 2026-06-06 (Deep i18n Migration ï¿½ All Dashboard Pages)
 
 ### What was done
 
@@ -2650,19 +2650,19 @@ Open `plans/openapi-generator-command-hardening/review.md`. The generated SDK pa
 
 ### Files changed
 
-- pps/api/public/dashboard/src/pages/SystemPage.tsx — 15+ hardcoded strings ? 	() calls
-- pps/api/public/dashboard/src/pages/ReportsPage.tsx — 12+ hardcoded strings ? 	() calls
-- pps/api/public/dashboard/src/pages/TaxonomyPage.tsx — function signature changes + all hardcoded strings ? 	() calls; removed duplicate TAXONOMY_TABS
-- pps/api/public/dashboard/src/pages/StaffPage.tsx — fixed extra } in JSX expression
-- pps/api/public/dashboard/src/locales/en.json — added form.* (7 keys) + taxonomy.create + taxonomy.createGenericDesc
-- pps/api/public/dashboard/src/locales/ar.json — added form.* Arabic translations + taxonomy.create + taxonomy.createGenericDesc
+- pps/api/public/dashboard/src/pages/SystemPage.tsx ï¿½ 15+ hardcoded strings ? 	() calls
+- pps/api/public/dashboard/src/pages/ReportsPage.tsx ï¿½ 12+ hardcoded strings ? 	() calls
+- pps/api/public/dashboard/src/pages/TaxonomyPage.tsx ï¿½ function signature changes + all hardcoded strings ? 	() calls; removed duplicate TAXONOMY_TABS
+- pps/api/public/dashboard/src/pages/StaffPage.tsx ï¿½ fixed extra } in JSX expression
+- pps/api/public/dashboard/src/locales/en.json ï¿½ added form.* (7 keys) + taxonomy.create + taxonomy.createGenericDesc
+- pps/api/public/dashboard/src/locales/ar.json ï¿½ added form.* Arabic translations + taxonomy.create + taxonomy.createGenericDesc
 
 ### Verification
 
 - 
-px tsc -b — passed, 0 errors
+px tsc -b ï¿½ passed, 0 errors
 - 
-px vite build — passed, built in 9.20s (667.79 kB JS, 43.94 kB CSS)
+px vite build ï¿½ passed, built in 9.20s (667.79 kB JS, 43.94 kB CSS)
 
 ### State at end of session
 

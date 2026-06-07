@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Inject, Param, Post, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Inject, Param, Post, Put, UseGuards } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -33,6 +33,7 @@ export class PromotionsAdminController {
   constructor(@Inject(PromotionAdminService) private readonly promotionAdminService: PromotionAdminService) {}
 
   @Post()
+  @HttpCode(HttpStatus.CREATED)
   @RequirePermissions(['promotions.write'])
   @ApiOperation({ summary: 'Create a new promotion (auto-generates key)' })
   @ApiCreatedResponse({ type: PromotionResponseDto, description: 'Promotion created' })

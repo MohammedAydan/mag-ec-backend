@@ -1,0 +1,20 @@
+{
+  "generator": "dart-dio",
+  "generatorVersion": "7.22.0",
+  "cliWrapperVersion": "2.34.0",
+  "engine": "npx",
+  "inputPath": "D:\\Projects\\NodeJS-Projects\\e-commerce-api-d\\packages\\contracts\\openapi\\openapi.json",
+  "configPath": "D:\\Projects\\NodeJS-Projects\\e-commerce-api-d\\packages\\contracts\\openapi\\dart-dio-config.yaml",
+  "outputPath": "D:\\Projects\\NodeJS-Projects\\e-commerce-api-d\\packages\\contracts\\generated\\.flutter-staging-ulKfCf",
+  "specSha256": "7e74f4593fcba45e98b1dcd45dfb39b10b2b3e0b877e147936862e6d7d71738e",
+  "configSha256": "ec7946feeee1bffd05887e86af8710bb7423b30b09ef15763a8db36a2d1cbfd1",
+  "pubName": "mag_api_client",
+  "pubVersion": "0.1.0",
+  "audit": {
+    "operations": 139,
+    "requestBodies": 59,
+    "typedSuccessResponses": 138,
+    "errors": 0,
+    "warnings": 27
+  }
+}
