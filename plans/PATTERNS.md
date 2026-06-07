@@ -2,10 +2,10 @@
 
 ## Pattern: Embedded SPA Source vs Built Asset Boundary [feature: vercel-postbuild-type-scan-fix]
 
-- **Problem:** A nested frontend package under a backend app root can be built successfully, then later break serverless function packaging when the platform scans frontend `.tsx` source with backend TypeScript settings.
-- **Solution:** Keep the frontend build output in a static asset folder included in the function bundle, and explicitly exclude the frontend source package from backend tsconfigs and Vercel function packaging.
-- **Example:** `apps/api/vercel.json` includes `public/admin/**` and excludes `public/dashboard/**` for the `src/main.ts` Nest function.
-- **Gotchas:** Build-time exclusions must not prevent the dashboard package from compiling; function packaging rules apply after the dashboard build has already produced static assets.
+- **Problem:** A nested frontend package under a backend app root can be built successfully, then later break serverless packaging when the platform scans frontend `.tsx` source with backend TypeScript settings.
+- **Solution:** Keep the frontend build output in a static asset folder, exclude the source package from backend tsconfigs, and prune the frontend source only after the deployment build has emitted the static assets.
+- **Example:** `apps/api/scripts/prune-vercel-dashboard-source.mjs` removes `public/dashboard` only when `VERCEL=1`, after `@atelier/admin-dashboard` has built `public/admin`.
+- **Gotchas:** Do not use `vercel.json.functions` for `src/main.ts`; Vercel rejects that pattern because it is not under an `api` directory. Build-time pruning must run after the dashboard package has compiled.
 
 ---
 

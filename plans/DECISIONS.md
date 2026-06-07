@@ -203,8 +203,8 @@
 - **Date:** 2026-06-07
 - **Status:** Accepted
 - **Context:** Vercel's NestJS framework support packages a detected Nest entrypoint as a single Vercel Function. This repository embeds a dashboard source package under `apps/api/public/dashboard`, which must build before deployment but must not be typechecked or bundled as API source.
-- **Decision:** Keep `apps/api` as the Vercel project root, deploy `src/main.ts` as the single direct-mode NestJS function, include built `public/admin/**` assets, and exclude `public/dashboard/**` source from the function bundle.
-- **Alternatives considered:** Pointing Vercel at the dashboard package, moving the dashboard source outside `apps/api`, or relying only on TypeScript `exclude` settings.
-- **Consequences:** The deployment remains a single same-origin API plus `/admin` app, while Vercel's postbuild function scan avoids the nested dashboard TypeScript source. Future dashboard source moves must update the Vercel packaging rules and this ADR.
+- **Decision:** Keep `apps/api` as the Vercel project root, deploy `src/main.ts` as the single direct-mode NestJS function, build dashboard assets into `public/admin`, and prune `public/dashboard` only at the end of Vercel's ephemeral build.
+- **Alternatives considered:** Pointing Vercel at the dashboard package, moving the dashboard source outside `apps/api`, relying only on TypeScript `exclude` settings, or using `vercel.json.functions` for `src/main.ts`.
+- **Consequences:** The deployment remains a single same-origin API plus `/admin` app, while Vercel's postbuild scan avoids the nested dashboard TypeScript source. `vercel.json.functions` must not be used for `src/main.ts` because Vercel only accepts those patterns for Serverless Functions inside an `api` directory.
 
 ---

@@ -66,11 +66,12 @@ For this repo, the intended Vercel flow is:
 5. Compile the NestJS API from `apps/api/src/main.ts`
 6. Serve both `/api/v1/**` and `/admin` from the same Vercel deployment
 
-`apps/api/vercel.json` also pins the Nest function packaging boundary:
+`apps/api` also prunes dashboard source after the Vercel build has produced the runtime assets:
 
 - `src/main.ts` is the single Vercel Function entrypoint.
-- `public/admin/**` is included so the built dashboard can be served at `/admin`.
-- `public/dashboard/**` is excluded from the function bundle because it is dashboard source code that has its own Vite/React TypeScript configuration and should not be compiled as API code.
+- `public/admin/**` is kept so the built dashboard can be served at `/admin`.
+- `public/dashboard/**` is removed only in Vercel's ephemeral build environment after the dashboard has built, because it is source code with its own Vite/React TypeScript configuration and should not be compiled as API code.
+- Do not add a `functions` entry for `src/main.ts` in `vercel.json`; Vercel rejects that pattern because `functions` configuration only matches Serverless Functions under an `api` directory.
 
 ## Queue mode — optional scalable execution
 

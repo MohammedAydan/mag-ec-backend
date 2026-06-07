@@ -2948,3 +2948,54 @@ Start from `plans/vercel-nest-entrypoint-detection-fix/review.md`. The next Verc
 ### Resume instructions
 
 Start from `plans/vercel-postbuild-type-scan-fix/review.md`. The next Vercel build should progress past `prisma-schema-guard.service.ts(79,11)` and should not compile `public/dashboard/src/**/*.tsx` as API code.
+
+---
+
+## Session: 2026-06-07 - Vercel Invalid Functions Config Fix
+
+### What was done
+
+- Re-read `plans/context.md`, `plans/SESSION_LOG.md`, and the active Vercel postbuild scan review before editing.
+- Traced the latest Vercel failure to the invalid `functions.src/main.ts` config, which Vercel rejects because `functions` patterns only match Serverless Functions inside an `api` directory.
+- Created `plans/vercel-invalid-functions-config-fix/` with plan, tasks, context, and review files.
+- Removed the unsupported `functions` block from `apps/api/vercel.json`.
+- Added `apps/api/scripts/prune-vercel-dashboard-source.mjs`, gated by `VERCEL=1`, to remove `public/dashboard` only inside Vercel's ephemeral build environment.
+- Updated `apps/api` `build:vercel` to run the prune script after shared package build, dashboard build, API build, Prisma generation, and dashboard asset copy.
+- Corrected operations docs, ADR-019, and the embedded SPA source/built asset pattern to document the build-time prune approach instead of the invalid function packaging approach.
+
+### Decisions made
+
+- Do not use `vercel.json.functions` for the NestJS `src/main.ts` entrypoint. Reason: Vercel's NestJS detector can use `src/main.ts`, but the separate `functions` configuration schema only accepts patterns under an `api` directory.
+- Prune `public/dashboard` at the end of `build:vercel` only when `VERCEL=1`. Reason: the dashboard source is needed for the Vite build, but not after `public/admin` assets are emitted and copied.
+
+### Files changed
+
+- `apps/api/vercel.json` - removed invalid `functions` block
+- `apps/api/package.json` - appended the Vercel-only prune script to `build:vercel`
+- `apps/api/scripts/prune-vercel-dashboard-source.mjs` - added safe Vercel-only dashboard source cleanup
+- `docs/operations/execution-modes-and-serverless.md` - corrected Vercel boundary guidance
+- `plans/DECISIONS.md` - updated ADR-019
+- `plans/PATTERNS.md` - updated embedded SPA source/built asset pattern
+- `plans/vercel-postbuild-type-scan-fix/review.md` - marked the function packaging approach as superseded
+- `plans/vercel-invalid-functions-config-fix/*` - added and closed the feature plan package
+- `plans/context.md` - updated active feature/status
+- `plans/SESSION_LOG.md` - appended this handoff entry
+
+### Verification
+
+- `Get-Content apps/api/vercel.json | ConvertFrom-Json | Out-Null` - passed
+- `node scripts/prune-vercel-dashboard-source.mjs` from `apps/api` - passed and skipped outside Vercel
+- `pnpm.cmd --filter @ecommerce/api typecheck` - passed
+- `pnpm.cmd --filter @ecommerce/api build` - passed
+- `pnpm.cmd --dir apps/api run build:vercel` - reached dashboard build, then failed locally on the known Windows Tailwind oxide native-load issue; Vercel Linux logs already show the dashboard build passes in the deployment environment
+
+### State at end of session
+
+- Active feature: `vercel-invalid-functions-config-fix`
+- Last completed task: Removed invalid Vercel functions config and added Vercel-only dashboard source pruning
+- Next task: Redeploy on Vercel and inspect the next log
+- Blockers: none for the reported unmatched function pattern
+
+### Resume instructions
+
+Start from `plans/vercel-invalid-functions-config-fix/review.md`. The next Vercel build should no longer fail before install with the unmatched `functions` pattern, and the Vercel-only prune step should run after `public/admin` is built.
