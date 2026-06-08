@@ -83,6 +83,9 @@ describe('buildAppConfig', () => {
   it('treats Vercel production as production when NODE_ENV is unset', () => {
     expect(resolveNodeEnv({ VERCEL: '1', VERCEL_ENV: 'production' })).toBe('production');
     expect(resolveNodeEnv({ VERCEL: '1', VERCEL_ENV: 'preview' })).toBe('staging');
+    expect(resolveNodeEnv({ NODE_ENV: 'development', VERCEL: '1', VERCEL_ENV: 'production' })).toBe(
+      'production',
+    );
   });
 
   it('normalizes Vercel production env before validation', () => {
@@ -90,6 +93,7 @@ describe('buildAppConfig', () => {
       normalizeEnvForValidation({
         VERCEL: '1',
         VERCEL_ENV: 'production',
+        NODE_ENV: 'development',
         EXECUTION_MODE: 'direct',
         DATABASE_URL: 'postgresql://user:pass@example.com:5432/ecommerce',
         JWT_ACCESS_SECRET: '""',
@@ -110,7 +114,7 @@ describe('buildAppConfig', () => {
   it('derives stable JWT secrets from maintenance secret for Vercel direct mode', () => {
     process.env.VERCEL = '1';
     process.env.VERCEL_ENV = 'production';
-    delete process.env.NODE_ENV;
+    process.env.NODE_ENV = 'development';
     process.env.EXECUTION_MODE = 'direct';
     process.env.DATABASE_URL = 'postgresql://user:pass@example.com:5432/ecommerce';
     process.env.JWT_ACCESS_SECRET = '""';

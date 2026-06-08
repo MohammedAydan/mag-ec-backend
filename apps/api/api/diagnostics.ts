@@ -152,17 +152,17 @@ function normalizeEnvString(value: string | undefined): string | undefined {
 }
 
 function resolveEffectiveNodeEnv(): string {
-  const nodeEnv = normalizeEnvString(process.env.NODE_ENV);
-  if (nodeEnv) {
-    return nodeEnv;
-  }
-
   const vercelEnv = normalizeEnvString(process.env.VERCEL_ENV);
   if (vercelEnv === 'production') {
     return 'production';
   }
   if (vercelEnv === 'preview') {
     return 'staging';
+  }
+
+  const nodeEnv = normalizeEnvString(process.env.NODE_ENV);
+  if (nodeEnv) {
+    return nodeEnv;
   }
 
   return process.env.VERCEL === '1' ? 'production' : 'development';

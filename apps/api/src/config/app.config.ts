@@ -88,6 +88,14 @@ function resolveExecutionMode(source: NodeJS.ProcessEnv = process.env): Executio
 export function resolveNodeEnv(
   source: Partial<Pick<NodeJS.ProcessEnv, 'NODE_ENV' | 'VERCEL' | 'VERCEL_ENV'>> = process.env,
 ): AppConfig['nodeEnv'] {
+  const vercelEnv = normalizeEnvString(source.VERCEL_ENV);
+  if (vercelEnv === 'production') {
+    return 'production';
+  }
+  if (vercelEnv === 'preview') {
+    return 'staging';
+  }
+
   const nodeEnv = normalizeEnvString(source.NODE_ENV);
   if (
     nodeEnv === 'development' ||
@@ -96,14 +104,6 @@ export function resolveNodeEnv(
     nodeEnv === 'production'
   ) {
     return nodeEnv;
-  }
-
-  const vercelEnv = normalizeEnvString(source.VERCEL_ENV);
-  if (vercelEnv === 'production') {
-    return 'production';
-  }
-  if (vercelEnv === 'preview') {
-    return 'staging';
   }
 
   return source.VERCEL === '1' ? 'production' : 'development';

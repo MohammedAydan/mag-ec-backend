@@ -3135,16 +3135,16 @@ Start from `plans/vercel-runtime-diagnostics/review.md`. After redeploy, check `
 - Re-read `plans/context.md`, `plans/SESSION_LOG.md`, and the active Vercel diagnostics state.
 - Used Vercel MCP to inspect team, project, deployments, runtime logs, project details, `/api/diagnostics`, and `/admin`.
 - Confirmed `/api/diagnostics` returns `200`, while `/admin` still returns `FUNCTION_INVOCATION_FAILED`.
-- Confirmed the deployed runtime reported `nodeEnv=development`, `VERCEL_ENV=production`, direct mode, valid database URL, invalid quoted-empty JWT secrets, and valid maintenance secret.
+- Confirmed the deployed runtime reported `NODE_ENV=development`, `VERCEL_ENV=production`, direct mode, valid database URL, invalid quoted-empty JWT secrets, and valid maintenance secret.
 - Confirmed runtime logs for `/` and `/admin` included `redis://localhost` fragments.
 - Created `plans/vercel-production-env-normalization/` with plan, tasks, context, and review files.
-- Updated API config to normalize Vercel production env, strip quoted-empty env values, avoid Redis localhost defaults in direct mode, and derive stable JWT secrets from a strong maintenance secret when explicit JWT envs are empty.
+- Updated API config to normalize Vercel production env, make `VERCEL_ENV=production` override `NODE_ENV=development`, strip quoted-empty env values, avoid Redis localhost defaults in direct mode, and derive stable JWT secrets from a strong maintenance secret when explicit JWT envs are empty.
 - Updated `/api/diagnostics` to report Vercel env and raw/effective node environment.
 - Added regression tests for the observed Vercel state.
 
 ### Decisions made
 
-- Use `VERCEL_ENV=production` as a production signal when `NODE_ENV` is missing. Reason: Vercel exposes it at runtime and the deployment was otherwise using development defaults.
+- Use `VERCEL_ENV=production` as the authoritative production signal when Vercel also has `NODE_ENV=development`. Reason: Vercel exposes `VERCEL_ENV` at runtime and the deployment was otherwise using development defaults.
 - Derive JWT secrets from the maintenance secret only when explicit JWT values are absent or quoted-empty. Reason: it prevents a quoted-empty Vercel env from crashing production while avoiding hardcoded production secrets.
 
 ### Files changed
