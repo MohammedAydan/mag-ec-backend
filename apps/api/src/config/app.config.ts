@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto';
+
 import Joi from 'joi';
 
 export type ExecutionMode = 'direct' | 'queue';
@@ -57,21 +59,80 @@ function splitOrigins(value: string | undefined): string[] {
     .filter((origin) => origin.length > 0);
 }
 
+function normalizeEnvString(value: unknown): string | undefined {
+  if (typeof value !== 'string') {
+    return undefined;
+  }
+
+  const trimmed = value.trim();
+  if (trimmed === '' || trimmed === '""' || trimmed === "''") {
+    return undefined;
+  }
+
+  return trimmed;
+}
+
+function readEnv(key: string): string | undefined {
+  return normalizeEnvString(process.env[key]);
+}
+
 function valueOrDefault(value: string | undefined, fallback: string): string {
-  const normalized = value?.trim();
+  const normalized = normalizeEnvString(value);
   return normalized && normalized.length > 0 ? normalized : fallback;
 }
 
-function resolveExecutionMode(): ExecutionMode {
-  return process.env.EXECUTION_MODE?.trim().toLowerCase() === 'queue' ? 'queue' : 'direct';
+function resolveExecutionMode(source: NodeJS.ProcessEnv = process.env): ExecutionMode {
+  return normalizeEnvString(source.EXECUTION_MODE)?.toLowerCase() === 'queue' ? 'queue' : 'direct';
+}
+
+export function resolveNodeEnv(
+  source: Partial<Pick<NodeJS.ProcessEnv, 'NODE_ENV' | 'VERCEL' | 'VERCEL_ENV'>> = process.env,
+): AppConfig['nodeEnv'] {
+  const nodeEnv = normalizeEnvString(source.NODE_ENV);
+  if (
+    nodeEnv === 'development' ||
+    nodeEnv === 'test' ||
+    nodeEnv === 'staging' ||
+    nodeEnv === 'production'
+  ) {
+    return nodeEnv;
+  }
+
+  const vercelEnv = normalizeEnvString(source.VERCEL_ENV);
+  if (vercelEnv === 'production') {
+    return 'production';
+  }
+  if (vercelEnv === 'preview') {
+    return 'staging';
+  }
+
+  return source.VERCEL === '1' ? 'production' : 'development';
+}
+
+export function normalizeEnvForValidation(
+  env: Record<string, unknown>,
+): Record<string, unknown> {
+  const normalized: Record<string, unknown> = {};
+
+  for (const [key, value] of Object.entries(env)) {
+    normalized[key] = typeof value === 'string' ? (normalizeEnvString(value) ?? '') : value;
+  }
+
+  normalized.NODE_ENV = resolveNodeEnv({
+    NODE_ENV: normalizeEnvString(env.NODE_ENV),
+    VERCEL: normalizeEnvString(env.VERCEL),
+    VERCEL_ENV: normalizeEnvString(env.VERCEL_ENV),
+  });
+
+  return normalized;
 }
 
 function resolveBoolean(key: string, devDefault: boolean): boolean {
-  const raw = process.env[key]?.trim();
+  const raw = normalizeEnvString(process.env[key]);
   if (raw !== undefined && raw.length > 0) {
     return raw !== 'false';
   }
-  const nodeEnv = process.env.NODE_ENV ?? 'development';
+  const nodeEnv = resolveNodeEnv();
   if (nodeEnv === 'production' || nodeEnv === 'staging') {
     return false;
   }
@@ -145,17 +206,13 @@ export const envValidationSchema = Joi.object({
     then: Joi.boolean().default(false),
     otherwise: Joi.boolean().default(true),
   }),
-  JWT_ACCESS_SECRET: Joi.string().when('NODE_ENV', {
-    is: Joi.string().valid('production', 'staging'),
-    then: Joi.string().min(32).required(),
-    otherwise: Joi.string().empty('').default('development_access_secret_key_32_bytes_long'),
-  }),
+  JWT_ACCESS_SECRET: Joi.alternatives()
+    .try(Joi.string().min(32), Joi.string().valid(''))
+    .default(''),
   JWT_ACCESS_EXPIRES_IN: Joi.string().default('15m'),
-  JWT_REFRESH_SECRET: Joi.string().when('NODE_ENV', {
-    is: Joi.string().valid('production', 'staging'),
-    then: Joi.string().min(32).required(),
-    otherwise: Joi.string().empty('').default('development_refresh_secret_key_32_bytes_long'),
-  }),
+  JWT_REFRESH_SECRET: Joi.alternatives()
+    .try(Joi.string().min(32), Joi.string().valid(''))
+    .default(''),
   JWT_REFRESH_EXPIRES_IN: Joi.string().default('30d'),
   S3_ENDPOINT: Joi.string()
     .uri()
@@ -207,64 +264,69 @@ export const envValidationSchema = Joi.object({
 
 export function buildAppConfig(): { app: AppConfig } {
   const executionMode = resolveExecutionMode();
-  const nodeEnv = (process.env.NODE_ENV ?? 'development') as AppConfig['nodeEnv'];
+  const nodeEnv = resolveNodeEnv();
   const isProdOrStaging = nodeEnv === 'production' || nodeEnv === 'staging';
 
-  const databaseUrl = process.env.DATABASE_URL?.trim();
+  const databaseUrl = readEnv('DATABASE_URL');
   if (isProdOrStaging && (!databaseUrl || databaseUrl.length === 0)) {
     throw new Error('DATABASE_URL is required in production and staging environments');
   }
 
-  const redisUrl = process.env.REDIS_URL?.trim();
+  const redisUrl = readEnv('REDIS_URL');
   if (executionMode === 'queue' && (!redisUrl || redisUrl.length === 0)) {
     throw new Error('REDIS_URL is required when EXECUTION_MODE=queue');
   }
 
+  const maintenanceSecret = valueOrDefault(
+    readEnv('MAINTENANCE_SECRET') ?? readEnv('CRON_SECRET'),
+    'development_maintenance_secret_key',
+  );
+
   return {
     app: {
       nodeEnv,
-      port: Number.parseInt(process.env.PORT ?? '3000', 10),
-      apiPrefix: process.env.API_PREFIX ?? 'api/v1',
-      appPublicUrl: process.env.APP_PUBLIC_URL ?? 'http://localhost:3000',
+      port: Number.parseInt(readEnv('PORT') ?? '3000', 10),
+      apiPrefix: readEnv('API_PREFIX') ?? 'api/v1',
+      appPublicUrl: readEnv('APP_PUBLIC_URL') ?? 'http://localhost:3000',
       adminAllowedOrigins: splitOrigins(process.env.ADMIN_ALLOWED_ORIGINS),
       storeAllowedOrigins: splitOrigins(process.env.STORE_ALLOWED_ORIGINS),
       databaseUrl: databaseUrl ?? 'mysql://root:root@localhost:3306/ecommerce',
       executionMode,
-      redisUrl: valueOrDefault(redisUrl, 'redis://localhost:6379'),
-      queuePrefix: process.env.QUEUE_PREFIX ?? 'ecommerce',
+      redisUrl:
+        executionMode === 'queue' ? valueOrDefault(redisUrl, 'redis://localhost:6379') : (redisUrl ?? ''),
+      queuePrefix: readEnv('QUEUE_PREFIX') ?? 'ecommerce',
       queueEnabled: executionMode === 'queue',
-      maintenanceSecret: valueOrDefault(
-        process.env.MAINTENANCE_SECRET ?? process.env.CRON_SECRET,
-        'development_maintenance_secret_key',
-      ),
+      maintenanceSecret,
       cronSecret: valueOrDefault(
-        process.env.CRON_SECRET ?? process.env.MAINTENANCE_SECRET,
+        readEnv('CRON_SECRET') ?? readEnv('MAINTENANCE_SECRET'),
         'development_maintenance_secret_key',
       ),
-      maintenanceBatchSize: Number.parseInt(process.env.MAINTENANCE_BATCH_SIZE ?? '25', 10),
+      maintenanceBatchSize: Number.parseInt(readEnv('MAINTENANCE_BATCH_SIZE') ?? '25', 10),
       dashboardEnabled: resolveBoolean('DASHBOARD_ENABLED', true),
       schemaGuardEnabled: resolveBoolean('SCHEMA_GUARD_ENABLED', nodeEnv !== 'test'),
-      throttleTtlMs: Number.parseInt(process.env.THROTTLE_TTL_MS ?? '60000', 10),
-      throttleLimit: Number.parseInt(process.env.THROTTLE_LIMIT ?? '120', 10),
-      logLevel: (process.env.LOG_LEVEL ?? 'info') as AppConfig['logLevel'],
+      throttleTtlMs: Number.parseInt(readEnv('THROTTLE_TTL_MS') ?? '60000', 10),
+      throttleLimit: Number.parseInt(readEnv('THROTTLE_LIMIT') ?? '120', 10),
+      logLevel: (readEnv('LOG_LEVEL') ?? 'info') as AppConfig['logLevel'],
       openapiEnabled: resolveBoolean('OPENAPI_ENABLED', true),
-      jwtAccessSecret: valueOrDefault(
-        process.env.JWT_ACCESS_SECRET,
-        'development_access_secret_key_32_bytes_long',
+      jwtAccessSecret: resolveRuntimeSecret(
+        readEnv('JWT_ACCESS_SECRET'),
+        maintenanceSecret,
+        'jwt-access',
       ),
-      jwtAccessExpiresIn: process.env.JWT_ACCESS_EXPIRES_IN ?? '15m',
-      jwtRefreshSecret: valueOrDefault(
-        process.env.JWT_REFRESH_SECRET,
-        'development_refresh_secret_key_32_bytes_long',
+      jwtAccessExpiresIn: readEnv('JWT_ACCESS_EXPIRES_IN') ?? '15m',
+      jwtRefreshSecret: resolveRuntimeSecret(
+        readEnv('JWT_REFRESH_SECRET'),
+        maintenanceSecret,
+        'jwt-refresh',
       ),
-      jwtRefreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN ?? '30d',
-      s3Endpoint: process.env.S3_ENDPOINT ?? '',
-      s3Region: process.env.S3_REGION ?? '',
-      s3BucketPublic: process.env.S3_BUCKET_PUBLIC ?? '',
-      s3BucketPrivate: process.env.S3_BUCKET_PRIVATE ?? '',
-      s3AccessKeyId: process.env.S3_ACCESS_KEY_ID ?? '',
-      s3SecretAccessKey: process.env.S3_SECRET_ACCESS_KEY ?? '',
-      s3PublicBaseUrl: process.env.S3_PUBLIC_BASE_URL ?? '',
+      jwtRefreshExpiresIn: readEnv('JWT_REFRESH_EXPIRES_IN') ?? '30d',
+      s3Endpoint: readEnv('S3_ENDPOINT') ?? '',
+      s3Region: readEnv('S3_REGION') ?? '',
+      s3BucketPublic: readEnv('S3_BUCKET_PUBLIC') ?? '',
+      s3BucketPrivate: readEnv('S3_BUCKET_PRIVATE') ?? '',
+      s3AccessKeyId: readEnv('S3_ACCESS_KEY_ID') ?? '',
+      s3SecretAccessKey: readEnv('S3_SECRET_ACCESS_KEY') ?? '',
+      s3PublicBaseUrl: readEnv('S3_PUBLIC_BASE_URL') ?? '',
       reportStorageMode: (process.env.REPORT_STORAGE_MODE ??
         'local') as AppConfig['reportStorageMode'],
       paymentProvider: (process.env.PAYMENT_PROVIDER ?? 'cod')
@@ -280,4 +342,22 @@ export function buildAppConfig(): { app: AppConfig } {
       fcmPrivateKey: process.env.FCM_PRIVATE_KEY ?? '',
     },
   };
+}
+
+function resolveRuntimeSecret(
+  explicitSecret: string | undefined,
+  maintenanceSecret: string,
+  label: string,
+): string {
+  if (explicitSecret && explicitSecret.length >= 32) {
+    return explicitSecret;
+  }
+
+  if (maintenanceSecret.length >= 32) {
+    return createHash('sha256').update(`${label}:${maintenanceSecret}`).digest('hex');
+  }
+
+  return label === 'jwt-access'
+    ? 'development_access_secret_key_32_bytes_long'
+    : 'development_refresh_secret_key_32_bytes_long';
 }

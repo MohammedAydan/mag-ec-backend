@@ -10,9 +10,11 @@ type DiagnosticsResponse = {
     nodeVersion: string;
     region: string | null;
     vercel: boolean;
+    vercelEnv: string;
   };
   deployment: {
-    nodeEnv: string;
+    nodeEnvRaw: string;
+    nodeEnvEffective: string;
     executionMode: string;
     dashboardEnabled: string;
     schemaGuardEnabled: string;
@@ -24,6 +26,8 @@ type DiagnosticsResponse = {
     databaseUrl: EnvCheck;
     jwtAccessSecret: EnvCheck;
     jwtRefreshSecret: EnvCheck;
+    jwtAccessSecretEffective: EnvCheck;
+    jwtRefreshSecretEffective: EnvCheck;
     maintenanceSecret: EnvCheck;
   };
   optionalProviders: {
@@ -41,6 +45,7 @@ export function GET(): Response {
   const reportStorageMode = valueOrDefault(process.env.REPORT_STORAGE_MODE, 'local');
   const emailProvider = valueOrDefault(process.env.EMAIL_PROVIDER, 'disabled');
   const paymentProvider = valueOrDefault(process.env.PAYMENT_PROVIDER, 'cod');
+  const maintenanceSecret = process.env.MAINTENANCE_SECRET ?? process.env.CRON_SECRET;
 
   const body: DiagnosticsResponse = {
     status: 'ok',
@@ -48,9 +53,11 @@ export function GET(): Response {
       nodeVersion: process.version,
       region: process.env.VERCEL_REGION ?? process.env.AWS_REGION ?? null,
       vercel: process.env.VERCEL === '1',
+      vercelEnv: valueOrDefault(process.env.VERCEL_ENV, '<unset>'),
     },
     deployment: {
-      nodeEnv: valueOrDefault(process.env.NODE_ENV, 'development'),
+      nodeEnvRaw: valueOrDefault(process.env.NODE_ENV, '<unset>'),
+      nodeEnvEffective: resolveEffectiveNodeEnv(),
       executionMode,
       dashboardEnabled: valueOrDefault(process.env.DASHBOARD_ENABLED, '<unset>'),
       schemaGuardEnabled: valueOrDefault(process.env.SCHEMA_GUARD_ENABLED, '<unset>'),
@@ -62,7 +69,13 @@ export function GET(): Response {
       databaseUrl: checkDatabaseUrl(process.env.DATABASE_URL),
       jwtAccessSecret: checkSecret(process.env.JWT_ACCESS_SECRET),
       jwtRefreshSecret: checkSecret(process.env.JWT_REFRESH_SECRET),
-      maintenanceSecret: checkSecret(process.env.MAINTENANCE_SECRET ?? process.env.CRON_SECRET),
+      jwtAccessSecretEffective: checkSecret(
+        hasStrongSecret(process.env.JWT_ACCESS_SECRET) ? process.env.JWT_ACCESS_SECRET : maintenanceSecret,
+      ),
+      jwtRefreshSecretEffective: checkSecret(
+        hasStrongSecret(process.env.JWT_REFRESH_SECRET) ? process.env.JWT_REFRESH_SECRET : maintenanceSecret,
+      ),
+      maintenanceSecret: checkSecret(maintenanceSecret),
     },
     optionalProviders: {
       s3Configured:
@@ -95,7 +108,7 @@ export function GET(): Response {
 }
 
 function checkSecret(value: string | undefined): EnvCheck {
-  const length = value?.trim().length ?? 0;
+  const length = normalizeEnvString(value)?.length ?? 0;
 
   return {
     present: length > 0,
@@ -105,8 +118,9 @@ function checkSecret(value: string | undefined): EnvCheck {
 }
 
 function checkDatabaseUrl(value: string | undefined): EnvCheck {
-  const length = value?.trim().length ?? 0;
-  const valid = typeof value === 'string' && /^(mysql|postgres|postgresql):\/\//i.test(value);
+  const normalized = normalizeEnvString(value);
+  const length = normalized?.length ?? 0;
+  const valid = typeof normalized === 'string' && /^(mysql|postgres|postgresql):\/\//i.test(normalized);
 
   return {
     present: length > 0,
@@ -116,10 +130,40 @@ function checkDatabaseUrl(value: string | undefined): EnvCheck {
 }
 
 function allPresent(...values: Array<string | undefined>): boolean {
-  return values.every((value) => value !== undefined && value.trim().length > 0);
+  return values.every((value) => normalizeEnvString(value) !== undefined);
 }
 
 function valueOrDefault(value: string | undefined, fallback: string): string {
-  const normalized = value?.trim();
+  const normalized = normalizeEnvString(value);
   return normalized && normalized.length > 0 ? normalized : fallback;
+}
+
+function hasStrongSecret(value: string | undefined): boolean {
+  return (normalizeEnvString(value)?.length ?? 0) >= MIN_SECRET_LENGTH;
+}
+
+function normalizeEnvString(value: string | undefined): string | undefined {
+  const normalized = value?.trim();
+  if (!normalized || normalized === '""' || normalized === "''") {
+    return undefined;
+  }
+
+  return normalized;
+}
+
+function resolveEffectiveNodeEnv(): string {
+  const nodeEnv = normalizeEnvString(process.env.NODE_ENV);
+  if (nodeEnv) {
+    return nodeEnv;
+  }
+
+  const vercelEnv = normalizeEnvString(process.env.VERCEL_ENV);
+  if (vercelEnv === 'production') {
+    return 'production';
+  }
+  if (vercelEnv === 'preview') {
+    return 'staging';
+  }
+
+  return process.env.VERCEL === '1' ? 'production' : 'development';
 }

@@ -208,3 +208,14 @@
 - **Consequences:** The deployment remains a single same-origin API plus `/admin` app, while Vercel's postbuild scan avoids the nested dashboard TypeScript source. `vercel.json.functions` must not be used for `src/main.ts` because Vercel only accepts those patterns for Serverless Functions inside an `api` directory.
 
 ---
+
+## ADR-020: Normalize Vercel Production Env and Derive Missing JWT Secrets
+
+- **Date:** 2026-06-09
+- **Status:** Accepted
+- **Context:** Vercel MCP diagnostics showed production deployments exposing `VERCEL_ENV=production` while the API saw `NODE_ENV` as unset/development. The same deployment had quoted-empty JWT env values, a valid maintenance secret, and runtime logs containing `redis://localhost`, causing NestJS bootstrap to crash under serverless production.
+- **Decision:** Treat `VERCEL_ENV=production` as production for API config, normalize quoted-empty env values before validation/building config, keep direct mode Redis empty unless explicitly configured, and derive stable JWT access/refresh secrets from a strong maintenance secret when explicit JWT secrets are absent or empty.
+- **Alternatives considered:** Requiring manual Vercel env edits only, keeping `NODE_ENV` as the only production signal, allowing weak JWT values through, or defaulting to hardcoded production secrets.
+- **Consequences:** Vercel direct-mode deployments boot with production-safe defaults even when `NODE_ENV` is missing, and quoted-empty JWT settings no longer crash the app if a strong maintenance secret exists. Explicit separate JWT secrets remain recommended, and weak non-empty JWT secrets still fail validation.
+
+---

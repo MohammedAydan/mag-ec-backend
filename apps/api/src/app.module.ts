@@ -7,7 +7,12 @@ import { TerminusModule } from '@nestjs/terminus';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { LoggerModule } from 'nestjs-pino';
 
-import { buildAppConfig, envValidationSchema, type AppConfig } from './config/app.config';
+import {
+  buildAppConfig,
+  envValidationSchema,
+  normalizeEnvForValidation,
+  type AppConfig,
+} from './config/app.config';
 import { HealthController } from './health/health.controller';
 import { AppHealthService } from './health/health.service';
 import { CatalogModule } from './modules/catalog/catalog.module';
@@ -42,7 +47,7 @@ import { RuntimeModule } from './modules/runtime/runtime.module';
         path.resolve(__dirname, '../../../.env'),
       ],
       validate: (env) => {
-        const result = envValidationSchema.validate(env, {
+        const result = envValidationSchema.validate(normalizeEnvForValidation(env), {
           abortEarly: false,
           allowUnknown: true,
         });

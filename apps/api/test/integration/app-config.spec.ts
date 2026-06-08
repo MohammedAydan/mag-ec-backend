@@ -1,4 +1,9 @@
-import { buildAppConfig, envValidationSchema } from '../../src/config/app.config';
+import {
+  buildAppConfig,
+  envValidationSchema,
+  normalizeEnvForValidation,
+  resolveNodeEnv,
+} from '../../src/config/app.config';
 
 describe('buildAppConfig', () => {
   const originalEnv = process.env;
@@ -73,5 +78,73 @@ describe('buildAppConfig', () => {
 
     expect(result.error?.message).toContain('"EMAIL_FROM" is required');
     expect(result.error?.message).toContain('"EMAIL_API_KEY" is required');
+  });
+
+  it('treats Vercel production as production when NODE_ENV is unset', () => {
+    expect(resolveNodeEnv({ VERCEL: '1', VERCEL_ENV: 'production' })).toBe('production');
+    expect(resolveNodeEnv({ VERCEL: '1', VERCEL_ENV: 'preview' })).toBe('staging');
+  });
+
+  it('normalizes Vercel production env before validation', () => {
+    const result = envValidationSchema.validate(
+      normalizeEnvForValidation({
+        VERCEL: '1',
+        VERCEL_ENV: 'production',
+        EXECUTION_MODE: 'direct',
+        DATABASE_URL: 'postgresql://user:pass@example.com:5432/ecommerce',
+        JWT_ACCESS_SECRET: '""',
+        JWT_REFRESH_SECRET: '""',
+        MAINTENANCE_SECRET: 'production_maintenance_secret_32_bytes',
+        REPORT_STORAGE_MODE: 'local',
+        EMAIL_PROVIDER: 'disabled',
+      }),
+      { abortEarly: false, allowUnknown: true },
+    );
+
+    expect(result.error).toBeUndefined();
+    expect(result.value.NODE_ENV).toBe('production');
+    expect(result.value.JWT_ACCESS_SECRET).toBe('');
+    expect(result.value.JWT_REFRESH_SECRET).toBe('');
+  });
+
+  it('derives stable JWT secrets from maintenance secret for Vercel direct mode', () => {
+    process.env.VERCEL = '1';
+    process.env.VERCEL_ENV = 'production';
+    delete process.env.NODE_ENV;
+    process.env.EXECUTION_MODE = 'direct';
+    process.env.DATABASE_URL = 'postgresql://user:pass@example.com:5432/ecommerce';
+    process.env.JWT_ACCESS_SECRET = '""';
+    process.env.JWT_REFRESH_SECRET = '""';
+    process.env.MAINTENANCE_SECRET = 'production_maintenance_secret_32_bytes';
+    process.env.REPORT_STORAGE_MODE = 'local';
+    process.env.EMAIL_PROVIDER = 'disabled';
+    delete process.env.REDIS_URL;
+
+    const config = buildAppConfig().app;
+
+    expect(config.nodeEnv).toBe('production');
+    expect(config.executionMode).toBe('direct');
+    expect(config.redisUrl).toBe('');
+    expect(config.schemaGuardEnabled).toBe(false);
+    expect(config.jwtAccessSecret).toHaveLength(64);
+    expect(config.jwtRefreshSecret).toHaveLength(64);
+    expect(config.jwtAccessSecret).not.toBe(config.jwtRefreshSecret);
+  });
+
+  it('still rejects weak non-empty JWT secrets in production validation', () => {
+    const result = envValidationSchema.validate(
+      normalizeEnvForValidation({
+        VERCEL: '1',
+        VERCEL_ENV: 'production',
+        EXECUTION_MODE: 'direct',
+        DATABASE_URL: 'postgresql://user:pass@example.com:5432/ecommerce',
+        JWT_ACCESS_SECRET: 'weak',
+        JWT_REFRESH_SECRET: 'production_refresh_secret_key_32_bytes',
+        MAINTENANCE_SECRET: 'production_maintenance_secret_32_bytes',
+      }),
+      { abortEarly: false, allowUnknown: true },
+    );
+
+    expect(result.error?.message).toContain('"JWT_ACCESS_SECRET" length must be at least 32');
   });
 });

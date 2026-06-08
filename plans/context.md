@@ -6,7 +6,7 @@ Build a reusable, production-grade headless e-commerce backend API for a single 
 
 ## Current Status
 
-- Active feature: `vercel-runtime-diagnostics`
+- Active feature: `vercel-production-env-normalization`
 - Overall health: green
 - Last updated: 2026-06-09
 
@@ -63,6 +63,7 @@ Build a reusable, production-grade headless e-commerce backend API for a single 
 - `vercel-array-at-compat-fix`: Complete. Removed `Array.prototype.at()` from API cursor pagination so Vercel's postbuild TypeScript scan does not require an ES2022 lib target.
 - `vercel-serverless-runtime-crash-fix`: Complete. Vercel direct-mode production boot no longer requires inactive S3 or Resend optional integration settings, while core secrets and explicitly enabled providers still fail closed.
 - `vercel-runtime-diagnostics`: Complete. Added a standalone `/api/diagnostics` Vercel Function outside NestJS bootstrap to inspect non-secret deployment readiness when the main serverless function crashes.
+- `vercel-production-env-normalization`: Complete. Vercel production runtime now derives production mode from `VERCEL_ENV`, strips quoted-empty env values, avoids Redis localhost defaults in direct mode, and derives stable JWT secrets from the maintenance secret when explicit JWT envs are empty.
 
 ## Known Issues / Tech Debt
 
@@ -82,6 +83,7 @@ Build a reusable, production-grade headless e-commerce backend API for a single 
 - For Vercel, the project Root Directory must be `apps/api`; pointing Vercel at `apps/api/public/dashboard` builds the SPA but cannot deploy the full NestJS application because the server entrypoint lives at `apps/api/src/main.ts`.
 - Direct-mode Vercel deployments no longer require `REDIS_URL`; it is now required only when `EXECUTION_MODE=queue`, matching the documented serverless architecture.
 - Direct-mode Vercel deployments still require `DATABASE_URL`, 32+ character JWT access/refresh secrets, and a 32+ character maintenance secret; set `DASHBOARD_ENABLED=true` if the embedded `/admin` dashboard should be visible in production.
+- If explicit Vercel JWT env vars are accidentally empty, the API derives stable access/refresh secrets from a strong maintenance secret; explicit separate JWT secrets remain recommended.
 
 ## Team / Ownership
 

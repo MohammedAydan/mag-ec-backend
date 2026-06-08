@@ -3125,3 +3125,53 @@ Start from `plans/vercel-serverless-runtime-crash-fix/review.md`. After redeploy
 ### Resume instructions
 
 Start from `plans/vercel-runtime-diagnostics/review.md`. After redeploy, check `/api/diagnostics` first. If it returns JSON, compare `required.*.valid` and then debug the NestJS bootstrap path; if it also crashes, inspect Vercel project/root/runtime settings.
+
+---
+
+## Session: 2026-06-09 - Vercel Production Environment Normalization
+
+### What was done
+
+- Re-read `plans/context.md`, `plans/SESSION_LOG.md`, and the active Vercel diagnostics state.
+- Used Vercel MCP to inspect team, project, deployments, runtime logs, project details, `/api/diagnostics`, and `/admin`.
+- Confirmed `/api/diagnostics` returns `200`, while `/admin` still returns `FUNCTION_INVOCATION_FAILED`.
+- Confirmed the deployed runtime reported `nodeEnv=development`, `VERCEL_ENV=production`, direct mode, valid database URL, invalid quoted-empty JWT secrets, and valid maintenance secret.
+- Confirmed runtime logs for `/` and `/admin` included `redis://localhost` fragments.
+- Created `plans/vercel-production-env-normalization/` with plan, tasks, context, and review files.
+- Updated API config to normalize Vercel production env, strip quoted-empty env values, avoid Redis localhost defaults in direct mode, and derive stable JWT secrets from a strong maintenance secret when explicit JWT envs are empty.
+- Updated `/api/diagnostics` to report Vercel env and raw/effective node environment.
+- Added regression tests for the observed Vercel state.
+
+### Decisions made
+
+- Use `VERCEL_ENV=production` as a production signal when `NODE_ENV` is missing. Reason: Vercel exposes it at runtime and the deployment was otherwise using development defaults.
+- Derive JWT secrets from the maintenance secret only when explicit JWT values are absent or quoted-empty. Reason: it prevents a quoted-empty Vercel env from crashing production while avoiding hardcoded production secrets.
+
+### Files changed
+
+- `apps/api/src/config/app.config.ts` - added env normalization, Vercel production resolution, direct-mode Redis empty default, and derived JWT secrets
+- `apps/api/src/app.module.ts` - validates normalized env before loading config
+- `apps/api/test/integration/app-config.spec.ts` - added Vercel production regression coverage
+- `apps/api/api/diagnostics.ts` - reports effective env/secret readiness
+- `plans/DECISIONS.md` - added ADR-020
+- `plans/vercel-production-env-normalization/*` - added and closed feature plan package
+- `plans/context.md` - updated active feature/status
+- `plans/SESSION_LOG.md` - appended this handoff entry
+
+### Verification
+
+- `pnpm.cmd --filter @ecommerce/api test:integration -- app-config.spec.ts` - passed
+- `pnpm.cmd --filter @ecommerce/api typecheck` - passed
+- `pnpm.cmd --filter @ecommerce/api build` - passed
+- Built diagnostics invocation with Vercel-style env returned `200` and `nodeEnvEffective=production`
+
+### State at end of session
+
+- Active feature: `vercel-production-env-normalization`
+- Last completed task: Vercel production env normalization implemented and locally verified
+- Next task: Push the commit, wait for Vercel redeploy, then re-check `/api/diagnostics` and `/admin` through Vercel MCP
+- Blockers: none currently; final live verification depends on the redeploy finishing
+
+### Resume instructions
+
+Start from `plans/vercel-production-env-normalization/review.md`. Use Vercel MCP to inspect the latest production deployment after the commit and confirm `/admin` no longer emits Redis localhost cold-start logs.
