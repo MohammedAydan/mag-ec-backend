@@ -5,7 +5,7 @@
     "outDir": "../../dist/apps/api",
     "types": ["node", "jest"]
   },
-  "include": ["api/**/*.ts", "src/**/*.ts", "test/**/*.ts"],
+  "include": ["src/**/*.ts", "test/**/*.ts"],
   "exclude": [
     "src/metadata.ts",
     "src/metadata.js",

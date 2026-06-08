@@ -12,6 +12,7 @@ Make Vercel production deployments boot through production-safe direct-mode defa
 - [ ] Focused config tests cover the observed Vercel diagnostics state
 - [ ] Vercel build generates Prisma Client from the schema matching `DATABASE_URL`
 - [ ] API typecheck/build pass
+- [ ] Real Nest `/api/v1/*` routes are reachable on Vercel after removing the temporary standalone diagnostics function
 - [ ] Session state documents the Vercel MCP evidence and final env behavior
 
 ## Approach
@@ -21,7 +22,8 @@ Make Vercel production deployments boot through production-safe direct-mode defa
 4. Add tests matching the observed Vercel state: `VERCEL_ENV=production`, no `NODE_ENV`, direct mode, quoted-empty JWT values, strong maintenance secret.
 5. Update diagnostics to report Vercel environment/effective production state.
 6. Make root Prisma generation provider-aware through `prisma.config.ts` so Vercel Postgres URLs generate the PostgreSQL client.
-7. Verify, commit, push, and re-check the deployed `/admin` path through Vercel MCP.
+7. Remove the temporary standalone Vercel diagnostics function once production boot is confirmed so it does not reserve the `/api/*` namespace ahead of Nest.
+8. Verify, commit, push, and re-check the deployed `/admin` and `/api/v1/health/liveness` paths through Vercel MCP.
 
 ## Scope: IN
 - API config normalization and validation

@@ -10,6 +10,8 @@
 - Root `prisma:generate` now uses provider-aware `prisma.config.ts` instead of hardcoding the MySQL schema.
 - Explicit provider scripts remain available as `prisma:generate:mysql`, `prisma:generate:pg`, `prisma:validate:mysql`, and `prisma:validate:pg`.
 - `prisma.config.ts` now treats `VERCEL_ENV=production` as production for Prisma CLI fail-closed behavior.
+- The temporary standalone Vercel `/api/diagnostics` function was removed after production boot was confirmed, because it reserved the `/api/*` namespace before the Nest function.
+- API TypeScript coverage is back to the Nest source and test tree only.
 
 ## Vercel MCP Evidence
 - Project: `mag-ec` (`prj_hyV0gDSDW9ttiDaOSvutHNg25TDl`)
@@ -21,6 +23,9 @@
 - After the environment fix deployed, `/api/diagnostics` showed effective production mode and valid core readiness, but `/admin` still returned `500`.
 - Local source-level bootstrap with a Vercel-style Postgres `DATABASE_URL` reproduced the remaining crash as a Prisma adapter/provider mismatch: runtime selected `@prisma/adapter-pg`, while the generated client came from `prisma/schema.prisma`.
 - Vercel build logs showed `apps/api` calls `pnpm --dir ../.. prisma:generate`, and the root script previously forced `--schema prisma/schema.prisma`.
+- Commit `31269b3` deployed successfully and Vercel build logs showed `prisma/schema.postgresql.prisma` was selected.
+- Production `/admin` returned `200`, proving the serverless crash page was cleared.
+- Production `/api/v1/health/liveness` then returned Vercel `404`, proving the temporary standalone diagnostics function was shadowing the Nest `/api/*` namespace.
 
 ## Verification
 - `pnpm.cmd --filter @ecommerce/api test:integration -- app-config.spec.ts` - passed
@@ -32,6 +37,10 @@
 - `DATABASE_URL=postgresql://... VERCEL_ENV=production pnpm.cmd --filter @ecommerce/api typecheck` - passed
 - `DATABASE_URL=postgresql://... VERCEL_ENV=production pnpm.cmd --filter @ecommerce/api test:integration -- app-config.spec.ts` - passed
 - `DATABASE_URL=postgresql://... VERCEL_ENV=production pnpm.cmd --filter @ecommerce/api build` - passed and loaded `prisma/schema.postgresql.prisma`
+- After removing the standalone diagnostics function:
+  - `DATABASE_URL=postgresql://... VERCEL_ENV=production pnpm.cmd --filter @ecommerce/api typecheck` - passed
+  - `DATABASE_URL=postgresql://... VERCEL_ENV=production pnpm.cmd --filter @ecommerce/api test:integration -- app-config.spec.ts` - passed
+  - `DATABASE_URL=postgresql://... VERCEL_ENV=production pnpm.cmd --filter @ecommerce/api build` - passed and loaded `prisma/schema.postgresql.prisma`
 
 ## Notes
 - Explicit `JWT_ACCESS_SECRET` and `JWT_REFRESH_SECRET` are still recommended. The fallback derivation prevents quoted-empty Vercel env values from crashing the deployment when a strong maintenance secret exists.

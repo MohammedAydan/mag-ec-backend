@@ -4,7 +4,8 @@
 - `apps/api/src/config/app.config.ts` - env normalization, effective production detection, direct-mode Redis config, derived JWT secrets
 - `apps/api/src/app.module.ts` - validate normalized env
 - `apps/api/test/integration/app-config.spec.ts` - regression tests for Vercel production env with missing or incorrect `NODE_ENV`
-- `apps/api/api/diagnostics.ts` - report Vercel env/effective production metadata
+- `apps/api/api/diagnostics.ts` - removed after diagnosis because it reserved the Vercel `/api/*` namespace ahead of the Nest function
+- `apps/api/tsconfig.json` - remove temporary standalone Vercel function include
 - `package.json` - make default Prisma generation use provider-aware `prisma.config.ts`
 - `prisma.config.ts` - treat `VERCEL_ENV=production` as production for Prisma CLI fail-closed behavior
 - `plans/vercel-production-env-normalization/review.md` - outcome and Vercel evidence
@@ -30,6 +31,8 @@
 - After commit `abdf497`, live diagnostics reported effective production mode and valid required config, but `/admin` still returned `500`.
 - Source-level bootstrap with a Vercel-style Postgres `DATABASE_URL` reproduced the remaining crash as a Prisma adapter/provider mismatch: the deployed build generated Prisma Client from the MySQL schema while runtime selected the PostgreSQL adapter.
 - Vercel build logs show `apps/api` runs `pnpm --dir ../.. prisma:generate`; that root script hardcoded `prisma/schema.prisma`, so clean Vercel builds could not generate the PostgreSQL client even with a Postgres `DATABASE_URL`.
+- After commit `31269b3`, Vercel built successfully, loaded `prisma/schema.postgresql.prisma`, and `/admin` returned `200`.
+- `/api/v1/health/liveness` still returned Vercel `404`, indicating the temporary standalone `apps/api/api/diagnostics.ts` function created an `/api` function namespace that prevented `/api/v1/*` from reaching the Nest function.
 
 ## New Dependencies
 - None
