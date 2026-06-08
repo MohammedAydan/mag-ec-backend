@@ -197,3 +197,12 @@
 - **Gotchas:** Nest validation decorators alone are not enough for integer query schemas, and OpenAPI treats `/foo/{id}` plus `/foo/{key}` as the same path for SDK generation purposes.
 
 ---
+
+## Pattern: Provider-Aware Prisma Generation [feature: vercel-production-env-normalization]
+
+- **Problem:** Clean deployment builds can generate a Prisma Client for the wrong provider when package scripts hardcode one schema while runtime selects adapters from `DATABASE_URL`.
+- **Solution:** Let the default `prisma generate` path load `prisma.config.ts`, keep explicit provider-specific scripts for local/manual use, and make production detection honor deployment-specific env such as `VERCEL_ENV=production`.
+- **Example:** Root `prisma:generate` plus `prisma.config.ts` selects `prisma/schema.postgresql.prisma` when `DATABASE_URL` starts with `postgresql://` or `postgres://`.
+- **Gotchas:** Do not use a hardcoded MySQL `--schema` in build scripts that run on environments backed by Postgres; the runtime adapter and generated client provider must match.
+
+---

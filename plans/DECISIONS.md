@@ -209,13 +209,13 @@
 
 ---
 
-## ADR-020: Normalize Vercel Production Env and Derive Missing JWT Secrets
+## ADR-020: Normalize Vercel Production Env and Provider-Aware Prisma Generation
 
 - **Date:** 2026-06-09
 - **Status:** Accepted
-- **Context:** Vercel MCP diagnostics showed production deployments exposing `VERCEL_ENV=production` while the API saw `NODE_ENV` as development. The same deployment had quoted-empty JWT env values, a valid maintenance secret, and runtime logs containing `redis://localhost`, causing NestJS bootstrap to crash under serverless production.
-- **Decision:** Treat `VERCEL_ENV=production` as authoritative production for API config, even when `NODE_ENV=development`; normalize quoted-empty env values before validation/building config, keep direct mode Redis empty unless explicitly configured, and derive stable JWT access/refresh secrets from a strong maintenance secret when explicit JWT secrets are absent or empty.
-- **Alternatives considered:** Requiring manual Vercel env edits only, keeping `NODE_ENV` as the only production signal, allowing weak JWT values through, or defaulting to hardcoded production secrets.
-- **Consequences:** Vercel direct-mode deployments boot with production-safe defaults even when `NODE_ENV` is missing or incorrectly set to `development`, and quoted-empty JWT settings no longer crash the app if a strong maintenance secret exists. Explicit separate JWT secrets remain recommended, and weak non-empty JWT secrets still fail validation.
+- **Context:** Vercel MCP diagnostics showed production deployments exposing `VERCEL_ENV=production` while the API saw `NODE_ENV` as development. The same deployment had quoted-empty JWT env values, a valid maintenance secret, runtime logs containing `redis://localhost`, and then a remaining Prisma adapter/provider mismatch because Vercel used a Postgres `DATABASE_URL` while the build generated Prisma Client from the hardcoded MySQL schema.
+- **Decision:** Treat `VERCEL_ENV=production` as authoritative production for API config, even when `NODE_ENV=development`; normalize quoted-empty env values before validation/building config, keep direct mode Redis empty unless explicitly configured, derive stable JWT access/refresh secrets from a strong maintenance secret when explicit JWT secrets are absent or empty, and make default Prisma generation use provider-aware `prisma.config.ts` instead of a hardcoded MySQL schema.
+- **Alternatives considered:** Requiring manual Vercel env edits only, keeping `NODE_ENV` as the only production signal, allowing weak JWT values through, defaulting to hardcoded production secrets, or forcing all Vercel databases to MySQL despite the deployed `DATABASE_URL` already being Postgres.
+- **Consequences:** Vercel direct-mode deployments boot with production-safe defaults even when `NODE_ENV` is missing or incorrectly set to `development`, quoted-empty JWT settings no longer crash the app if a strong maintenance secret exists, and clean Vercel builds generate a Prisma Client whose provider matches the production database URL. Explicit separate JWT secrets remain recommended, and weak non-empty JWT secrets still fail validation.
 
 ---

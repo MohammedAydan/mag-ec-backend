@@ -10,6 +10,7 @@ Make Vercel production deployments boot through production-safe direct-mode defa
 - [ ] JWT secrets can be derived from a strong maintenance secret when explicit JWT env vars are absent/empty
 - [ ] Weak non-empty JWT secrets still fail validation
 - [ ] Focused config tests cover the observed Vercel diagnostics state
+- [ ] Vercel build generates Prisma Client from the schema matching `DATABASE_URL`
 - [ ] API typecheck/build pass
 - [ ] Session state documents the Vercel MCP evidence and final env behavior
 
@@ -19,13 +20,15 @@ Make Vercel production deployments boot through production-safe direct-mode defa
 3. Update direct-mode Redis config so Redis remains empty unless queue mode is selected or explicitly configured.
 4. Add tests matching the observed Vercel state: `VERCEL_ENV=production`, no `NODE_ENV`, direct mode, quoted-empty JWT values, strong maintenance secret.
 5. Update diagnostics to report Vercel environment/effective production state.
-6. Verify, commit, push, and re-check the deployed `/admin` path through Vercel MCP.
+6. Make root Prisma generation provider-aware through `prisma.config.ts` so Vercel Postgres URLs generate the PostgreSQL client.
+7. Verify, commit, push, and re-check the deployed `/admin` path through Vercel MCP.
 
 ## Scope: IN
 - API config normalization and validation
 - Diagnostic endpoint metadata
 - Focused config tests
 - Planning/session docs
+- Provider-aware Prisma CLI generation for Vercel builds
 
 ## Scope: OUT
 - Database schema/migration changes

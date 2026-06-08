@@ -7,6 +7,9 @@
 - JWT access and refresh secrets are derived as stable SHA-256 labels from a strong maintenance secret when explicit JWT env vars are absent or quoted-empty.
 - Weak non-empty JWT secrets still fail validation.
 - `/api/diagnostics` now reports raw/effective node environment, Vercel env, and effective JWT readiness.
+- Root `prisma:generate` now uses provider-aware `prisma.config.ts` instead of hardcoding the MySQL schema.
+- Explicit provider scripts remain available as `prisma:generate:mysql`, `prisma:generate:pg`, `prisma:validate:mysql`, and `prisma:validate:pg`.
+- `prisma.config.ts` now treats `VERCEL_ENV=production` as production for Prisma CLI fail-closed behavior.
 
 ## Vercel MCP Evidence
 - Project: `mag-ec` (`prj_hyV0gDSDW9ttiDaOSvutHNg25TDl`)
@@ -15,6 +18,9 @@
 - `/admin` returned `FUNCTION_INVOCATION_FAILED`, proving the crash was inside NestJS bootstrap.
 - Diagnostics showed `NODE_ENV=development`, `VERCEL_ENV=production`, direct mode, valid `DATABASE_URL`, invalid quoted-empty JWT secrets, and valid maintenance secret.
 - Runtime logs for `/` and `/admin` showed `redis://localhost` fragments, confirming development/default Redis config leaked into serverless production startup.
+- After the environment fix deployed, `/api/diagnostics` showed effective production mode and valid core readiness, but `/admin` still returned `500`.
+- Local source-level bootstrap with a Vercel-style Postgres `DATABASE_URL` reproduced the remaining crash as a Prisma adapter/provider mismatch: runtime selected `@prisma/adapter-pg`, while the generated client came from `prisma/schema.prisma`.
+- Vercel build logs showed `apps/api` calls `pnpm --dir ../.. prisma:generate`, and the root script previously forced `--schema prisma/schema.prisma`.
 
 ## Verification
 - `pnpm.cmd --filter @ecommerce/api test:integration -- app-config.spec.ts` - passed
@@ -22,6 +28,10 @@
 - `pnpm.cmd --filter @ecommerce/api build` - passed
 - Built `/api/diagnostics` invocation with Vercel-style env returned `200` and reported `nodeEnvEffective=production`
 - Live verification after commit `7800d5b` showed `NODE_ENV=development` was explicitly present on Vercel, so the follow-up patch makes `VERCEL_ENV=production` override `NODE_ENV=development`.
+- `DATABASE_URL=postgresql://... VERCEL_ENV=production pnpm.cmd prisma:generate` - passed and loaded `prisma/schema.postgresql.prisma`
+- `DATABASE_URL=postgresql://... VERCEL_ENV=production pnpm.cmd --filter @ecommerce/api typecheck` - passed
+- `DATABASE_URL=postgresql://... VERCEL_ENV=production pnpm.cmd --filter @ecommerce/api test:integration -- app-config.spec.ts` - passed
+- `DATABASE_URL=postgresql://... VERCEL_ENV=production pnpm.cmd --filter @ecommerce/api build` - passed and loaded `prisma/schema.postgresql.prisma`
 
 ## Notes
 - Explicit `JWT_ACCESS_SECRET` and `JWT_REFRESH_SECRET` are still recommended. The fallback derivation prevents quoted-empty Vercel env values from crashing the deployment when a strong maintenance secret exists.
