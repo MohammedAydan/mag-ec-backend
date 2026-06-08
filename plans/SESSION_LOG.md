@@ -3084,3 +3084,44 @@ Start from `plans/vercel-array-at-compat-fix/review.md`. The next Vercel build s
 ### Resume instructions
 
 Start from `plans/vercel-serverless-runtime-crash-fix/review.md`. After redeploy, check `/api/v1/health/liveness`; if the function still crashes, fetch the Vercel serverless logs for the next cold-start exception.
+
+---
+
+## Session: 2026-06-09 - Vercel Runtime Diagnostics
+
+### What was done
+
+- Re-read `plans/context.md`, `plans/SESSION_LOG.md`, and the active Vercel runtime-crash review after the deployed function still returned `FUNCTION_INVOCATION_FAILED`.
+- Created `plans/vercel-runtime-diagnostics/` with plan, tasks, context, and review files.
+- Added `apps/api/api/diagnostics.ts`, a standalone Vercel Function that does not import NestJS, Prisma, or API modules.
+- Included `api/**/*.ts` in the API tsconfig so standalone Vercel functions are typechecked locally.
+- Verified the built diagnostic module returns `200` and non-secret JSON locally.
+
+### Decisions made
+
+- Add a standalone diagnostic function instead of weakening core production secret requirements. Reason: the crash page still hides the real exception, and the safe next step is to expose non-secret deployment readiness without making production boot insecure.
+
+### Files changed
+
+- `apps/api/api/diagnostics.ts` - added standalone Vercel deployment diagnostic endpoint
+- `apps/api/tsconfig.json` - added `api/**/*.ts` to local TypeScript coverage
+- `plans/vercel-runtime-diagnostics/*` - added and closed the feature plan package
+- `plans/context.md` - updated active feature/status
+- `plans/SESSION_LOG.md` - appended this handoff entry
+
+### Verification
+
+- `pnpm.cmd --filter @ecommerce/api typecheck` - passed
+- `pnpm.cmd --filter @ecommerce/api build` - passed
+- Built diagnostic module invocation returned `200` and non-secret JSON
+
+### State at end of session
+
+- Active feature: `vercel-runtime-diagnostics`
+- Last completed task: Standalone Vercel diagnostic function added and verified locally
+- Next task: Redeploy and open `/api/diagnostics`; use its JSON to identify missing env or separate NestJS bootstrap failure from project-level Vercel function failure
+- Blockers: Exact Vercel serverless logs are still not available locally
+
+### Resume instructions
+
+Start from `plans/vercel-runtime-diagnostics/review.md`. After redeploy, check `/api/diagnostics` first. If it returns JSON, compare `required.*.valid` and then debug the NestJS bootstrap path; if it also crashes, inspect Vercel project/root/runtime settings.

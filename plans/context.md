@@ -6,9 +6,9 @@ Build a reusable, production-grade headless e-commerce backend API for a single 
 
 ## Current Status
 
-- Active feature: `vercel-serverless-runtime-crash-fix`
+- Active feature: `vercel-runtime-diagnostics`
 - Overall health: green
-- Last updated: 2026-06-07
+- Last updated: 2026-06-09
 
 ## Critical Constraints
 
@@ -62,6 +62,7 @@ Build a reusable, production-grade headless e-commerce backend API for a single 
 - `vercel-invalid-functions-config-fix`: Complete. Removed the invalid `functions.src/main.ts` Vercel config and moved dashboard-source exclusion to a Vercel-only end-of-build prune step after `public/admin` assets are generated.
 - `vercel-array-at-compat-fix`: Complete. Removed `Array.prototype.at()` from API cursor pagination so Vercel's postbuild TypeScript scan does not require an ES2022 lib target.
 - `vercel-serverless-runtime-crash-fix`: Complete. Vercel direct-mode production boot no longer requires inactive S3 or Resend optional integration settings, while core secrets and explicitly enabled providers still fail closed.
+- `vercel-runtime-diagnostics`: Complete. Added a standalone `/api/diagnostics` Vercel Function outside NestJS bootstrap to inspect non-secret deployment readiness when the main serverless function crashes.
 
 ## Known Issues / Tech Debt
 
