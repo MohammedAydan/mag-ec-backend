@@ -3041,3 +3041,46 @@ Start from `plans/vercel-invalid-functions-config-fix/review.md`. The next Verce
 ### Resume instructions
 
 Start from `plans/vercel-array-at-compat-fix/review.md`. The next Vercel build should progress past `catalog-admin.service.ts(93,50)`.
+
+---
+
+## Session: 2026-06-09 - Vercel Serverless Runtime Crash Fix
+
+### What was done
+
+- Re-read `plans/context.md`, `plans/SESSION_LOG.md`, and the active Vercel feature folder before editing.
+- Created `plans/vercel-serverless-runtime-crash-fix/` with plan, tasks, context, and review files.
+- Traced the post-build Vercel crash risk to production config validation that required inactive S3 and Resend provider settings during cold start.
+- Relaxed validation so S3 credentials are required only when `REPORT_STORAGE_MODE=s3`.
+- Relaxed validation so Resend credentials are required only when `EMAIL_PROVIDER=resend`.
+- Added focused config tests for Vercel direct-mode production boot plus the enabled-provider fail-closed paths.
+
+### Decisions made
+
+- Keep core production boot secrets mandatory while making inactive optional providers conditional. Reason: Vercel direct-mode deployments should boot with disabled optional integrations, but database/JWT/maintenance security must still fail closed.
+
+### Files changed
+
+- `apps/api/src/config/app.config.ts` - made S3 and Resend validation conditional on explicit provider enablement
+- `apps/api/test/integration/app-config.spec.ts` - added Vercel direct-mode production validation coverage
+- `plans/vercel-serverless-runtime-crash-fix/*` - added and closed the feature plan package
+- `plans/PATTERNS.md` - documented conditional provider config for serverless direct mode
+- `plans/context.md` - updated active feature/status and Vercel env notes
+- `plans/SESSION_LOG.md` - appended this handoff entry
+
+### Verification
+
+- `pnpm.cmd --filter @ecommerce/api test:integration -- app-config.spec.ts` - passed
+- `pnpm.cmd --filter @ecommerce/api typecheck` - passed
+- `pnpm.cmd --filter @ecommerce/api build` - passed
+
+### State at end of session
+
+- Active feature: `vercel-serverless-runtime-crash-fix`
+- Last completed task: Vercel direct-mode cold-start config validation fixed and verified
+- Next task: Redeploy on Vercel and confirm the function now boots; if it still fails, inspect serverless logs for invalid `DATABASE_URL`, pending migrations, or missing core production secrets
+- Blockers: Exact Vercel serverless logs were not available in this session
+
+### Resume instructions
+
+Start from `plans/vercel-serverless-runtime-crash-fix/review.md`. After redeploy, check `/api/v1/health/liveness`; if the function still crashes, fetch the Vercel serverless logs for the next cold-start exception.

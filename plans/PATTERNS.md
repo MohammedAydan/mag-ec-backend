@@ -1,5 +1,14 @@
 # Engineering Patterns
 
+## Pattern: Conditional Provider Config for Serverless Direct Mode [feature: vercel-serverless-runtime-crash-fix]
+
+- **Problem:** Serverless deployments can crash during cold start when production validation requires credentials for optional providers that the deployment is not using.
+- **Solution:** Keep core boot secrets fail-closed, but gate provider credentials behind the provider selector, such as `REPORT_STORAGE_MODE=s3` or `EMAIL_PROVIDER=resend`.
+- **Example:** `apps/api/src/config/app.config.ts` requires S3 values only for S3 report storage and Resend values only when Resend email is enabled.
+- **Gotchas:** Do not silently default core secrets in production. Optional provider routes should return explicit unavailable errors when their provider is disabled.
+
+---
+
 ## Pattern: Embedded SPA Source vs Built Asset Boundary [feature: vercel-postbuild-type-scan-fix]
 
 - **Problem:** A nested frontend package under a backend app root can be built successfully, then later break serverless packaging when the platform scans frontend `.tsx` source with backend TypeScript settings.

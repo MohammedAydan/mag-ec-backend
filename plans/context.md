@@ -6,7 +6,7 @@ Build a reusable, production-grade headless e-commerce backend API for a single 
 
 ## Current Status
 
-- Active feature: `vercel-array-at-compat-fix`
+- Active feature: `vercel-serverless-runtime-crash-fix`
 - Overall health: green
 - Last updated: 2026-06-07
 
@@ -61,6 +61,7 @@ Build a reusable, production-grade headless e-commerce backend API for a single 
 - `vercel-postbuild-type-scan-fix`: Complete. API tsconfigs and Vercel function packaging now exclude nested dashboard source from postbuild API scans while including built `/admin` assets, and the Prisma schema guard no longer relies on the two-argument `Error` constructor overload.
 - `vercel-invalid-functions-config-fix`: Complete. Removed the invalid `functions.src/main.ts` Vercel config and moved dashboard-source exclusion to a Vercel-only end-of-build prune step after `public/admin` assets are generated.
 - `vercel-array-at-compat-fix`: Complete. Removed `Array.prototype.at()` from API cursor pagination so Vercel's postbuild TypeScript scan does not require an ES2022 lib target.
+- `vercel-serverless-runtime-crash-fix`: Complete. Vercel direct-mode production boot no longer requires inactive S3 or Resend optional integration settings, while core secrets and explicitly enabled providers still fail closed.
 
 ## Known Issues / Tech Debt
 
@@ -79,6 +80,7 @@ Build a reusable, production-grade headless e-commerce backend API for a single 
 - One moderate `@hono/node-server` advisory (CVE-2026-39406) persists in Prisma 7 toolchain dependency; no compatible patched version available yet.
 - For Vercel, the project Root Directory must be `apps/api`; pointing Vercel at `apps/api/public/dashboard` builds the SPA but cannot deploy the full NestJS application because the server entrypoint lives at `apps/api/src/main.ts`.
 - Direct-mode Vercel deployments no longer require `REDIS_URL`; it is now required only when `EXECUTION_MODE=queue`, matching the documented serverless architecture.
+- Direct-mode Vercel deployments still require `DATABASE_URL`, 32+ character JWT access/refresh secrets, and a 32+ character maintenance secret; set `DASHBOARD_ENABLED=true` if the embedded `/admin` dashboard should be visible in production.
 
 ## Team / Ownership
 

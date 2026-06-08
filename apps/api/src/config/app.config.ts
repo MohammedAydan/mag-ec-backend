@@ -78,8 +78,8 @@ function resolveBoolean(key: string, devDefault: boolean): boolean {
   return devDefault;
 }
 
-const productionRequiredString = Joi.string().when('NODE_ENV', {
-  is: 'production',
+const s3RequiredString = Joi.string().when('REPORT_STORAGE_MODE', {
+  is: 's3',
   then: Joi.string().min(1).required(),
   otherwise: Joi.string().allow('').default(''),
 });
@@ -159,30 +159,24 @@ export const envValidationSchema = Joi.object({
   JWT_REFRESH_EXPIRES_IN: Joi.string().default('30d'),
   S3_ENDPOINT: Joi.string()
     .uri()
-    .when('NODE_ENV', {
-      is: 'production',
+    .when('REPORT_STORAGE_MODE', {
+      is: 's3',
       then: Joi.string().uri().required(),
       otherwise: Joi.string().allow('').default(''),
     }),
-  S3_REGION: productionRequiredString,
-  S3_BUCKET_PUBLIC: productionRequiredString,
-  S3_BUCKET_PRIVATE: productionRequiredString,
-  S3_ACCESS_KEY_ID: productionRequiredString,
-  S3_SECRET_ACCESS_KEY: productionRequiredString,
+  S3_REGION: s3RequiredString,
+  S3_BUCKET_PUBLIC: s3RequiredString,
+  S3_BUCKET_PRIVATE: s3RequiredString,
+  S3_ACCESS_KEY_ID: s3RequiredString,
+  S3_SECRET_ACCESS_KEY: s3RequiredString,
   S3_PUBLIC_BASE_URL: Joi.string()
     .uri()
-    .when('NODE_ENV', {
-      is: 'production',
+    .when('REPORT_STORAGE_MODE', {
+      is: 's3',
       then: Joi.string().uri().required(),
       otherwise: Joi.string().allow('').default(''),
     }),
-  REPORT_STORAGE_MODE: Joi.string()
-    .valid('local', 's3')
-    .when('NODE_ENV', {
-      is: 'production',
-      then: Joi.string().valid('s3').required(),
-      otherwise: Joi.string().default('local'),
-    }),
+  REPORT_STORAGE_MODE: Joi.string().valid('local', 's3').default('local'),
   PAYMENT_PROVIDER: Joi.string().valid('cod', 'stripe').default('cod'),
   PAYMENT_WEBHOOK_SECRET: Joi.string().when('PAYMENT_PROVIDER', {
     is: 'stripe',
@@ -194,13 +188,7 @@ export const envValidationSchema = Joi.object({
     then: Joi.string().min(1).required(),
     otherwise: Joi.string().allow('').default(''),
   }),
-  EMAIL_PROVIDER: Joi.string()
-    .valid('disabled', 'resend')
-    .when('NODE_ENV', {
-      is: 'production',
-      then: Joi.string().valid('resend').required(),
-      otherwise: Joi.string().default('disabled'),
-    }),
+  EMAIL_PROVIDER: Joi.string().valid('disabled', 'resend').default('disabled'),
   EMAIL_FROM: Joi.string().when('EMAIL_PROVIDER', {
     is: 'resend',
     then: Joi.string().email().required(),
