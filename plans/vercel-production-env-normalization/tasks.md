@@ -7,6 +7,6 @@
 - [x] Make Prisma generation provider-aware for Vercel Postgres deployments
 - [x] Verify provider-aware Prisma generation and API build
 - [x] Remove temporary standalone diagnostics route that shadows Nest `/api/*`
-- [~] Verify Nest `/api/v1/*` routes on Vercel
-- [ ] Commit, push, and re-check Vercel runtime
-- [ ] Write review and update session state
+- [x] Verify Nest `/api/v1/*` routes on Vercel
+- [x] Commit, push, and re-check Vercel runtime
+- [x] Write review and update session state

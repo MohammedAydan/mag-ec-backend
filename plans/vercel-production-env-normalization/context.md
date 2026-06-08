@@ -33,6 +33,11 @@
 - Vercel build logs show `apps/api` runs `pnpm --dir ../.. prisma:generate`; that root script hardcoded `prisma/schema.prisma`, so clean Vercel builds could not generate the PostgreSQL client even with a Postgres `DATABASE_URL`.
 - After commit `31269b3`, Vercel built successfully, loaded `prisma/schema.postgresql.prisma`, and `/admin` returned `200`.
 - `/api/v1/health/liveness` still returned Vercel `404`, indicating the temporary standalone `apps/api/api/diagnostics.ts` function created an `/api` function namespace that prevented `/api/v1/*` from reaching the Nest function.
+- Final deployment `dpl_DpDodY541PXgZqiyhtDBvCtnWSYZ` from commit `864f5c2` is READY, owns `mag-ec.vercel.app`, and has `lambdaRuntimeStats={"nodejs":1}` after removing the standalone diagnostics function.
+- Final live checks:
+  - `https://mag-ec.vercel.app/admin` returned `200`
+  - `https://mag-ec.vercel.app/api/v1/health/liveness` returned `200` with `{"status":"ok"}`
+  - Vercel runtime-log scan for 500s on `dpl_DpDodY541PXgZqiyhtDBvCtnWSYZ` returned no logs.
 
 ## New Dependencies
 - None

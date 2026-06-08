@@ -41,7 +41,12 @@
   - `DATABASE_URL=postgresql://... VERCEL_ENV=production pnpm.cmd --filter @ecommerce/api typecheck` - passed
   - `DATABASE_URL=postgresql://... VERCEL_ENV=production pnpm.cmd --filter @ecommerce/api test:integration -- app-config.spec.ts` - passed
   - `DATABASE_URL=postgresql://... VERCEL_ENV=production pnpm.cmd --filter @ecommerce/api build` - passed and loaded `prisma/schema.postgresql.prisma`
+- Final Vercel deployment `dpl_DpDodY541PXgZqiyhtDBvCtnWSYZ` from commit `864f5c2` - READY and aliased to `mag-ec.vercel.app`
+- `https://mag-ec.vercel.app/admin` - `200 OK`
+- `https://mag-ec.vercel.app/api/v1/health/liveness` - `200 OK`, body `{"status":"ok"}`
+- Runtime logs for final deployment with `statusCode=500` - no logs found
 
 ## Notes
 - Explicit `JWT_ACCESS_SECRET` and `JWT_REFRESH_SECRET` are still recommended. The fallback derivation prevents quoted-empty Vercel env values from crashing the deployment when a strong maintenance secret exists.
 - `DATABASE_URL` still must point to a Vercel-reachable database.
+- `/api/diagnostics` was intentionally removed after diagnosis; real production readiness should now be checked through Nest routes such as `/api/v1/health/liveness`.

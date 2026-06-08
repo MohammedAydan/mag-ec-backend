@@ -3175,3 +3175,57 @@ Start from `plans/vercel-runtime-diagnostics/review.md`. After redeploy, check `
 ### Resume instructions
 
 Start from `plans/vercel-production-env-normalization/review.md`. Use Vercel MCP to inspect the latest production deployment after the commit and confirm `/admin` no longer emits Redis localhost cold-start logs.
+
+---
+
+## Session: 2026-06-09 01:37 +03:00 - Vercel Permanent Runtime Fix
+
+### What was done
+
+- Used Vercel MCP to inspect production deployment `dpl_6WxiLBAWMSwXJyPXTcVGA9BB2z9h`, runtime logs, `/api/diagnostics`, `/admin`, build logs, and final deployments.
+- Confirmed the environment-normalization fix made production config valid, but the remaining `/admin` crash was caused by Prisma Client being generated from the MySQL schema while Vercel runtime used a Postgres `DATABASE_URL` and `@prisma/adapter-pg`.
+- Changed root `prisma:generate` and `prisma:validate` to load provider-aware `prisma.config.ts`, while preserving explicit MySQL/Postgres scripts.
+- Updated `prisma.config.ts` so Prisma CLI fail-closed behavior treats `VERCEL_ENV=production` as production.
+- Deployed commit `31269b3`; Vercel build logs confirmed `prisma/schema.postgresql.prisma` was loaded and `/admin` returned `200`.
+- Found `/api/v1/health/liveness` still returned Vercel `404` because the temporary standalone `apps/api/api/diagnostics.ts` function reserved the `/api/*` namespace ahead of Nest.
+- Removed the temporary diagnostics function and restored API tsconfig coverage to Nest source/test files.
+- Deployed commit `864f5c2`; final production `/admin` and `/api/v1/health/liveness` both return `200`.
+
+### Decisions made
+
+- Default Prisma generation must be provider-aware through `prisma.config.ts`. Reason: deployment builds must generate a Prisma Client whose provider matches the live `DATABASE_URL`.
+- Temporary standalone Vercel diagnostics functions must be removed after diagnosis in this app. Reason: this project relies on Nest owning `/api/v1/*`, and standalone `/api` functions can shadow that namespace on Vercel.
+
+### Files changed
+
+- `package.json` - made default Prisma generate/validate provider-aware and added explicit MySQL scripts.
+- `prisma.config.ts` - honors `VERCEL_ENV=production` in Prisma CLI production detection.
+- `apps/api/api/diagnostics.ts` - removed temporary standalone Vercel diagnostic function.
+- `apps/api/tsconfig.json` - removed temporary `api/**/*.ts` include.
+- `plans/DECISIONS.md` - updated ADR-020 for provider-aware Prisma generation and `/api` namespace cleanup.
+- `plans/PATTERNS.md` - added provider-aware Prisma generation pattern.
+- `plans/vercel-production-env-normalization/*` - updated plan, tasks, context, and review with final evidence.
+- `plans/context.md` - updated active feature summary.
+- `plans/SESSION_LOG.md` - appended this handoff entry.
+
+### Verification
+
+- `DATABASE_URL=postgresql://... VERCEL_ENV=production pnpm.cmd prisma:generate` - passed and loaded `prisma/schema.postgresql.prisma`.
+- `DATABASE_URL=postgresql://... VERCEL_ENV=production pnpm.cmd --filter @ecommerce/api typecheck` - passed.
+- `DATABASE_URL=postgresql://... VERCEL_ENV=production pnpm.cmd --filter @ecommerce/api test:integration -- app-config.spec.ts` - passed.
+- `DATABASE_URL=postgresql://... VERCEL_ENV=production pnpm.cmd --filter @ecommerce/api build` - passed and loaded `prisma/schema.postgresql.prisma`.
+- Vercel deployment `dpl_DpDodY541PXgZqiyhtDBvCtnWSYZ` from commit `864f5c2` - READY and aliased to `mag-ec.vercel.app`.
+- `https://mag-ec.vercel.app/admin` - `200 OK`.
+- `https://mag-ec.vercel.app/api/v1/health/liveness` - `200 OK`, body `{"status":"ok"}`.
+- Vercel runtime logs for final deployment with `statusCode=500` - no logs found.
+
+### State at end of session
+
+- Active feature: `vercel-production-env-normalization`
+- Last completed task: Production Vercel runtime crash and API route namespace fixed, committed, pushed, and live-verified.
+- Next task: None for this incident.
+- Blockers: none for the reported `FUNCTION_INVOCATION_FAILED` crash.
+
+### Resume instructions
+
+Start from `plans/vercel-production-env-normalization/review.md` if more Vercel work is requested. The current production deployment is `dpl_DpDodY541PXgZqiyhtDBvCtnWSYZ` on commit `864f5c2`; `/admin` and `/api/v1/health/liveness` were live-verified as `200`.
